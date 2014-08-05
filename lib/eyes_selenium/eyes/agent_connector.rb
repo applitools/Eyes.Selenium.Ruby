@@ -4,13 +4,21 @@ class Applitools::AgentConnector
   headers 'Accept' => 'application/json'
   ssl_ca_file File.join(File.dirname(File.expand_path(__FILE__)), '../../../certs/cacert.pem').to_s
   default_timeout 300
-  #debug_output $stdout # comment out when not debugging
 
-  attr_reader :uri, :auth
-  def initialize(base_uri, username, password)
-    # Remove trailing slashes in base uri and add the running sessions endpoint uri.
-    @uri = base_uri.gsub(/\/$/,"") + "/api/sessions/running"
-    @auth = { username: username, password: password }
+  # comment out when not debugging
+  #http_proxy 'localhost', 8888
+  #debug_output $stdout
+
+  attr_accessor :server_url, :api_key
+
+  def server_url=(server_url)
+    @server_url = server_url
+    # Remove trailing slashes in server url and add the running sessions endpoint uri.
+    @endpoint_uri = server_url.gsub(/\/$/,'') + '/api/sessions/running'
+  end
+
+  def initialize(server_url)
+    self.server_url = server_url
   end
 
   def match_window(session, data)
@@ -18,26 +26,26 @@ class Applitools::AgentConnector
     json_data = data.to_hash.to_json.force_encoding('BINARY') # Notice that this does not include the screenshot
     body = [json_data.length].pack('L>') + json_data + data.screenshot
 
-    res = self.class.post(uri + "/#{session.id}",basic_auth: auth, body: body)
-    raise Applitools::EyesError.new("could not connect to server") if res.code != 200
-    res.parsed_response["asExpected"]
+    res = self.class.post(@endpoint_uri + "/#{session.id}", query: {apiKey: api_key}, body: body)
+    raise Applitools::EyesError.new('could not connect to server') if res.code != 200
+    res.parsed_response['asExpected']
   end
 
   def start_session(session_start_info)
    self.class.headers 'Content-Type' => 'application/json'
-   res = self.class.post(uri, basic_auth: auth, body: { startInfo: session_start_info.to_hash }.to_json)
+   res = self.class.post(@endpoint_uri, query: {apiKey: api_key}, body: { startInfo: session_start_info.to_hash }.to_json)
    status_code = res.response.message
    parsed_res = res.parsed_response
-   Applitools::Session.new(parsed_res["id"], parsed_res["url"], status_code == "Created" )
+   Applitools::Session.new(parsed_res['id'], parsed_res['url'], status_code == 'Created' )
   end
 
   def stop_session(session, aborted=nil, save=false)
     self.class.headers 'Content-Type' => 'application/json'
     res = self.class.send_long_request('stop_session') do
-        self.class.delete(uri + "/#{session.id}", basic_auth: auth, query: { aborted: aborted.to_s, updateBaseline: save.to_s })
+        self.class.delete(@endpoint_uri + "/#{session.id}", query: { aborted: aborted.to_s, updateBaseline: save.to_s, apiKey: api_key })
     end
     parsed_res = res.parsed_response
-    parsed_res.delete("$id")
+    parsed_res.delete('$id')
     Applitools::TestResults.new(*parsed_res.values)
   end
 
@@ -47,6 +55,7 @@ class Applitools::AgentConnector
   # Args:
   #   name: (String) name of the method being executed
   #   request_block: (block) The actual block to be executed. Will be called using "yield"
+  # noinspection RubyUnusedLocalVariable
   def self.send_long_request(name, &request_block)
     delay = 2  # seconds
 

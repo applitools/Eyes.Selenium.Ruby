@@ -1,32 +1,52 @@
 class Applitools::Eyes
 
   DEFAULT_MATCH_TIMEOUT = 2.0
-  AGENT_ID = 'eyes.selenium.ruby/' + Applitools::VERSION
+  BASE_AGENT_ID = 'eyes.selenium.ruby/' + Applitools::VERSION
   DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com'
 
-  class << self
-    attr_accessor :api_key
-
-    def log_handler=(handler)
-      EyesLogger.log_handler = handler
-    end
-  end
-
-  # Class instance variables (static variables)
-  @api_key = nil
-
   private
-  attr_reader :agent_connector
+  attr_reader :agent_connector, :full_agent_id
   attr_accessor :session, :session_start_info, :match_window_task, :should_match_window_run_once_on_timeout,
                 :dont_get_title
 
   public
-  attr_reader :disabled, :app_name, :test_name, :is_open, :viewport_size, :failure_reports, :match_level, :driver
+  attr_reader :app_name, :test_name, :is_open, :viewport_size, :failure_reports, :match_level, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
-                :save_new_tests, :save_failed_tests
+                :save_new_tests, :save_failed_tests, :api_key, :is_disabled, :server_url, :agent_id, :log_handler
+
+  def log_handler
+    EyesLogger.log_handler
+  end
+
+  def log_handler=(handler)
+    EyesLogger.log_handler = handler
+  end
 
   def api_key
-    self.class.api_key
+    @agent_connector.api_key
+  end
+
+  def api_key=(api_key)
+    @agent_connector.api_key = api_key
+  end
+
+  def server_url
+    @agent_connector.server_url
+  end
+
+  def server_url=(server_url)
+    if server_url.nil?
+      @agent_connector.server_url = DEFAULT_EYES_SERVER
+    else
+      @agent_connector.server_url = server_url
+    end
+  end
+
+  def full_agent_id
+    if agent_id.nil?
+      return BASE_AGENT_ID
+    end
+    "#{agent_id} [#{BASE_AGENT_ID}]"
   end
 
   def title
@@ -42,13 +62,14 @@ class Applitools::Eyes
 
   def initialize(params={})
 
-    @disabled = params[:disabled]
+    @is_disabled = false
 
     return if disabled?
 
+    @api_key = nil
     @user_inputs = []
     server_url = params.fetch(:server_url, DEFAULT_EYES_SERVER)
-    @agent_connector = Applitools::AgentConnector.new(server_url, AGENT_ID, api_key)
+    @agent_connector = Applitools::AgentConnector.new(server_url)
     @match_timeout = DEFAULT_MATCH_TIMEOUT
     @failure_reports = Applitools::FailureReports::ON_CLOSE
     @save_new_tests = true
@@ -207,7 +228,7 @@ class Applitools::Eyes
   private
 
     def disabled? 
-      disabled
+      is_disabled
     end
 
     def get_driver(params)
@@ -246,7 +267,7 @@ class Applitools::Eyes
       self.batch ||= Applitools::BatchInfo.new
       app_env = Applitools::Environment.new(host_os, host_app, viewport_size, inferred_environment)
       self.session_start_info = Applitools::StartInfo.new(
-          AGENT_ID, app_name, test_name, batch, app_env, match_level, nil, branch_name, parent_branch_name
+          full_agent_id, app_name, test_name, batch, app_env, match_level, nil, branch_name, parent_branch_name
       )
       self.session = agent_connector.start_session(session_start_info)
       self.should_match_window_run_once_on_timeout = session.new_session?
