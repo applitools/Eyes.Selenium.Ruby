@@ -167,8 +167,8 @@ class Applitools::Eyes
       instructions = "Please approve the new baseline at #{session_results_url}"
       EyesLogger.info "--- New test ended.  #{instructions}"
       if raise_ex
-        message = "' #{session_start_info.scenario_id_or_name} of"\
-                " #{session_start_info.app_id_or_name}. #{instructions}"
+        message = "'#{session_start_info.scenario_id_or_name}' of"\
+                " '#{session_start_info.app_id_or_name}'. #{instructions}"
         raise Applitools::NewTestError.new(message, results)
       end
       return results
@@ -179,7 +179,7 @@ class Applitools::Eyes
       EyesLogger.info "--- Failed test ended. See details at #{session_results_url}"
       if raise_ex
         message = "'#{session_start_info.scenario_id_or_name}' of"\
-                "#{session_start_info.app_id_or_name}''. see details at #{session_results_url}"
+                " '#{session_start_info.app_id_or_name}'. see details at #{session_results_url}"
         raise Applitools::TestFailedError.new(message, results)
       end
       return results
