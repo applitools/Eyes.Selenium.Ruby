@@ -1,3 +1,3 @@
 module Applitools
-  VERSION = '1.41.0'
+  VERSION = '2.1.0'
 end
