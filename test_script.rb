@@ -1,16 +1,14 @@
-## Before running this, please install ruby(installtion changes depending on machine)
-## Then install rake via `gem install rake` (all ruby developers use this gem)
-## run `./rake install` in applitools root directory (here), this should install the gem (after we release the gem, users will run `gem install eyes` instead
-
 require 'eyes_selenium'
 require 'logger'
 
-Applitools::Eyes.api_key = 'YOUR_API_KEY'
-Applitools::Eyes.log_handler = Logger.new(STDOUT)
+# require 'openssl'
+# OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 eyes = Applitools::Eyes.new
 
 my_webdriver = Selenium::WebDriver.for :firefox
+eyes.api_key = 'YOUR_API_KEY'
+eyes.log_handler = Logger.new(STDOUT)
 
 begin
   eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: {width: 1024, height: 768}, driver: my_webdriver) do |driver|
