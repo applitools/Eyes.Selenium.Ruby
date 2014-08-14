@@ -1,4 +1,4 @@
-module MatchLevel
+module Applitools::MatchLevel
   NONE = 'None'
   LAYOUT = 'Layout'
   CONTENT = 'Content'

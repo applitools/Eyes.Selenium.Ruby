@@ -72,7 +72,7 @@ class Applitools::Eyes
     server_url = params.fetch(:server_url, DEFAULT_EYES_SERVER)
     @agent_connector = Applitools::AgentConnector.new(server_url)
     @match_timeout = DEFAULT_MATCH_TIMEOUT
-    @match_level = MatchLevel::EXACT
+    @match_level = Applitools::MatchLevel::EXACT
     @failure_reports = Applitools::FailureReports::ON_CLOSE
     @save_new_tests = true
     @save_failed_tests = false
