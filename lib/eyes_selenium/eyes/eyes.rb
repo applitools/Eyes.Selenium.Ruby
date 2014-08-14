@@ -10,9 +10,10 @@ class Applitools::Eyes
                 :dont_get_title
 
   public
-  attr_reader :app_name, :test_name, :is_open, :viewport_size, :failure_reports, :match_level, :driver
+  attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
-                :save_new_tests, :save_failed_tests, :api_key, :is_disabled, :server_url, :agent_id, :log_handler
+                :save_new_tests, :save_failed_tests, :api_key, :is_disabled, :server_url, :agent_id, :log_handler,
+                :failure_reports, :match_level
 
   def log_handler
     EyesLogger.log_handler
@@ -71,6 +72,7 @@ class Applitools::Eyes
     server_url = params.fetch(:server_url, DEFAULT_EYES_SERVER)
     @agent_connector = Applitools::AgentConnector.new(server_url)
     @match_timeout = DEFAULT_MATCH_TIMEOUT
+    @match_level = MatchLevel::EXACT
     @failure_reports = Applitools::FailureReports::ON_CLOSE
     @save_new_tests = true
     @save_failed_tests = false
@@ -104,8 +106,6 @@ class Applitools::Eyes
     @user_inputs = []
     @app_name = params.fetch(:app_name)
     @test_name = params.fetch(:test_name)
-    @failure_reports = params.fetch(:failure_reports, self.failure_reports)
-    @match_level = params.fetch(:match_level,MatchLevel::EXACT)
     @viewport_size = params.fetch(:viewport_size, nil)
 
     @is_open = true

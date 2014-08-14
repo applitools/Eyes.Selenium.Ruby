@@ -1,4 +1,4 @@
 module Applitools::FailureReports
-  IMMEDIATE = 0
-  ON_CLOSE = 1
+  IMMEDIATE = 'Immediate'
+  ON_CLOSE = 'OnClose'
 end
