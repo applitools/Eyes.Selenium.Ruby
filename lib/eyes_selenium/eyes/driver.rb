@@ -55,12 +55,37 @@ class  Applitools::Driver
     Applitools::EyesKeyboard.new(self, driver.keyboard)
   end
 
-  def find_element(by, selector)
-    Applitools::Element.new(self, driver.find_element(by, selector))
+  FINDERS = {
+          :class             => 'class name',
+          :class_name        => 'class name',
+          :css               => 'css selector',
+          :id                => 'id',
+          :link              => 'link text',
+          :link_text         => 'link text',
+          :name              => 'name',
+          :partial_link_text => 'partial link text',
+          :tag_name          => 'tag name',
+          :xpath             => 'xpath',
+        }
+
+  def find_element(*args)
+    how, what = extract_args(args)
+
+    unless by = FINDERS[how.to_sym]
+      raise ArgumentError, "cannot find element by #{how.inspect}"
+    end
+
+    Applitools::Element.new(self, driver.find_element(how, what))
   end
 
-  def find_elements(by, selector)
-    driver.find_elements(by, selector).map { |el| Applitools::Element.new(self, el) }
+  def find_elements(*args)
+    how, what = extract_args(args)
+
+    unless by = FINDERS[how.to_sym]
+      raise ArgumentError, "cannot find element by #{how.inspect}"
+    end
+
+    driver.find_elements(how, what).map { |el| Applitools::Element.new(self, el) }
   end
 
   def ie?
@@ -99,11 +124,34 @@ class  Applitools::Driver
 
     def get_local_ip
       begin
-        Socket.ip_address_list.detect do |intf| 
+        Socket.ip_address_list.detect do |intf|
           intf.ipv4? and !intf.ipv4_loopback? and !intf.ipv4_multicast?
         end.ip_address
       rescue SocketError => e
         raise Applitools::EyesError.new("Failed to get local IP! (#{e})")
+      end
+    end
+
+    def extract_args(args)
+      case args.size
+      when 2
+        args
+      when 1
+        arg = args.first
+
+        unless arg.respond_to?(:shift)
+          raise ArgumentError, "expected #{arg.inspect}:#{arg.class} to respond to #shift"
+        end
+
+        # this will be a single-entry hash, so use #shift over #first or #[]
+        arr = arg.dup.shift
+        unless arr.size == 2
+          raise ArgumentError, "expected #{arr.inspect} to have 2 elements"
+        end
+
+        arr
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
       end
     end
 
