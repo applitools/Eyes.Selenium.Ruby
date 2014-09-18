@@ -71,7 +71,8 @@ class  Applitools::Driver
   def find_element(*args)
     how, what = extract_args(args)
 
-    unless by = FINDERS[how.to_sym]
+    # Make sure that "how" is a valid locator.
+    unless FINDERS[how.to_sym]
       raise ArgumentError, "cannot find element by #{how.inspect}"
     end
 
@@ -81,7 +82,7 @@ class  Applitools::Driver
   def find_elements(*args)
     how, what = extract_args(args)
 
-    unless by = FINDERS[how.to_sym]
+    unless FINDERS[how.to_sym]
       raise ArgumentError, "cannot find element by #{how.inspect}"
     end
 

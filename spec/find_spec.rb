@@ -37,13 +37,15 @@ describe 'find_element(s)' do
     it 'explicit' do
       collection = @driver.find_elements(css: 'a')
       expect(collection).to_not be nil
-      expect(collection.first).to be_a Applitools::Element
+      expect(collection[0]).to be_a Applitools::Element
+      expect(collection[1]).to be_a Applitools::Element
     end
 
     it 'by hash' do
       collection = @driver.find_elements(css: 'a')
       expect(collection).to_not be nil
-      expect(collection.first).to be_a Applitools::Element
+      expect(collection[0]).to be_a Applitools::Element
+      expect(collection[1]).to be_a Applitools::Element
     end
 
   end
