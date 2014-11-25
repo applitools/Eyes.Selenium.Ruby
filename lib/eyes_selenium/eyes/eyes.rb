@@ -13,7 +13,7 @@ class Applitools::Eyes
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
                 :save_new_tests, :save_failed_tests, :api_key, :is_disabled, :server_url, :agent_id, :log_handler,
-                :failure_reports, :match_level
+                :failure_reports, :match_level, :baseline_name
 
   def log_handler
     EyesLogger.log_handler
@@ -267,7 +267,7 @@ class Applitools::Eyes
       self.batch ||= Applitools::BatchInfo.new
       app_env = Applitools::Environment.new(host_os, host_app, viewport_size, inferred_environment)
       self.session_start_info = Applitools::StartInfo.new(
-          full_agent_id, app_name, test_name, batch, app_env, match_level, nil, branch_name, parent_branch_name
+          full_agent_id, app_name, test_name, batch, baseline_name, app_env, match_level, nil, branch_name, parent_branch_name
       )
       self.session = agent_connector.start_session(session_start_info)
       self.should_match_window_run_once_on_timeout = session.new_session?
