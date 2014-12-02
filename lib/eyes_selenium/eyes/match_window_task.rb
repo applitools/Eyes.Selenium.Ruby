@@ -44,24 +44,30 @@ class Applitools::MatchWindowTask
   end
 
   def run(region, tag, wait_before_run=nil)
-    EyesLogger.debug "Trying matching once..."
-    sleep(wait_before_run) if wait_before_run
+    EyesLogger.debug 'Trying matching once...'
+    if wait_before_run
+      EyesLogger.debug 'waiting before run...'
+      sleep(wait_before_run)
+      EyesLogger.debug 'waiting done!'
+    end
     match(region, tag)
   end
 
   def run_with_intervals(region, tag, retry_timeout)
     # We intentionally take the first screenshot before starting the timer, to allow the page
     # just a tad more time to stabilize.
-    EyesLogger.debug 'Matching with interval...'
+    EyesLogger.debug 'Matching with intervals...'
     data = prep_match_data(region, tag, true)
     start = Time.now
     as_expected = agent_connector.match_window(session, data)
     EyesLogger.debug "First call result: #{as_expected}"
     return true if as_expected
+    EyesLogger.debug "Not as expected, performing retry (total timeout #{retry_timeout})"
     match_retry = Time.now - start
     while match_retry < retry_timeout
+      EyesLogger.debug 'Waiting before match...'
       sleep(MATCH_INTERVAL)
-      EyesLogger.debug 'Matching...'
+      EyesLogger.debug 'Done! Matching...'
       return true if match(region, tag, true)
       match_retry = Time.now - start
       EyesLogger.debug "Elapsed time: #{match_retry}"
@@ -84,25 +90,39 @@ class Applitools::MatchWindowTask
     end
 
     def prep_match_data(region, tag, ignore_mismatch)
+      EyesLogger.debug 'Preparing match data...'
       title = eyes.title
+      EyesLogger.debug 'Getting screenshot...'
+      screenshot64 = driver.screenshot_as(:base64)
+      EyesLogger.debug 'Done! Decoding base64...'
       # 'encoded', as in 'png'.
-      current_screenshot_encoded = Base64.decode64(driver.screenshot_as(:base64))
+      current_screenshot_encoded = Base64.decode64(screenshot64)
+      EyesLogger.debug 'Done! Creating image object from PNG...'
       @current_screenshot = ChunkyPNG::Image.from_blob(current_screenshot_encoded)
+      EyesLogger.debug 'Done!'
       # If a region was defined, we refer to the sub-image defined by the region.
       unless region.empty?
+        EyesLogger.debug 'Calculating clipped region...'
         # If the region is out of bounds, clip it
         clipped_region = get_clipped_region(region, @current_screenshot)
         raise Applitools::EyesError.new("Region is outside the viewport: #{region}") if clipped_region.empty?
+        EyesLogger.debug 'Done! Cropping region...'
         @current_screenshot.crop!(clipped_region.left, clipped_region.top, clipped_region.width, clipped_region.height)
+        EyesLogger.debug 'Done! Creating cropped image object...'
         current_screenshot_encoded = @current_screenshot.to_blob.force_encoding('BINARY')
+        EyesLogger.debug 'Done!'
       end
+      EyesLogger.debug 'Compressing screenshot...'
       compressed_screenshot = Applitools::Utils::ImageDeltaCompressor.compress_by_raw_blocks(@current_screenshot,
                                                                                   current_screenshot_encoded,
                                                                                   last_checked_window)
+      EyesLogger.debug 'Done! Creating AppOuptut...'
       app_output = AppOutput.new(title, nil)
       user_inputs = []
+      EyesLogger.debug 'Handling user inputs...'
       if !last_checked_window.nil?
         driver.eyes.user_inputs.each do |trigger|
+          EyesLogger.debug 'Handling trigger...'
           if trigger.is_a?(Applitools::MouseTrigger)
             updated_trigger = nil
             trigger_left = trigger.control.left + trigger.location.x
@@ -121,6 +141,7 @@ class Applitools::MatchWindowTask
                 updated_control = Applitools::Region.new(control_left, control_top, trigger.control.width, trigger.control.height)
                 updated_trigger = Applitools::MouseTrigger.new(trigger.mouse_action, updated_control, Selenium::WebDriver::Point.new(trigger_left, trigger_top))
               end
+              EyesLogger.debug 'Done with trigger!'
               user_inputs << updated_trigger
             else
               EyesLogger.info "Trigger ignored: #{trigger} (out of bounds)"
@@ -133,6 +154,7 @@ class Applitools::MatchWindowTask
                 control_top = trigger.control.top - last_screenshot_bounds.top
                 updated_control = Applitools::Region.new(control_left, control_top, trigger.control.width, trigger.control.height)
                 updated_trigger = Applitools::TextTrigger.new(trigger.text, updated_control)
+                EyesLogger.debug 'Done with trigger!'
                 user_inputs << updated_trigger
               else 
                 EyesLogger.info "Trigger ignored: #{trigger} (control out of bounds)"
@@ -147,11 +169,17 @@ class Applitools::MatchWindowTask
       else
         EyesLogger.info 'Triggers ignored: no previous window checked'
       end
-      Applitools::MatchWindowData.new(app_output, user_inputs, tag, ignore_mismatch, compressed_screenshot)
+      EyesLogger.debug 'Creating MatchWindowData object..'
+      match_window_data_obj = Applitools::MatchWindowData.new(app_output, user_inputs, tag, ignore_mismatch, compressed_screenshot)
+      EyesLogger.debug 'Done creating MatchWindowData object!'
+      match_window_data_obj
     end
 
     def match(region, tag, ignore_mismatch=false)
+      EyesLogger.debug 'Match called...'
       data = prep_match_data(region, tag, ignore_mismatch)
-      agent_connector.match_window(session, data)
+      match_result = agent_connector.match_window(session, data)
+      EyesLogger.debug 'Match done!'
+      match_result
     end
 end

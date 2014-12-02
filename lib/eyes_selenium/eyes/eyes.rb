@@ -121,20 +121,30 @@ class Applitools::Eyes
   end
 
   def check_region(how, what, tag=nil, specific_timeout=-1)
+    EyesLogger.debug 'check_region called'
     return if disabled?
     # We have to start the session if it's not started, since we want the viewport size to be set before getting the
     # element's position and size
     raise Applitools::EyesError.new('Eyes not open') if !open?
     unless session
+      EyesLogger.debug 'Starting session...'
       start_session
+      EyesLogger.debug 'Done! Creating match window task...'
       self.match_window_task = Applitools::MatchWindowTask.new(self, agent_connector, session, driver, match_timeout)
+      EyesLogger.debug 'Done!'
     end
 
+    EyesLogger.debug 'Finding element...'
     element_to_check = driver.find_element(how, what)
+    EyesLogger.debug 'Done! Getting element location...'
     location = element_to_check.location
+    EyesLogger.debug 'Done! Getting element size...'
     size = element_to_check.size
+    EyesLogger.debug 'Done! Creating region...'
     region = Applitools::Region.new(location.x, location.y, size.width, size.height)
+    EyesLogger.debug 'Done! Checking region...'
     check_region_(region, tag, specific_timeout)
+    EyesLogger.debug 'Done!'
   end
 
   def check_window(tag=nil, specific_timeout=-1)
@@ -288,16 +298,21 @@ class Applitools::Eyes
 
   def check_region_(region, tag=nil, specific_timeout=-1)
     return if disabled?
-    EyesLogger.info "check_region('#{tag}', #{specific_timeout})"
+    EyesLogger.info "check_region_('#{tag}', #{specific_timeout})"
     raise Applitools::EyesError.new('region cannot be nil!') if region.nil?
     raise Applitools::EyesError.new('Eyes not open') if !open?
 
     unless session
+      EyesLogger.debug 'Starting session...'
       start_session
+      EyesLogger.debug 'Done! Creating match window task...'
       self.match_window_task = Applitools::MatchWindowTask.new(self, agent_connector, session, driver, match_timeout)
+      EyesLogger.debug 'Done!'
     end
 
+    EyesLogger.debug 'Starting match task...'
     as_expected = match_window_task.match_window(region, specific_timeout, tag, should_match_window_run_once_on_timeout)
+    EyesLogger.debug 'Match window done!'
     unless as_expected
       self.should_match_window_run_once_on_timeout = true
       unless session.new_session?

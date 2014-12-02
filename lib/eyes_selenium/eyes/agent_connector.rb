@@ -25,9 +25,10 @@ class Applitools::AgentConnector
     self.class.headers 'Content-Type' => 'application/octet-stream'
     json_data = data.to_hash.to_json.force_encoding('BINARY') # Notice that this does not include the screenshot
     body = [json_data.length].pack('L>') + json_data + data.screenshot
-
+    EyesLogger.debug 'Sending match data...'
     res = self.class.post(@endpoint_uri + "/#{session.id}", query: {apiKey: api_key}, body: body)
     raise Applitools::EyesError.new('could not connect to server') if res.code != 200
+    EyesLogger.debug "Got response! #{res.parsed_response['asExpected']}"
     res.parsed_response['asExpected']
   end
 
