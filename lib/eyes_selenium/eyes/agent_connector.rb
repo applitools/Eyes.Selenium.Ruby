@@ -35,8 +35,10 @@ class Applitools::AgentConnector
   def start_session(session_start_info)
    self.class.headers 'Content-Type' => 'application/json'
    res = self.class.post(@endpoint_uri, query: {apiKey: api_key}, body: { startInfo: session_start_info.to_hash }.to_json)
+   EyesLogger.debug "Got response! #{res}"
    status_code = res.response.message
    parsed_res = res.parsed_response
+   EyesLogger.debug "Parsed response #{parsed_res}"
    Applitools::Session.new(parsed_res['id'], parsed_res['url'], status_code == 'Created' )
   end
 

@@ -1,24 +1,27 @@
 class Applitools::ViewportSize
 
-  GET_VIEWPORT_HEIGHT_JAVASCRIPT_FOR_NORMAL_BROWSER = "return window.innerHeight"
-  GET_VIEWPORT_WIDTH_JAVASCRIPT_FOR_NORMAL_BROWSER  = "return window.innerWidth"
+  JS_GET_VIEWPORT_HEIGHT =
+      'var height = undefined;' +
+      '  if (window.innerHeight) {height = window.innerHeight;}' +
+      '  else if (document.documentElement ' +
+        '&& document.documentElement.clientHeight) ' +
+          '{height = document.documentElement.clientHeight;}' +
+      '  else { var b = document.getElementsByTagName("body")[0]; ' +
+                'if (b.clientHeight) {height = b.clientHeight;}' +
+          '};' +
+      'return height;'
 
-  DOCUMENT_CLEAR_SCROLL_BARS_JAVASCRIPT = "var doc = document.documentElement;" +
-                                          "var previousOverflow = doc.style.overflow;"
-  DOCUMENT_RESET_SCROLL_BARS_JAVASCRIPT = "doc.style.overflow = previousOverflow;"
-  DOCUMENT_RETURN_JAVASCRIPT            = "return __applitools_result;"
-
-  GET_VIEWPORT_WIDTH_JAVASCRIPT_FOR_BAD_BROWSERS = 
-                  DOCUMENT_CLEAR_SCROLL_BARS_JAVASCRIPT        +
-                  "var __applitools_result = doc.clientWidth;" +
-                  DOCUMENT_RESET_SCROLL_BARS_JAVASCRIPT        +
-                  DOCUMENT_RETURN_JAVASCRIPT
-
-  GET_VIEWPORT_HEIGHT_JAVASCRIPT_FOR_BAD_BROWSERS = 
-                  DOCUMENT_CLEAR_SCROLL_BARS_JAVASCRIPT         +
-                  "var __applitools_result = doc.clientHeight;" +
-                  DOCUMENT_RESET_SCROLL_BARS_JAVASCRIPT         +
-                  DOCUMENT_RETURN_JAVASCRIPT
+  JS_GET_VIEWPORT_WIDTH  =
+      'var width = undefined;' +
+      ' if (window.innerWidth) {width = window.innerWidth;}' +
+      ' else if (document.documentElement ' +
+          '&& document.documentElement.clientWidth) ' +
+            '{width = document.documentElement.clientWidth;}' +
+      ' else { var b = document.getElementsByTagName("body")[0]; ' +
+              'if (b.clientWidth) {' +
+                'width = b.clientWidth;}' +
+              '};' +
+            'return width;'
 
   attr_reader :driver
   attr_accessor :dimension
@@ -28,23 +31,11 @@ class Applitools::ViewportSize
   end
 
   def extract_viewport_width
-     begin
-       return driver.execute_script(GET_VIEWPORT_WIDTH_JAVASCRIPT_FOR_NORMAL_BROWSER)
-     rescue => e 
-       EyesLogger.info "getViewportSize(): Browser does not support innerWidth (#{e.message})"
-     end
-
-    driver.execute_script(GET_VIEWPORT_WIDTH_JAVASCRIPT_FOR_BAD_BROWSERS)
+    driver.execute_script(JS_GET_VIEWPORT_WIDTH)
   end
 
   def extract_viewport_height
-     begin
-       return driver.execute_script(GET_VIEWPORT_HEIGHT_JAVASCRIPT_FOR_NORMAL_BROWSER)
-     rescue  => e 
-       EyesLogger.info "getViewportSize(): Browser does not support innerHeight (#{e.message})"
-     end
-
-    driver.execute_script(GET_VIEWPORT_HEIGHT_JAVASCRIPT_FOR_BAD_BROWSERS)
+    driver.execute_script(JS_GET_VIEWPORT_HEIGHT)
   end
 
   def extract_viewport_from_browser!
@@ -52,12 +43,17 @@ class Applitools::ViewportSize
   end
 
   def extract_viewport_from_browser
-    width  = extract_viewport_width 
-    height = extract_viewport_height
-    Applitools::Dimension.new(width,height)
-  rescue => e
-    EyesLogger.info "getViewportSize(): only window size is available (#{e.message})"
-    width, height = *browser_size.values
+    width, height = nil, nil
+    begin
+      width  = extract_viewport_width
+      height = extract_viewport_height
+    rescue => e
+      EyesLogger.info "getViewportSize(): failed to extract viewport size using Javascript: (#{e.message})"
+    end
+    if width.nil? || height.nil?
+      EyesLogger.info 'getViewportSize(): using window size as viewport size.'
+      width, height = *browser_size.values
+    end
     Applitools::Dimension.new(width,height)
   end
   alias_method :viewport_size, :extract_viewport_from_browser
