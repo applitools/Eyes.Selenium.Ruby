@@ -18,7 +18,9 @@ class  Applitools::Driver
   def initialize(eyes, options)
     @driver = options[:driver]
     @eyes = eyes
-    @remote_server_url = address_of_remote_server
+    # FIXME fix getting "remote address url" or remove "Screenshot taker" alltogether.
+    # @remote_server_url = address_of_remote_server
+    @remote_server_url = 'MOCK_URL'
     @remote_session_id = remote_session_id
     begin
       #noinspection RubyResolve
@@ -105,19 +107,20 @@ class  Applitools::Driver
 
   private
 
-    def address_of_remote_server
-      # The driver's url is not available using a standard interface, so we use reflection to get it.
-      #noinspection RubyResolve
-      uri = URI(driver.instance_eval{@bridge}.instance_eval{@http}.instance_eval{@server_url})
-      raise Applitools::EyesError.new('Failed to get remote web driver url') if uri.to_s.empty?
-
-      webdriver_host = uri.host
-      if %w[127.0.0.1 localhost].include?(webdriver_host) && !firefox? && !ie?
-        uri.host = get_local_ip || 'localhost'
-      end
-
-      uri
-    end
+    # FIXME Fix extraction of remote server, or remove completely if removed ScreenshotTaker
+    # def address_of_remote_server
+    #   # The driver's url is not available using a standard interface, so we use reflection to get it.
+    #   #noinspection RubyResolve
+    #   uri = URI(driver.instance_eval{@bridge}.instance_eval{@http}.instance_eval{@server_url})
+    #   raise Applitools::EyesError.new('Failed to get remote web driver url') if uri.to_s.empty?
+    #
+    #   webdriver_host = uri.host
+    #   if %w[127.0.0.1 localhost].include?(webdriver_host) && !firefox? && !ie?
+    #     uri.host = get_local_ip || 'localhost'
+    #   end
+    #
+    #   uri
+    # end
 
     def remote_session_id
       driver.remote_session_id

@@ -6,8 +6,8 @@ require 'logger'
 
 eyes = Applitools::Eyes.new
 
-my_webdriver = Selenium::WebDriver.for :firefox
-eyes.api_key = 'YOUR_API_KEY'
+my_webdriver = Selenium::WebDriver.for :chrome
+eyes.api_key = ENV['APPLITOOLS_API_KEY']
 eyes.log_handler = Logger.new(STDOUT)
 
 begin
