@@ -94,8 +94,9 @@ class Applitools::MatchWindowTask
       title = eyes.title
       EyesLogger.debug 'Getting screenshot...'
       screenshot64 = driver.screenshot_as(:base64)
+      # We need a reference to the raw bytes of the PNG, which is why we didn't
+      # use +Applitools::Utils::ImageUtils.image_from_base64+.
       EyesLogger.debug 'Done! Decoding base64...'
-      # 'encoded', as in 'png'.
       current_screenshot_encoded = Base64.decode64(screenshot64)
       EyesLogger.debug 'Done! Creating image object from PNG...'
       @current_screenshot = ChunkyPNG::Image.from_blob(current_screenshot_encoded)

@@ -1,21 +1,21 @@
 =begin
 Applitools SDK class.
 
-Provides image compression based on image sequences and deflate
+Provides image compression based on image sequences and deflate.
 =end
 require 'oily_png'
-require 'base64'
 
 class Applitools::Utils::ImageDeltaCompressor
 
   # Compresses the target image based on the source image.
+  #
   # +target+:: +ChunkyPNG::Canvas+ The image to compress based on the source image.
   # +target_encoded+:: +Array+ The uncompressed image as binary string.
   # +source+:: +ChunkyPNG::Canvas+ The source image used as a base for compressing the target image.
   # +block_size+:: +Integer+ The width/height of each block.
-  # ++
+  #
   # Returns +String+ The binary result (either the compressed image, or the uncompressed image if the compression
-  # is greater in length)
+  # is greater in length).
   def self.compress_by_raw_blocks(target, target_encoded, source, block_size = 10)
     # If we can't compress for any reason, return the target image as is.
     if source.nil? || (source.height != target.height) || (source.width != target.width)
@@ -84,7 +84,7 @@ class Applitools::Utils::ImageDeltaCompressor
   ### PRIVATE
   private
 
-  @@PREAMBLE = "applitools"
+  @@PREAMBLE = 'applitools'
   @@FORMAT_RAW_BLOCKS = 3
 
   Dimension = Struct.new(:width, :height)

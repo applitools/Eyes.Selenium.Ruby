@@ -1,6 +1,34 @@
 require 'socket'
 require 'selenium-webdriver'
+require 'appium_lib'
+
 class  Applitools::Driver
+
+  # Prepares an image for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
+  #
+  # +driver+:: +Applitools::Driver+ The driver which produced the screenshot.
+  # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
+  #
+  # Returns:
+  # +Integer+ The rotation of the screenshot we get from the webdriver (degrees).
+  def self.normalize_image!(driver, image, rotation=0)
+    EyesLogger.debug "#{__method__}()"
+    # Handling rotation
+    num_quadrants = 0
+    if rotation != 0
+      if rotation % 90 != 0
+        raise Applitools::EyesError.new "Currently only quadrant rotations are supported. Current rotation: #{rotation}"
+      end
+      num_quadrants = (rotation / 90).to_i
+    elsif driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
+      # For Android, we need to rotate images to the right, and for iOS to the left.
+      num_quadrants = driver.android? ? 1 : -1
+    end
+    if num_quadrants != 0
+      Applitools::Utils::ImageUtils.quadrant_rotate!(image, num_quadrants)
+    end
+  end
+
 
   include Selenium::WebDriver::DriverExtensions::HasInputDevices
 
@@ -9,7 +37,7 @@ class  Applitools::Driver
 
   DRIVER_METHODS = [
     :title, :execute_script, :execute_async_script, :quit, :close, :get,
-    :post, :page_source, :window_handles, :window_handle, :switch_to, 
+    :post, :page_source, :window_handles, :window_handle, :switch_to,
     :navigate, :manage, :capabilities
   ]
 
@@ -17,8 +45,9 @@ class  Applitools::Driver
   #
   def initialize(eyes, options)
     @driver = options[:driver]
+    @is_mobile_device = options.fetch(:is_mobile_device, false)
     @eyes = eyes
-    # FIXME fix getting "remote address url" or remove "Screenshot taker" alltogether.
+    # FIXME fix getting "remote address url" or remove "Screenshot taker" altogether.
     # @remote_server_url = address_of_remote_server
     @remote_server_url = 'MOCK_URL'
     @remote_session_id = remote_session_id
@@ -29,7 +58,7 @@ class  Applitools::Driver
       else
         @screenshot_taker = Applitools::ScreenshotTaker.new(@remote_server_url, @remote_session_id)
       end
-    rescue => e 
+    rescue => e
       raise Applitools::EyesError.new "Can't take screenshots (#{e.message})"
     end
   end
@@ -40,14 +69,64 @@ class  Applitools::Driver
     end
   end
 
-  def screenshot_as(output_type)
-    return driver.screenshot_as(output_type) if !screenshot_taker
+  # Returns:
+  # +String+ The platform name or +nil+ if it is undefined.
+  def platform_name
+    driver.capabilities['platformName']
+  end
 
-    if output_type.downcase.to_sym != :base64
-      raise Applitools::EyesError.new("#{output_type} ouput type not supported for screenshot")
+  # Returns:
+  # +String+ The platform version or +nil+ if it is undefined.
+  def platform_version
+    version = driver.capabilities['platformVersion']
+    version.nil? ? nil : version.to_s
+  end
+
+  # Returns:
+  # +true+ if the driver is an Android driver.
+  def android?
+    platform_name.to_s.upcase == 'ANDROID'
+  end
+
+  # Returns:
+  # +true+ if the driver is an iOS driver.
+  def ios?
+    platform_name.to_s.upcase == 'IOS'
+  end
+
+  # Returns:
+  # +true+ if the driver orientation is landscape.
+  def landscape_orientation?
+    driver.orientation.to_s.upcase == 'LANDSCAPE'
+  end
+
+  # Returns:
+  # +true+ if the platform running the test is a mobile platform. +false+ otherwise.
+  def mobile_device?
+    # We CAN'T check if the device is an +Appium::Driver+ since it is not a RemoteWebDriver. Because of that we use a
+    # flag we got as an option in the constructor.
+    @is_mobile_device
+  end
+
+  def screenshot_as(output_type)
+    # TODO Check if screenshot_taker is still required
+    if screenshot_taker
+      if output_type.downcase.to_sym != :base64
+        raise Applitools::EyesError.new("#{output_type} output type not supported for screenshot")
+      end
+      screenshot64 = screenshot_taker.screenshot
+    else
+      screenshot = driver.screenshot_as(output_type)
+      # We only support additional processing of the output (such as rotation) for Base64 type of screenshots.
+      if output_type.downcase.to_sym != :base64
+        return screenshot
+      end
+      screenshot64 = screenshot
     end
-    screenshot_taker.screenshot
-  end 
+    screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(screenshot64)
+    Applitools::Driver.normalize_image!(self, screenshot)
+    Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
+  end
 
   def mouse
     Applitools::EyesMouse.new(self, driver.mouse)
@@ -103,6 +182,7 @@ class  Applitools::Driver
     execute_script 'return navigator.userAgent'
   rescue => e
     EyesLogger.info "getUserAgent(): Failed to obtain user-agent string (#{e.message})"
+    return nil
   end
 
   private

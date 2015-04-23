@@ -48,11 +48,19 @@ class Applitools::ViewportSize
       width  = extract_viewport_width
       height = extract_viewport_height
     rescue => e
-      EyesLogger.info "getViewportSize(): failed to extract viewport size using Javascript: (#{e.message})"
+      EyesLogger.info "#{__method__}(): Failed to extract viewport size using Javascript: (#{e.message})"
     end
     if width.nil? || height.nil?
-      EyesLogger.info 'getViewportSize(): using window size as viewport size.'
+      EyesLogger.info "#{__method__}(): Using window size as viewport size."
       width, height = *browser_size.values
+      width, height = width.ceil, height.ceil
+      begin
+        if driver.landscape_orientation? && height > width
+          width, height = height, width
+        end
+      rescue NameError
+        # Ignored. This error will occur for web based drivers, since they don't have the "orientation" attribute.
+      end
     end
     Applitools::Dimension.new(width,height)
   end
@@ -64,7 +72,7 @@ class Applitools::ViewportSize
       self.dimension = Struct.new(:width, :height).new(dimension[:width], dimension[:height])
     elsif !dimension.respond_to?(:width) || !dimension.respond_to?(:height)
       raise ArgumentError, "expected #{dimension.inspect}:#{dimension.class}" +
-                           " to respond to #width and #height, or be a hash with these keys"
+                           ' to respond to #width and #height, or be a hash with these keys.'
     end
     self.browser_size = dimension
     verify_size(:browser_size)

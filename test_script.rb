@@ -14,8 +14,8 @@ begin
   eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: {width: 1024, height: 768}, driver: my_webdriver) do |driver|
     driver.get 'http://www.applitools.com'
     eyes.check_window('initial')
-    eyes.check_region(:css, 'li.pricing', 'Pricing button')
-    driver.find_element(:css, 'li.pricing a').click
+    eyes.check_region(:css, '.pricing', 'Pricing button')
+    driver.find_element(:css, '.pricing a').click
     eyes.check_window('pricing page')
   end
 ensure

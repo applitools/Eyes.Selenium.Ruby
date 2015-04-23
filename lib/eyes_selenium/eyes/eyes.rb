@@ -91,6 +91,8 @@ class Applitools::Eyes
 
     if driver.is_a?(Selenium::WebDriver::Driver)
       @driver = Applitools::Driver.new(self, {driver: driver})
+    elsif driver.is_a?(Appium::Driver)
+      @driver = Applitools::Driver.new(self, {driver: driver.driver, is_mobile_device: true})
     else
       unless driver.is_a?(Applitools::Driver)
         raise Applitools::EyesError.new("Driver is not a Selenium::WebDriver::Driver (#{driver.class.name})")
@@ -250,32 +252,60 @@ class Applitools::Eyes
       params.fetch(:driver, nil)
     end
 
-    def mobile_os
-      caps = driver.capabilities
-      device = caps['device'] ? caps['device'] : caps[:platform]
-      if device && device!=''
-        major_version = caps[:version] ? caps[:version].split('.')[0] : ''
-        major_version = (major_version != nil) && (major_version != '') && (major_version != '0') ? major_version : nil
-        major_version.nil? ? ('%s' % device) : ('%s %s' % [device, major_version])
-      end
-    end
-
     def inferred_environment
       user_agent = driver.user_agent
       if user_agent
-        'useragent:' + user_agent
+        "useragent:#{user_agent}"
       else
-        mos = mobile_os
-        if not mos.nil?
-          'pos:;%s' % mos
+        nil
+      end
+    end
+
+    # Application environment is the environment (e.g., the host OS) which runs the application under test.
+    #
+    # Returns:
+    # +Applitools::Environment+ The application environment.
+    def app_environment
+      os = host_os
+      if os.nil?
+        EyesLogger.info 'No OS set, checking for mobile OS...'
+        if driver.mobile_device?
+          platform_name = nil
+          EyesLogger.info 'Mobile device detected! Checking device type..'
+          if driver.android?
+            EyesLogger.info 'Android detected.'
+            platform_name = 'Android'
+          elsif driver.ios?
+            EyesLogger.info 'iOS detected.'
+            platform_name = 'iOS'
+          else
+            EyesLogger.info 'Unknown device type.'
+          end
+          # We only set the OS if we identified the device type.
+          unless platform_name.nil?
+            platform_version = driver.platform_version
+            if platform_version.nil?
+              os = platform_name
+            else
+              # Notice that Ruby's +split+ function's +limit+ is the number of elements, whereas in Python it is the
+              # maximum splits performed (which is why they are set differently).
+              major_version = platform_version.split('.', 2)[0]
+              os = "#{platform_name} #{major_version}"
+            end
+            EyesLogger.info "Setting OS: #{os}"
+          end
+        else
+          EyesLogger.info 'No mobile OS detected.'
         end
       end
+      # Create and return the environment object.
+      Applitools::Environment.new(os, host_app, viewport_size, inferred_environment)
     end
 
     def start_session
       assign_viewport_size
       self.batch ||= Applitools::BatchInfo.new
-      app_env = Applitools::Environment.new(host_os, host_app, viewport_size, inferred_environment)
+      app_env = app_environment
       self.session_start_info = Applitools::StartInfo.new(
           full_agent_id, app_name, test_name, batch, baseline_name, app_env, match_level, nil, branch_name, parent_branch_name
       )
