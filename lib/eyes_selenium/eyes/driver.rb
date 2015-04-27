@@ -38,7 +38,7 @@ class  Applitools::Driver
   DRIVER_METHODS = [
     :title, :execute_script, :execute_async_script, :quit, :close, :get,
     :post, :page_source, :window_handles, :window_handle, :switch_to,
-    :navigate, :manage, :capabilities
+    :navigate, :manage, :capabilities, :current_url
   ]
 
   ## If driver is not provided, Applitools::Driver will raise an EyesError exception.
