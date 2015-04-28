@@ -22,18 +22,18 @@ class Applitools::MatchWindowTask
     @current_screenshot = nil # +ChunkyPNG::Canvas+
   end
 
-  def match_window(region, retry_timeout, tag,run_once_after_wait=false)
+  def match_window(region, retry_timeout, tag, rotation, run_once_after_wait=false)
     if retry_timeout < 0
       retry_timeout = default_retry_timeout
     end
     EyesLogger.debug "Retry timeout set to: #{retry_timeout}"
     start = Time.now
     res = if retry_timeout.zero?
-            run(region, tag)
+            run(region, tag, rotation)
           elsif run_once_after_wait
-            run(region, tag, retry_timeout)
+            run(region, tag, rotation, retry_timeout)
           else
-            run_with_intervals(region, tag, retry_timeout)
+            run_with_intervals(region, tag, rotation, retry_timeout)
           end
     elapsed_time = Time.now - start
     EyesLogger.debug "match_window(): Completed in #{format('%.2f', elapsed_time)} seconds"
@@ -43,21 +43,21 @@ class Applitools::MatchWindowTask
     driver.eyes.clear_user_inputs and return res
   end
 
-  def run(region, tag, wait_before_run=nil)
+  def run(region, tag, rotation, wait_before_run=nil)
     EyesLogger.debug 'Trying matching once...'
     if wait_before_run
       EyesLogger.debug 'waiting before run...'
       sleep(wait_before_run)
       EyesLogger.debug 'waiting done!'
     end
-    match(region, tag)
+    match(region, tag, rotation)
   end
 
-  def run_with_intervals(region, tag, retry_timeout)
+  def run_with_intervals(region, tag, rotation, retry_timeout)
     # We intentionally take the first screenshot before starting the timer, to allow the page
     # just a tad more time to stabilize.
     EyesLogger.debug 'Matching with intervals...'
-    data = prep_match_data(region, tag, true)
+    data = prep_match_data(region, tag, rotation, true)
     start = Time.now
     as_expected = agent_connector.match_window(session, data)
     EyesLogger.debug "First call result: #{as_expected}"
@@ -68,13 +68,13 @@ class Applitools::MatchWindowTask
       EyesLogger.debug 'Waiting before match...'
       sleep(MATCH_INTERVAL)
       EyesLogger.debug 'Done! Matching...'
-      return true if match(region, tag, true)
+      return true if match(region, tag, rotation, true)
       match_retry = Time.now - start
       EyesLogger.debug "Elapsed time: #{match_retry}"
     end
     ## lets try one more time if we still don't have a match
     EyesLogger.debug 'Last attempt to match...'
-    as_expected = match(region, tag)
+    as_expected = match(region, tag, rotation)
     EyesLogger.debug "Match result: #{as_expected}"
     as_expected
   end
@@ -89,15 +89,11 @@ class Applitools::MatchWindowTask
       Applitools::Region.new(left, top, width, height)
     end
 
-    def prep_match_data(region, tag, ignore_mismatch)
+    def prep_match_data(region, tag, rotation, ignore_mismatch)
       EyesLogger.debug 'Preparing match data...'
       title = eyes.title
       EyesLogger.debug 'Getting screenshot...'
-      screenshot64 = driver.screenshot_as(:base64)
-      # We need a reference to the raw bytes of the PNG, which is why we didn't
-      # use +Applitools::Utils::ImageUtils.image_from_base64+.
-      EyesLogger.debug 'Done! Decoding base64...'
-      current_screenshot_encoded = Base64.decode64(screenshot64)
+      current_screenshot_encoded = driver.screenshot_as(:png, rotation)
       EyesLogger.debug 'Done! Creating image object from PNG...'
       @current_screenshot = ChunkyPNG::Image.from_blob(current_screenshot_encoded)
       EyesLogger.debug 'Done!'
@@ -176,9 +172,9 @@ class Applitools::MatchWindowTask
       match_window_data_obj
     end
 
-    def match(region, tag, ignore_mismatch=false)
+    def match(region, tag, rotation, ignore_mismatch=false)
       EyesLogger.debug 'Match called...'
-      data = prep_match_data(region, tag, ignore_mismatch)
+      data = prep_match_data(region, tag, rotation, ignore_mismatch)
       match_result = agent_connector.match_window(session, data)
       EyesLogger.debug 'Match done!'
       match_result

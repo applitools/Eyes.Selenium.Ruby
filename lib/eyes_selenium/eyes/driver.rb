@@ -4,27 +4,28 @@ require 'appium_lib'
 
 class  Applitools::Driver
 
-  # Prepares an image for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
+  # Prepares an image (in place!) for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
   #
   # +driver+:: +Applitools::Driver+ The driver which produced the screenshot.
   # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
+  # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
+  #                                 negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate
+  #                                 automatically when needed.
   #
-  # Returns:
-  # +Integer+ The rotation of the screenshot we get from the webdriver (degrees).
-  def self.normalize_image!(driver, image, rotation=0)
+  def self.normalize_image!(driver, image, rotation)
     EyesLogger.debug "#{__method__}()"
-    # Handling rotation
-    num_quadrants = 0
     if rotation != 0
-      if rotation % 90 != 0
-        raise Applitools::EyesError.new "Currently only quadrant rotations are supported. Current rotation: #{rotation}"
+      num_quadrants = 0
+      if !rotation.nil?
+        if rotation % 90 != 0
+          raise Applitools::EyesError.new(
+            "Currently only quadrant rotations are supported. Current rotation: #{rotation}")
+        end
+        num_quadrants = (rotation / 90).to_i
+      elsif rotation.nil? && driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
+        # For Android, we need to rotate images to the right, and for iOS to the left.
+        num_quadrants = driver.android? ? 1 : -1
       end
-      num_quadrants = (rotation / 90).to_i
-    elsif driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
-      # For Android, we need to rotate images to the right, and for iOS to the left.
-      num_quadrants = driver.android? ? 1 : -1
-    end
-    if num_quadrants != 0
       Applitools::Utils::ImageUtils.quadrant_rotate!(image, num_quadrants)
     end
   end
@@ -108,24 +109,28 @@ class  Applitools::Driver
     @is_mobile_device
   end
 
-  def screenshot_as(output_type)
-    # TODO Check if screenshot_taker is still required
-    if screenshot_taker
-      if output_type.downcase.to_sym != :base64
-        raise Applitools::EyesError.new("#{output_type} output type not supported for screenshot")
-      end
-      screenshot64 = screenshot_taker.screenshot
-    else
-      screenshot = driver.screenshot_as(output_type)
-      # We only support additional processing of the output (such as rotation) for Base64 type of screenshots.
-      if output_type.downcase.to_sym != :base64
-        return screenshot
-      end
-      screenshot64 = screenshot
+  # Return a PNG screenshot in the given format as a string
+  #
+  # +output_type+:: +Symbol+ The format of the screenshot. Accepted values are +:base64+ and +:png+.
+  # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
+  #                                 negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate
+  #                                 automatically when needed.
+  #
+  # Returns: +String+ A screenshot in the requested format.
+  def screenshot_as(output_type, rotation=nil)
+    # FIXME Check if screenshot_taker is still required
+    screenshot = screenshot_taker ? screenshot_taker.screenshot : driver.screenshot_as(:base64)  
+    screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(screenshot)
+    Applitools::Driver.normalize_image!(self, screenshot, rotation)
+    case output_type
+      when :base64
+        screenshot = Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
+      when :png
+        screenshot = Applitools::Utils::ImageUtils.bytes_from_png_image(screenshot)
+      else
+        raise Applitools::EyesError.new("Unsupported screenshot output type #{output_type.to_s}")
     end
-    screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(screenshot64)
-    Applitools::Driver.normalize_image!(self, screenshot)
-    Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
+    screenshot.force_encoding('BINARY')
   end
 
   def mouse
