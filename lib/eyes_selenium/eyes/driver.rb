@@ -98,7 +98,11 @@ class  Applitools::Driver
   # Returns:
   # +true+ if the driver orientation is landscape.
   def landscape_orientation?
-    driver.orientation.to_s.upcase == 'LANDSCAPE'
+    begin
+      driver.orientation.to_s.upcase == 'LANDSCAPE'
+    rescue NameError
+      EyesLogger.debug 'driver has no "orientation" attribute. Assuming Portrait.'
+    end
   end
 
   # Returns:
@@ -119,7 +123,7 @@ class  Applitools::Driver
   # Returns: +String+ A screenshot in the requested format.
   def screenshot_as(output_type, rotation=nil)
     # FIXME Check if screenshot_taker is still required
-    screenshot = screenshot_taker ? screenshot_taker.screenshot : driver.screenshot_as(:base64)  
+    screenshot = screenshot_taker ? screenshot_taker.screenshot : driver.screenshot_as(:base64)
     screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(screenshot)
     Applitools::Driver.normalize_image!(self, screenshot, rotation)
     case output_type

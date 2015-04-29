@@ -54,12 +54,8 @@ class Applitools::ViewportSize
       EyesLogger.info "#{__method__}(): Using window size as viewport size."
       width, height = *browser_size.values
       width, height = width.ceil, height.ceil
-      begin
-        if driver.landscape_orientation? && height > width
-          width, height = height, width
-        end
-      rescue NameError
-        # Ignored. This error will occur for web based drivers, since they don't have the "orientation" attribute.
+      if driver.landscape_orientation? && height > width
+        width, height = height, width
       end
     end
     Applitools::Dimension.new(width,height)
@@ -87,7 +83,7 @@ class Applitools::ViewportSize
   def verify_size(to_verify, sleep_time=1, retries=3)
     cur_size = nil
     retries.times do
-      sleep(sleep_time) 
+      sleep(sleep_time)
       cur_size = send(to_verify)
       return if cur_size.values == dimension.values
     end
