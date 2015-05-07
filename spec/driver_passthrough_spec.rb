@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'passthrough_methods' do
 
   before(:each) do |example|
-    @eyes         = Applitools::Selenium::Eyes.new
+    @eyes         = Applitools::Eyes.new
     @eyes.api_key = 'dummy_key'
     driver        = Selenium::WebDriver.for :firefox
     @driver       = @eyes.open(app_name:      'the-internet', test_name: example.metadata[:full_description],

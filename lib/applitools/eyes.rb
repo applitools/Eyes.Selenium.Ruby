@@ -1,4 +1,4 @@
-class Applitools::Selenium::Eyes
+class Applitools::Eyes
 
   DEFAULT_MATCH_TIMEOUT = 2.0  # Seconds
   BASE_AGENT_ID = 'eyes.selenium.ruby/' + Applitools::VERSION

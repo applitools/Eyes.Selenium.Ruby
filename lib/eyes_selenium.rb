@@ -1,7 +1,7 @@
 module Applitools
-  require 'applitools/eyes_logger'
-
   ROOT_DIR = File.join(File.dirname(File.expand_path(__FILE__)), 'applitools').freeze
+
+  Dir["#{ROOT_DIR}/*.rb"].each {|f| require f}
 
   module Selenium
     Dir["#{ROOT_DIR}/selenium/**/*.rb"].each {|f| require f}
