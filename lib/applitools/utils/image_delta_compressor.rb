@@ -20,7 +20,7 @@ class Applitools::Utils::ImageDeltaCompressor
     # If we can't compress for any reason, return the target image as is.
     if source.nil? || (source.height != target.height) || (source.width != target.width)
       # Returning a COPY of the target binary string
-      return String.new(target_encoded) 
+      return String.new(target_encoded)
     end
 
     # Preparing the variables we need
