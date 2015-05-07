@@ -6,7 +6,7 @@ require 'eyes_selenium/version'
 Gem::Specification.new do |spec|
   spec.name          = 'eyes_selenium'
   spec.version       = Applitools::VERSION
-  spec.authors       = ['Applitools team']
+  spec.authors       = ['Applitools Team']
   spec.email         = ['team@applitools.com']
   spec.description   = 'Applitools Ruby SDK'
   spec.summary       = 'Applitools Ruby SDK'
