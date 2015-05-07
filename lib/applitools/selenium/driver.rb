@@ -2,18 +2,18 @@ require 'socket'
 require 'selenium-webdriver'
 require 'appium_lib'
 
-class  Applitools::Driver
+class  Applitools::Selenium::Driver
 
   # Prepares an image (in place!) for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
   #
-  # +driver+:: +Applitools::Driver+ The driver which produced the screenshot.
+  # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
   # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
   # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
   #                                 negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate
   #                                 automatically when needed.
   #
   def self.normalize_image!(driver, image, rotation)
-    EyesLogger.debug "#{__method__}()"
+    Applitools::EyesLogger.debug "#{__method__}()"
     if rotation != 0
       num_quadrants = 0
       if !rotation.nil?
@@ -42,7 +42,7 @@ class  Applitools::Driver
     :navigate, :manage, :capabilities, :current_url
   ]
 
-  ## If driver is not provided, Applitools::Driver will raise an EyesError exception.
+  ## If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
   #
   def initialize(eyes, options)
     @driver = options[:driver]
@@ -57,7 +57,7 @@ class  Applitools::Driver
       if driver.capabilities.takes_screenshot?
        @screenshot_taker = false
       else
-        @screenshot_taker = Applitools::ScreenshotTaker.new(@remote_server_url, @remote_session_id)
+        @screenshot_taker = Applitools::Selenium::ScreenshotTaker.new(@remote_server_url, @remote_session_id)
       end
     rescue => e
       raise Applitools::EyesError.new "Can't take screenshots (#{e.message})"
@@ -101,7 +101,7 @@ class  Applitools::Driver
     begin
       driver.orientation.to_s.upcase == 'LANDSCAPE'
     rescue NameError
-      EyesLogger.debug 'driver has no "orientation" attribute. Assuming Portrait.'
+      Applitools::EyesLogger.debug 'driver has no "orientation" attribute. Assuming Portrait.'
     end
   end
 
@@ -125,7 +125,7 @@ class  Applitools::Driver
     # FIXME Check if screenshot_taker is still required
     screenshot = screenshot_taker ? screenshot_taker.screenshot : driver.screenshot_as(:base64)
     screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(screenshot)
-    Applitools::Driver.normalize_image!(self, screenshot, rotation)
+    Applitools::Selenium::Driver.normalize_image!(self, screenshot, rotation)
     case output_type
       when :base64
         screenshot = Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
@@ -138,11 +138,11 @@ class  Applitools::Driver
   end
 
   def mouse
-    Applitools::EyesMouse.new(self, driver.mouse)
+    Applitools::Selenium::Mouse.new(self, driver.mouse)
   end
 
   def keyboard
-    Applitools::EyesKeyboard.new(self, driver.keyboard)
+    Applitools::Selenium::Keyboard.new(self, driver.keyboard)
   end
 
   FINDERS = {
@@ -166,7 +166,7 @@ class  Applitools::Driver
       raise ArgumentError, "cannot find element by #{how.inspect}"
     end
 
-    Applitools::Element.new(self, driver.find_element(how, what))
+    Applitools::Selenium::Element.new(self, driver.find_element(how, what))
   end
 
   def find_elements(*args)
@@ -176,7 +176,7 @@ class  Applitools::Driver
       raise ArgumentError, "cannot find element by #{how.inspect}"
     end
 
-    driver.find_elements(how, what).map { |el| Applitools::Element.new(self, el) }
+    driver.find_elements(how, what).map { |el| Applitools::Selenium::Element.new(self, el) }
   end
 
   def ie?
@@ -190,7 +190,7 @@ class  Applitools::Driver
   def user_agent
     execute_script 'return navigator.userAgent'
   rescue => e
-    EyesLogger.info "getUserAgent(): Failed to obtain user-agent string (#{e.message})"
+    Applitools::EyesLogger.info "getUserAgent(): Failed to obtain user-agent string (#{e.message})"
     return nil
   end
 

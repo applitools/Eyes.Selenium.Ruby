@@ -14,12 +14,12 @@ module Applitools::Utils::ImageUtils
   # Returns:
   # +ChunkyPNG::Canvas+ An image object.
   def self.png_image_from_bytes(png_bytes)
-    EyesLogger.debug "#{__method__}()"
+    Applitools::EyesLogger.debug "#{__method__}()"
     image = ChunkyPNG::Image.from_blob(png_bytes)
-    EyesLogger.debug 'Done!'
+    Applitools::EyesLogger.debug 'Done!'
     return image
   end
-    
+
   # Creates an image instance from a base64 representation of its PNG encoding.
   #
   # +png_bytes64+:: +String+ The Base64 representation of a PNG image.
@@ -27,9 +27,9 @@ module Applitools::Utils::ImageUtils
   # Returns:
   # +ChunkyPNG::Canvas+ An image object.
   def self.png_image_from_base64(png_bytes64)
-    EyesLogger.debug "#{__method__}()"
+    Applitools::EyesLogger.debug "#{__method__}()"
     png_bytes = Base64.decode64(png_bytes64)
-    EyesLogger.debug 'Done!'
+    Applitools::EyesLogger.debug 'Done!'
     return png_image_from_bytes(png_bytes)
   end
 
@@ -40,9 +40,9 @@ module Applitools::Utils::ImageUtils
   # Returns:
   # +String+ The PNG bytes of the image.
   def self.bytes_from_png_image(image)
-    EyesLogger.debug "#{__method__}()"
+    Applitools::EyesLogger.debug "#{__method__}()"
     png_bytes = image.to_blob
-    EyesLogger.debug 'Done!'
+    Applitools::EyesLogger.debug 'Done!'
     return png_bytes
   end
 
@@ -53,11 +53,11 @@ module Applitools::Utils::ImageUtils
   # Returns:
   # +String+ the Base64 representation of the raw PNG bytes of an image.
   def self.base64_from_png_image(image)
-    EyesLogger.debug "#{__method__}()"
+    Applitools::EyesLogger.debug "#{__method__}()"
     png_bytes = bytes_from_png_image(image)
-    EyesLogger.debug 'Encoding as base64...'
+    Applitools::EyesLogger.debug 'Encoding as base64...'
     image64 = Base64.encode64(png_bytes)
-    EyesLogger.debug 'Done!'
+    Applitools::EyesLogger.debug 'Done!'
     return image64
   end
 

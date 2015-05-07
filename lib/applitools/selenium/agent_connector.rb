@@ -1,5 +1,7 @@
 require 'httparty'
-class Applitools::AgentConnector
+
+class Applitools::Selenium::AgentConnector
+
   include HTTParty
   headers 'Accept' => 'application/json'
   ssl_ca_file File.join(File.dirname(File.expand_path(__FILE__)), '../../../certs/cacert.pem').to_s
@@ -25,10 +27,10 @@ class Applitools::AgentConnector
     self.class.headers 'Content-Type' => 'application/octet-stream'
     json_data = data.to_hash.to_json.force_encoding('BINARY') # Notice that this does not include the screenshot
     body = [json_data.length].pack('L>') + json_data + data.screenshot
-    EyesLogger.debug 'Sending match data...'
+    Applitools::EyesLogger.debug 'Sending match data...'
     res = self.class.post(@endpoint_uri + "/#{session.id}", query: {apiKey: api_key}, body: body)
     raise Applitools::EyesError.new('could not connect to server') if res.code != 200
-    EyesLogger.debug "Got response! #{res.parsed_response['asExpected']}"
+    Applitools::EyesLogger.debug "Got response! #{res.parsed_response['asExpected']}"
     res.parsed_response['asExpected']
   end
 
@@ -37,7 +39,7 @@ class Applitools::AgentConnector
    res = self.class.post(@endpoint_uri, query: {apiKey: api_key}, body: { startInfo: session_start_info.to_hash }.to_json)
    status_code = res.response.message
    parsed_res = res.parsed_response
-   Applitools::Session.new(parsed_res['id'], parsed_res['url'], status_code == 'Created' )
+   Applitools::Selenium::Session.new(parsed_res['id'], parsed_res['url'], status_code == 'Created' )
   end
 
   def stop_session(session, aborted=nil, save=false)
@@ -47,7 +49,7 @@ class Applitools::AgentConnector
     end
     parsed_res = res.parsed_response
     parsed_res.delete('$id')
-    Applitools::TestResults.new(*parsed_res.values)
+    Applitools::Selenium::TestResults.new(*parsed_res.values)
   end
 
   private
@@ -68,7 +70,7 @@ class Applitools::AgentConnector
       if res.code != 202
         return res
       end
-      EyesLogger.debug "#{name}: Still running... Retrying in #{delay}s"
+      Applitools::EyesLogger.debug "#{name}: Still running... Retrying in #{delay}s"
       sleep delay
       delay = [10, (delay*1.5).round].min
     end

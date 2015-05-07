@@ -1,4 +1,4 @@
-class Applitools::ViewportSize
+class Applitools::Selenium::ViewportSize
 
   JS_GET_VIEWPORT_HEIGHT =
       'var height = undefined;' +
@@ -48,17 +48,17 @@ class Applitools::ViewportSize
       width  = extract_viewport_width
       height = extract_viewport_height
     rescue => e
-      EyesLogger.info "#{__method__}(): Failed to extract viewport size using Javascript: (#{e.message})"
+      Applitools::EyesLogger.info "#{__method__}(): Failed to extract viewport size using Javascript: (#{e.message})"
     end
     if width.nil? || height.nil?
-      EyesLogger.info "#{__method__}(): Using window size as viewport size."
+      Applitools::EyesLogger.info "#{__method__}(): Using window size as viewport size."
       width, height = *browser_size.values
       width, height = width.ceil, height.ceil
       if driver.landscape_orientation? && height > width
         width, height = height, width
       end
     end
-    Applitools::Dimension.new(width,height)
+    Applitools::Selenium::Dimension.new(width,height)
   end
   alias_method :viewport_size, :extract_viewport_from_browser
 
@@ -73,7 +73,7 @@ class Applitools::ViewportSize
     self.browser_size = dimension
     verify_size(:browser_size)
     cur_viewport_size = extract_viewport_from_browser
-    self.browser_size = Applitools::Dimension.new(
+    self.browser_size = Applitools::Selenium::Dimension.new(
                           (2 * browser_size.width) - cur_viewport_size.width,
                           (2 * browser_size.height) - cur_viewport_size.height
                         )
@@ -87,7 +87,7 @@ class Applitools::ViewportSize
       cur_size = send(to_verify)
       return if cur_size.values == dimension.values
     end
-    EyesLogger.info(err_msg = "Failed setting #{to_verify} to #{dimension.values} (current size: #{cur_size.values})")
+    Applitools::EyesLogger.info(err_msg = "Failed setting #{to_verify} to #{dimension.values} (current size: #{cur_size.values})")
     raise Applitools::TestFailedError.new(err_msg)
   end
 

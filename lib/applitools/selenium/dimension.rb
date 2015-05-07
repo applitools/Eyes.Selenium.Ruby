@@ -1,4 +1,4 @@
-class Applitools::Dimension
+class Applitools::Selenium::Dimension
 
   attr_accessor :width, :height
   def initialize(width, height)

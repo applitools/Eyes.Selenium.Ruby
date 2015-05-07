@@ -1,4 +1,4 @@
-module Applitools::MatchLevel
+module Applitools::Selenium::MatchLevel
   NONE = 'None'
   LAYOUT = 'Layout'
   CONTENT = 'Content'

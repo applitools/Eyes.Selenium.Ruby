@@ -1,4 +1,4 @@
-class Applitools::MouseTrigger
+class Applitools::Selenium::MouseTrigger
 
   MOUSE_ACTION = { click: 'Click', right_click: 'RightClick',  double_click: 'DoubleClick',  move: 'Move',  down: 'Down',  up: 'Up' }
 

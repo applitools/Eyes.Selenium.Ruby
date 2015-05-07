@@ -1,6 +1,6 @@
 require 'logger'
 
-module EyesLogger
+module Applitools::EyesLogger
 
   class NullLogger
     attr_accessor :level
@@ -10,7 +10,7 @@ module EyesLogger
     end
     def debug(msg)
       #do nothing
-    end 
+    end
   end
 
   NULL_LOGGER = NullLogger.new

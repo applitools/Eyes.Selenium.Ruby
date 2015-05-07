@@ -1,6 +1,6 @@
 require 'securerandom'
 
-class Applitools::BatchInfo
+class Applitools::Selenium::BatchInfo
   attr_accessor :id
   attr_reader :name, :started_at
   def initialize(name=nil, started_at = Time.now)

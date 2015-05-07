@@ -1,4 +1,4 @@
-class Applitools::Region
+class Applitools::Selenium::Region
   attr_accessor :left, :top, :width, :height
 
   def initialize(left, top, width, height)
@@ -8,7 +8,7 @@ class Applitools::Region
     @height = height.round
   end
 
-  EMPTY = Applitools::Region.new(0, 0, 0, 0)
+  EMPTY = Applitools::Selenium::Region.new(0, 0, 0, 0)
 
   def make_empty
     @left = EMPTY.left

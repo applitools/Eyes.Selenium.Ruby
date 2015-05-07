@@ -1,5 +1,5 @@
 require 'httparty'
-class Applitools::ScreenshotTaker
+class Applitools::Selenium::ScreenshotTaker
   include HTTParty
   headers 'Accept' => 'application/json'
   headers 'Content-Type' => 'application/json'
