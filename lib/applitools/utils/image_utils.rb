@@ -3,7 +3,7 @@ Applitools SDK class.
 
 Provides images manipulation functionality.
 =end
-require 'oily_png'
+require 'chunky_png'
 require 'base64'
 
 module Applitools::Utils::ImageUtils

@@ -3,7 +3,7 @@ Applitools SDK class.
 
 Provides image compression based on image sequences and deflate.
 =end
-require 'oily_png'
+require 'chunky_png'
 
 class Applitools::Utils::ImageDeltaCompressor
 

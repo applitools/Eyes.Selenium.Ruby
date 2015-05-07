@@ -1,4 +1,3 @@
-require 'oily_png'
 require 'base64'
 
 class Applitools::Selenium::MatchWindowTask
