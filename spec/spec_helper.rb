@@ -1,4 +1,5 @@
 require 'eyes_selenium'
+require 'pry'
 
 STATIC_FILE = "file://#{File.dirname(__FILE__)}/fixtures/static_test_file.html"
 
