@@ -5,7 +5,7 @@ describe 'passthrough_methods' do
   before(:each) do |example|
     @eyes         = Applitools::Eyes.new
     @eyes.api_key = 'dummy_key'
-    driver        = Selenium::WebDriver.for :firefox
+    driver        = Selenium::WebDriver.for :phantomjs
     @driver       = @eyes.open(app_name:      'the-internet', test_name: example.metadata[:full_description],
                                viewport_size: { width: 800, height: 600 }, driver: driver)
     @driver.get STATIC_FILE
