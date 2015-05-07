@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['team@applitools.com']
   spec.description   = 'Applitools Ruby SDK'
   spec.summary       = 'Applitools Ruby SDK'
-  spec.homepage      = 'http://www.applitools.com'
+  spec.homepage      = 'https://www.applitools.com'
   spec.license       = 'Apache License, Version 2.0'
 
   spec.files         = `git ls-files`.split($/)
