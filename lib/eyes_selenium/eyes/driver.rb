@@ -4,7 +4,8 @@ require 'appium_lib'
 
 class  Applitools::Driver
 
-  # Prepares an image (in place!) for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
+  # Rotates the image as necessary. The rotation is either manually forced by passing a value in
+  # the +rotation+ parameter, or automatically inferred if the +rotation+ parameter is +nil+.
   #
   # +driver+:: +Applitools::Driver+ The driver which produced the screenshot.
   # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
@@ -12,7 +13,7 @@ class  Applitools::Driver
   #                                 negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate
   #                                 automatically when needed.
   #
-  def self.normalize_image!(driver, image, rotation)
+  def self.normalize_rotation!(driver, image, rotation)
     EyesLogger.debug "#{__method__}()"
     if rotation != 0
       num_quadrants = 0
@@ -125,7 +126,7 @@ class  Applitools::Driver
     # FIXME Check if screenshot_taker is still required
     screenshot = screenshot_taker ? screenshot_taker.screenshot : driver.screenshot_as(:base64)
     screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(screenshot)
-    Applitools::Driver.normalize_image!(self, screenshot, rotation)
+    Applitools::Driver.normalize_rotation!(self, screenshot, rotation)
     case output_type
       when :base64
         screenshot = Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
