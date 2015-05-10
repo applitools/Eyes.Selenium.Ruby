@@ -19,7 +19,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "selenium-webdriver", [">= 2.45.0"]
-  spec.add_dependency "appium_lib", [">= 6.0.0"]
   spec.add_dependency "httparty"
   spec.add_dependency "oily_png", [">= 1.1.0"] 
 

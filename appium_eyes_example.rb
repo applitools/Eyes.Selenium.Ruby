@@ -1,7 +1,6 @@
 require 'eyes_selenium'
-require 'openssl'
+require 'appium_lib'
 
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 ##
 # Based on Appium example: https://github.com/appium/appium/blob/master/sample-code/examples/ruby/
 
@@ -11,7 +10,7 @@ def android_caps
 			deviceName:          'Samsung Galaxy S4 Emulator',
 			platformName:        'Android',
 			platformVersion:     4.4,
-			app:                 '/Users/daniel/test/NotesList.apk',
+			app:                 ENV['ANDROID_NOTES_LIST_APP'],
 			appPackage:        	 'com.example.android.notepad',
 			appActivity:         '.NotesList',
 			# orientation:				 'landscape',
@@ -23,7 +22,7 @@ def ios_caps
 			deviceName:          'iPhone 6',
 			platformName:        'ios',
 			platformVersion:     8.3,
-			app:                 '/Users/daniel/Library/Developer/Xcode/DerivedData/HelloXcode-cldusyhxlaclfkbirmthhbgpchqv/Build/Products/Debug-iphonesimulator/HelloXcode.app',
+			app:                 ENV['IOS_DEMO_APP'],
 			orientation:	 'landscape',
 			newCommandTimeout:	 300
 	}
@@ -36,12 +35,12 @@ def appium_opts
 end
 
 
-@eyes = Applitools::Eyes.new(server_url: 'https://localhost.applitools.com')
+@eyes = Applitools::Eyes.new
 @eyes.log_handler = Logger.new(STDOUT)
 @eyes.api_key = ENV['APPLITOOLS_API_KEY']
 begin
-	@driver = Appium::Driver.new({caps: android_caps, appium_lib: appium_opts})
-	# @driver = Appium::Driver.new({caps: ios_caps, appium_lib: appium_opts})
+	# @driver = Appium::Driver.new({caps: android_caps, appium_lib: appium_opts})
+	@driver = Appium::Driver.new({caps: ios_caps, appium_lib: appium_opts})
 	@driver.start_driver
 	# @driver.driver.rotate :landscape
   puts "Screen size: #{@driver.driver.manage.window.size}"

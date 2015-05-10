@@ -1,6 +1,5 @@
 require 'socket'
 require 'selenium-webdriver'
-require 'appium_lib'
 
 class  Applitools::Driver
 
