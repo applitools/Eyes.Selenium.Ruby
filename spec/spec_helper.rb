@@ -1,4 +1,5 @@
 require 'eyes_selenium'
+require 'pry' unless ENV['TRAVIS']
 
 RSpec.configure do |config|
   config.before do
