@@ -3,12 +3,12 @@ module Applitools
 
   Dir["#{ROOT_DIR}/*.rb"].each {|f| require f}
 
-  module Selenium
-    Dir["#{ROOT_DIR}/selenium/**/*.rb"].each {|f| require f}
-  end
-
   module Utils
     Dir["#{ROOT_DIR}/utils/**/*.rb"].each {|f| require f}
+  end
+
+  module Selenium
+    Dir["#{ROOT_DIR}/selenium/**/*.rb"].each {|f| require f}
   end
 
   class EyesError < StandardError; end
