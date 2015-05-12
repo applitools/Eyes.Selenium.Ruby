@@ -11,6 +11,7 @@ class Applitools::Eyes
   MATCH_LEVEL = {
     none: 'None',
     layout: 'Layout',
+    layout2: 'Layout2',
     content: 'Content',
     strict: 'Strict',
     exact: 'Exact'
