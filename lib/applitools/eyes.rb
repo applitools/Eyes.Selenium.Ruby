@@ -67,11 +67,11 @@ class Applitools::Eyes
   end
 
   def title
-    unless dont_get_title
+    unless @dont_get_title
       begin
         return driver.title
       rescue
-        self.dont_get_title = true
+        @dont_get_title = true
       end
     end
 
@@ -153,7 +153,7 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Starting session...'
       start_session
       Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
+      @match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
       Applitools::EyesLogger.debug 'Done!'
     end
 
@@ -187,7 +187,7 @@ class Applitools::Eyes
     end
 
     session_results_url = @session.url
-    new_session = session.new_session?
+    new_session = @session.new_session?
     Applitools::EyesLogger.debug 'Ending server session...'
     save = (new_session && save_new_tests) || (!new_session && save_failed_tests)
     results = Applitools::Selenium::ServerConnector.stop_session(@session, false, save)
@@ -202,7 +202,7 @@ class Applitools::Eyes
       Applitools::EyesLogger.info "--- New test ended. #{instructions}"
 
       if raise_ex
-        message = "'#{session_start_info.scenario_id_or_name}' of '#{session_start_info.app_id_or_name}'. "\
+        message = "'#{@session_start_info.scenario_id_or_name}' of '#{@session_start_info.app_id_or_name}'. "\
           "#{instructions}"
 
         raise Applitools::NewTestError.new(message, results)
@@ -216,8 +216,8 @@ class Applitools::Eyes
       Applitools::EyesLogger.info "--- Failed test ended. See details at #{session_results_url}"
 
       if raise_ex
-        message = "'#{session_start_info.scenario_id_or_name}' of '#{session_start_info.app_id_or_name}'. see details "\
-          "at #{session_results_url}"
+        message = "'#{@session_start_info.scenario_id_or_name}' of '#{@session_start_info.app_id_or_name}'. see "\
+          "details at #{session_results_url}"
 
         raise Applitools::TestFailedError.new(message, results)
       end
@@ -285,7 +285,8 @@ class Applitools::Eyes
   end
 
   def inferred_environment
-    "useragent:#{user_agent}" if driver.user_agent
+    user_agent = driver.user_agent
+    "useragent:#{user_agent}" if user_agent
   end
 
   # Application environment is the environment (e.g., the host OS) which runs the application under test.
@@ -337,7 +338,7 @@ class Applitools::Eyes
 
     @session_start_info = Applitools::Selenium::StartInfo.new(full_agent_id, app_name, test_name, batch, baseline_name,
       app_env, match_level, nil, branch_name, parent_branch_name)
-    @session = Applitools::Selenium::ServerConnector.start_session(session_start_info)
+    @session = Applitools::Selenium::ServerConnector.start_session(@session_start_info)
     @should_match_window_run_once_on_timeout = @session.new_session?
   end
 
@@ -364,21 +365,21 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Starting session...'
       start_session
       Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
+      @match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
       Applitools::EyesLogger.debug 'Done!'
     end
 
     Applitools::EyesLogger.debug 'Starting match task...'
-    as_expected = match_window_task.match_window(region, specific_timeout, tag, rotation,
-      should_match_window_run_once_on_timeout)
+    as_expected = @match_window_task.match_window(region, specific_timeout, tag, rotation,
+      @should_match_window_run_once_on_timeout)
     Applitools::EyesLogger.debug 'Match window done!'
     unless as_expected
-      self.should_match_window_run_once_on_timeout = true
+      @should_match_window_run_once_on_timeout = true
       unless @session.new_session?
         Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
         if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
-          raise Applitools::TestFailedError.new("Mismatch found in '#{session_start_info.scenario_id_or_name}' "\
-            "of '#{session_start_info.app_id_or_name}'")
+          raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
+            "of '#{@session_start_info.app_id_or_name}'")
         end
       end
     end
