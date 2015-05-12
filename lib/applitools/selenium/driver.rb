@@ -159,8 +159,6 @@ class Applitools::Selenium::Driver < SimpleDelegator
   end
 
   def user_agent
-    binding.pry
-
     @user_agent ||= execute_script JS_GET_USER_AGENT
   rescue => e
     Applitools::EyesLogger.info "Failed to obtain user-agent string (#{e.message})"
