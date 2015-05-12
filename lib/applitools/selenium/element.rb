@@ -1,9 +1,4 @@
 class Applitools::Selenium::Element < SimpleDelegator
-  alias_method :style, :css_value
-  alias_method :first, :find_element
-  alias_method :all, :find_elements
-  alias_method :[], :attribute
-
   def initialize(driver, element)
     super(element)
 
