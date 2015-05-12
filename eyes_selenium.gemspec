@@ -24,9 +24,14 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'pry-doc'
-  spec.add_development_dependency 'pry-stack_explorer'
   spec.add_development_dependency 'rspec', '>= 3'
   spec.add_development_dependency 'capybara'
+
+  # Exclude debugging support on Travis CI, due to its incompatibility with jruby and older rubies.
+  unless ENV['TRAVIS']
+    spec.add_development_dependency 'pry'
+    spec.add_development_dependency 'pry-byebug'
+    spec.add_development_dependency 'pry-doc'
+    spec.add_development_dependency 'pry-stack_explorer'
+  end
 end
