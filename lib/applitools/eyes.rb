@@ -17,36 +17,34 @@ class Applitools::Eyes
   # +test_name+:: +String+ The test name which was provided as an argument to +open+.
   # +is_open+:: +boolean+ Is there an open session.
   # +viewport_size+:: +Hash+ The viewport size which was provided as an argument to +open+. Should include +width+
-  #                    and +height+.
+  #   and +height+.
   # +driver+:: +Applitools::Selenium::Driver+ The driver instance wrapping the driver which was provided as an argument to +open+.
   # +api_key+:: +String+ The user's API key.
   # +match_timeout+:: +Float+ The default timeout for check_XXXX operations. (Seconds)
   # +batch+:: +BatchInfo+ The current tests grouping, if any.
   # +host_os+:: +String+ A string identifying the OS running the AUT. Set this if you wish to override Eyes' automatic
-  #             inference.
+  #   inference.
   # +host_app+:: +String+ A string identifying the container application running the AUT (e.g., Firefox). Set this if
-  #               you wish to override Eyes' automatic inference.
+  #   you wish to override Eyes' automatic inference.
   # +branch_name+:: +String+ If set, names the branch in which the test should run.
   # +parent_branch_name+:: +String+ If set, names the parent branch of the branch in which the test should run.
   # +user_inputs+:: +Applitools::Selenium::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which happened after
-  #                 the last visual validation.
+  #   the last visual validation.
   # +save_new_tests+:: +boolean+ Whether or not new tests should be automatically accepted as baseline.
   # +save_failed_tests+:: +boolean+ Whether or not failed tests should be automatically accepted as baseline.
-  # +match_level+:: +String+ The default match level for the entire session. See +Applitools::Selenium::MatchLevel+.
+  # +match_level+:: +String+ The default match level for the entire session. See +Applitools::Eyes::MATCH_LEVEL+.
   # +baseline_name+:: +String+ A string identifying the baseline which the test will be compared against. Set this if
-  #                   you wish to override Eyes' automatic baseline inference.
+  #   you wish to override Eyes' automatic baseline inference.
   # +is_disabled+:: +boolean+ Set to +true+ if you wish to disable Eyes without deleting code (Eyes' methods act as a
-  #                 mock, and will do nothing).
+  #   mock, and will do nothing).
   # +server_url+:: +String+ The Eyes' server. Set this if you wish to override the default Eyes server URL.
   # +agent_id+:: +String+ An optional string identifying the current library using the SDK.
   # +log_handler+:: +Logger+ The logger to which Eyes will send info/debug messages.
   # +failure_reports+:: +String+ Whether the current test will report mismatches immediately or when it is finished.
-  #                     See +Applitools::Selenium::FailureReports+.
+  #   See +Applitools::Eyes::FAILURE_REPORTS+.
   # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the screenshots received from the driver. Set this to
-  #               override Eyes' automatic rotation inference. Positive values = clockwise rotation,
-  #               negative values = counter-clockwise, 0 = force no rotation, +nil+ = use Eyes' automatic rotation
-  #               inference.
-  #
+  #   override Eyes' automatic rotation inference. Positive values = clockwise rotation, negative
+  #   values = counter-clockwise, 0 = force no rotation, +nil+ = use Eyes' automatic rotation inference.
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
                 :save_new_tests, :save_failed_tests, :api_key, :is_disabled, :server_url, :agent_id, :log_handler,
