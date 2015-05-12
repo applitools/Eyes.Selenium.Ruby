@@ -12,7 +12,11 @@ class Applitools::Selenium::MatchWindowData
   # IMPORTANT This method returns a hash WITHOUT the screenshot property. This is on purspose! The screenshot should
   # not be included as part of the json.
   def to_hash
-    {userInputs: user_inputs.map(&:to_hash), appOutput: Hash[app_output.each_pair.to_a], tag: @tag,
-      ignoreMismatch: @ignore_mismatch}
+    {
+      userInputs: user_inputs.map(&:to_hash),
+      appOutput: Hash[app_output.each_pair.to_a],
+      tag: @tag,
+      ignoreMismatch: @ignore_mismatch
+    }
   end
 end

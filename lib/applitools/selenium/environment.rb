@@ -9,6 +9,11 @@ class Applitools::Selenium::Environment
   end
 
   def to_hash
-    {os: os, hostingApp: hosting_app, displaySize: display_size.to_hash, inferred: inferred}
+    {
+      os: os,
+      hostingApp: hosting_app,
+      displaySize: display_size.to_hash,
+      inferred: inferred
+    }
   end
 end

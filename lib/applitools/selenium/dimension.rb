@@ -7,8 +7,12 @@ class Applitools::Selenium::Dimension
   end
 
   def to_hash
-    {width: width, height: height}
+    {
+      width: width,
+      height: height
+    }
   end
+
   def values
     [width, height]
   end
