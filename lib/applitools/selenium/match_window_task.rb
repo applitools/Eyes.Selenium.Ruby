@@ -126,8 +126,8 @@ class Applitools::Selenium::MatchWindowTask
             if last_screenshot_bounds.contains?(trigger_left, trigger_top)
               trigger.control.intersect(last_screenshot_bounds)
               if trigger.control.empty?
-                trigger_left = trigger_left - last_screenshot_bounds.left
-                trigger_top = trigger_top -last_screenshot_bounds.top
+                trigger_left -= - last_screenshot_bounds.left
+                trigger_top = trigger_top - last_screenshot_bounds.top
                 updated_trigger = Applitools::Selenium::MouseTrigger.new(trigger.mouse_action, trigger.control, Selenium::WebDriver::Point.new(trigger_left, trigger_top))
               else
                 trigger_left = trigger_left - trigger.control.left
