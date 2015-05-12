@@ -58,7 +58,7 @@ class Applitools::Selenium::ViewportSize
       width  = extract_viewport_width
       height = extract_viewport_height
     rescue => e
-      Applitools::EyesLogger.info "Failed extracting viewport size using JavaScript: (#{e.message})"
+      Applitools::EyesLogger.error "Failed extracting viewport size using JavaScript: (#{e.message})"
     end
 
     if width.nil? || height.nil?
@@ -106,8 +106,9 @@ class Applitools::Selenium::ViewportSize
       return if cur_size.values == @dimension.values
     end
 
-    Applitools::EyesLogger.info(err_msg = "Failed setting #{to_verify} to #{@dimension.values} (current size: "\
-      "#{cur_size.values})")
+    err_msg = "Failed setting #{to_verify} to #{@dimension.values} (current size: #{cur_size.values})"
+
+    Applitools::EyesLogger.error(err_msg)
     raise Applitools::TestFailedError.new(err_msg)
   end
 

@@ -153,7 +153,9 @@ class Applitools::Eyes
     if open?
       abort_if_not_closed
       msg = 'a test is already running'
-      Applitools::EyesLogger.info(msg) and raise Applitools::EyesError.new(msg)
+      Applitools::EyesLogger.warn(msg)
+
+      raise Applitools::EyesError.new(msg)
     end
 
     @user_inputs = []
@@ -281,7 +283,7 @@ class Applitools::Eyes
       begin
         Applitools::Selenium::ServerConnector.stop_session(session, true, false)
       rescue Applitools::EyesError => e
-        Applitools::EyesLogger.info "Failed to abort server session -> #{e.message} "
+        Applitools::EyesLogger.error "Failed to abort server session -> #{e.message} "
       ensure
         self.session = nil
       end
@@ -297,7 +299,7 @@ class Applitools::Eyes
     def get_driver(params)
       # TODO remove the "browser" related block when possible. It's for backward compatibility.
       if params.has_key?(:browser)
-        Applitools::EyesLogger.info('"browser" key is deprecated, please use "driver" instead.')
+        Applitools::EyesLogger.warn('"browser" key is deprecated, please use "driver" instead.')
         return params[:browser]
       end
       params.fetch(:driver, nil)
@@ -330,7 +332,7 @@ class Applitools::Eyes
             Applitools::EyesLogger.info 'iOS detected.'
             platform_name = 'iOS'
           else
-            Applitools::EyesLogger.info 'Unknown device type.'
+            Applitools::EyesLogger.warn 'Unknown device type.'
           end
           # We only set the OS if we identified the device type.
           unless platform_name.nil?
