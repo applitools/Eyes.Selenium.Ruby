@@ -1,4 +1,8 @@
-# Applitools [![Gem Version](https://badge.fury.io/rb/eyes_selenium.svg)](https://rubygems.org/gems/eyes_selenium)
+# Applitools
+
+[![Gem Version](https://badge.fury.io/rb/eyes_selenium.svg)](http://badge.fury.io/rb/eyes_selenium)
+[![Build Status](https://travis-ci.org/applitools/Eyes.Selenium.Ruby.svg)](https://travis-ci.org/applitools/Eyes.Selenium.Ruby)
+[![Dependency Status](https://gemnasium.com/applitools/Eyes.Selenium.Ruby.svg)](https://gemnasium.com/applitools/Eyes.Selenium.Ruby)
 
 Applitools Ruby SDK.
 
@@ -6,15 +10,21 @@ Applitools Ruby SDK.
 
 Add this line to your application's Gemfile:
 
-    gem 'eyes_selenium'
+```ruby
+gem 'eyes_selenium'
+```
 
 And then execute:
 
-    $ bundle
+```ruby
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install eyes_selenium
+```bash
+gem install eyes_selenium
+```
 
 ## Usage
 Please check the applitools website for usage instructions: http://www.applitools.com
