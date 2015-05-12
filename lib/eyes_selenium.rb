@@ -1,3 +1,4 @@
+require 'pry'
 module Applitools
   ROOT_DIR = File.join(File.dirname(File.expand_path(__FILE__)), 'applitools').freeze
 

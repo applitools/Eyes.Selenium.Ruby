@@ -1,7 +1,7 @@
 class Applitools::Selenium::Environment
-
   attr_accessor :os, :hosting_app, :display_size, :inferred
-  def initialize(os=nil, hosting_app=nil, display_size=nil, inferred=nil)
+
+  def initialize(os = nil, hosting_app = nil, display_size = nil, inferred = nil)
     @os = os
     @hosting_app = hosting_app
     @display_size = display_size
@@ -9,7 +9,6 @@ class Applitools::Selenium::Environment
   end
 
   def to_hash
-    # display_size is an Applitools::Selenium::ViewportSize object
-    { os: os, hostingApp: hosting_app, displaySize: display_size.to_hash, inferred: inferred}
+    {os: os, hostingApp: hosting_app, displaySize: display_size.to_hash, inferred: inferred}
   end
 end
