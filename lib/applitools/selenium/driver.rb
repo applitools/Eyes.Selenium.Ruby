@@ -43,13 +43,14 @@ class Applitools::Selenium::Driver < SimpleDelegator
     raise 'Uncapable of taking screenshots!' unless capabilities.takes_screenshot?
   end
 
-  # Prepares an image (in place!) for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
+  # Rotates the image as necessary. The rotation is either manually forced by passing a value in
+  # the +rotation+ parameter, or automatically inferred if the +rotation+ parameter is +nil+.
   #
   # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
   # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
   # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
   #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
-  def self.normalize_image!(driver, image, rotation)
+  def self.normalize_rotation(driver, image, rotation)
     return if rotation == 0
 
     num_quadrants = 0
@@ -119,7 +120,7 @@ class Applitools::Selenium::Driver < SimpleDelegator
   # Returns: +String+ A screenshot in the requested format.
   def screenshot_as(output_type, rotation = nil)
     screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
-    Applitools::Selenium::Driver.normalize_image!(self, screenshot, rotation)
+    Applitools::Selenium::Driver.normalize_rotation!(self, screenshot, rotation)
 
     case output_type
     when :base64
