@@ -15,5 +15,4 @@ rdoc
 .idea/
 .idea-*/
 spec/reports
-test/
 tmp
