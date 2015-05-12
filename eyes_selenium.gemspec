@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry-doc'
   spec.add_development_dependency 'pry-stack_explorer'
   spec.add_development_dependency 'rspec', '>= 3'
+  spec.add_development_dependency 'capybara'
 end
