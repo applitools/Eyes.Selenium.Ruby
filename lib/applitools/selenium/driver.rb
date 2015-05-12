@@ -179,11 +179,12 @@ class Applitools::Selenium::Driver < SimpleDelegator
     when 1
       arg = args.first
 
-      raise ArgumentError, "expected #{arg.inspect}:#{arg.class} to respond to #shift" unless arg.respond_to?(:shift)
+      raise Argu mentError, "expected #{arg.inspect}:#{arg.class} to respond to #shift" unless arg.respond_to?(:shift)
 
       # This will be a single-entry hash, so use #shift over #first or #[].
-      arr = arg.dup.shift
-      raise ArgumentError, "expected #{arr.inspect} to have 2 elements" unless arr.size == 2
+      arg.dup.shift.tap do |arr|
+        raise ArgumentError, "expected #{arr.inspect} to have 2 elements" unless arr.size == 2
+      end
     else
       raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
     end
