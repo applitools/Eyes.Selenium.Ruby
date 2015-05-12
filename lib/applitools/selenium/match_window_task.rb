@@ -39,7 +39,9 @@ class Applitools::Selenium::MatchWindowTask
     @last_checked_window = @current_screenshot
     @last_screenshot_bounds = region.empty? ? Applitools::Selenium::Region.new(0, 0, last_checked_window.width, last_checked_window.height) : region
     #noinspection RubyUnnecessaryReturnStatement
-    driver.eyes.clear_user_inputs and return res
+    driver.clear_user_inputs
+
+    return res
   end
 
   def run(region, tag, rotation, wait_before_run=nil)
@@ -117,7 +119,7 @@ class Applitools::Selenium::MatchWindowTask
       user_inputs = []
       Applitools::EyesLogger.debug 'Handling user inputs...'
       if !last_checked_window.nil?
-        driver.eyes.user_inputs.each do |trigger|
+        driver.user_inputs.each do |trigger|
           Applitools::EyesLogger.debug 'Handling trigger...'
           if trigger.is_a?(Applitools::Selenium::MouseTrigger)
             updated_trigger = nil
