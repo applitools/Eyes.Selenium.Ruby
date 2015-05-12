@@ -1,4 +1,4 @@
-# Applitools
+# Applitools [![Gem Version](https://badge.fury.io/rb/eyes_selenium.svg)](https://rubygems.org/gems/eyes_selenium)
 
 Applitools Ruby SDK.
 
