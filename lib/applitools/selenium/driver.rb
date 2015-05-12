@@ -1,7 +1,6 @@
 require 'forwardable'
 require 'socket'
 require 'selenium-webdriver'
-require 'appium_lib'
 
 class Applitools::Selenium::Driver < SimpleDelegator
   extend Forwardable
