@@ -6,13 +6,13 @@ class Applitools::Selenium::MatchWindowTask
   MATCH_INTERVAL = 0.5
   AppOutput = Struct.new(:title, :screenshot64)
 
-  attr_reader :eyes, :agent_connector, :session, :driver, :default_retry_timeout, :last_checked_window ,:last_screenshot_bounds
+  attr_reader :eyes, :session, :driver, :default_retry_timeout, :last_checked_window ,:last_screenshot_bounds
 
   public
   #noinspection RubyParameterNamingConvention
-  def initialize(eyes, agent_connector, session, driver, default_retry_timeout)
+  def initialize(eyes, session, driver, default_retry_timeout)
     @eyes = eyes
-    @agent_connector = agent_connector
+
     @session = session
     @driver = driver
     @default_retry_timeout = default_retry_timeout
@@ -58,7 +58,7 @@ class Applitools::Selenium::MatchWindowTask
     Applitools::EyesLogger.debug 'Matching with intervals...'
     data = prep_match_data(region, tag, rotation, true)
     start = Time.now
-    as_expected = agent_connector.match_window(session, data)
+    as_expected = Applitools::Selenium::ServerConnector.match_window(session, data)
     Applitools::EyesLogger.debug "First call result: #{as_expected}"
     return true if as_expected
     Applitools::EyesLogger.debug "Not as expected, performing retry (total timeout #{retry_timeout})"
@@ -174,7 +174,7 @@ class Applitools::Selenium::MatchWindowTask
     def match(region, tag, rotation, ignore_mismatch=false)
       Applitools::EyesLogger.debug 'Match called...'
       data = prep_match_data(region, tag, rotation, ignore_mismatch)
-      match_result = agent_connector.match_window(session, data)
+      match_result = Applitools::Selenium::ServerConnector.match_window(session, data)
       Applitools::EyesLogger.debug 'Match done!'
       match_result
     end

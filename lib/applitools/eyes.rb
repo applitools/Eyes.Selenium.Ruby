@@ -5,7 +5,7 @@ class Applitools::Eyes
   DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com'
 
   private
-  attr_reader :agent_connector, :full_agent_id
+  attr_reader :full_agent_id
   attr_accessor :session, :session_start_info, :match_window_task, :should_match_window_run_once_on_timeout,
                 :dont_get_title
 
@@ -61,22 +61,22 @@ class Applitools::Eyes
   end
 
   def api_key
-    @agent_connector.api_key
+    Applitools::Selenium::ServerConnector.api_key
   end
 
   def api_key=(api_key)
-    @agent_connector.api_key = api_key
+    Applitools::Selenium::ServerConnector.api_key = api_key
   end
 
   def server_url
-    @agent_connector.server_url
+    Applitools::Selenium::ServerConnector.server_url
   end
 
   def server_url=(server_url)
     if server_url.nil?
-      @agent_connector.server_url = DEFAULT_EYES_SERVER
+      Applitools::Selenium::ServerConnector.server_url = DEFAULT_EYES_SERVER
     else
-      @agent_connector.server_url = server_url
+      Applitools::Selenium::ServerConnector.server_url = server_url
     end
   end
 
@@ -106,8 +106,10 @@ class Applitools::Eyes
 
     @api_key = nil
     @user_inputs = []
+
     server_url = params.fetch(:server_url, DEFAULT_EYES_SERVER)
-    @agent_connector = Applitools::Selenium::AgentConnector.new(server_url)
+    Applitools::Selenium::ServerConnector.server_url = server_url
+
     @match_timeout = DEFAULT_MATCH_TIMEOUT
     @match_level = Applitools::Selenium::MatchLevel::EXACT
     @failure_reports = Applitools::Selenium::FailureReports::ON_CLOSE
@@ -169,7 +171,7 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Starting session...'
       start_session
       Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, agent_connector, session, driver, match_timeout)
+      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, session, driver, match_timeout)
       Applitools::EyesLogger.debug 'Done!'
     end
 
@@ -205,7 +207,7 @@ class Applitools::Eyes
     new_session = session.new_session?
     Applitools::EyesLogger.debug "close(): Ending server session..."
     save = (new_session && save_new_tests) || (!new_session && save_failed_tests)
-    results = agent_connector.stop_session(session, false, save)
+    results = Applitools::Selenium::ServerConnector.stop_session(session, false, save)
     results.is_new = new_session
     results.url = session_results_url
     Applitools::EyesLogger.debug "close(): #{results}"
@@ -265,7 +267,7 @@ class Applitools::Eyes
     @is_open = false
     if session
       begin
-        agent_connector.stop_session(session, true, false)
+        Applitools::Selenium::ServerConnector.stop_session(session, true, false)
       rescue Applitools::EyesError => e
         Applitools::EyesLogger.info "Failed to abort server session -> #{e.message} "
       ensure
@@ -346,7 +348,7 @@ class Applitools::Eyes
       self.session_start_info = Applitools::Selenium::StartInfo.new(
           full_agent_id, app_name, test_name, batch, baseline_name, app_env, match_level, nil, branch_name, parent_branch_name
       )
-      self.session = agent_connector.start_session(session_start_info)
+      self.session = Applitools::Selenium::ServerConnector.start_session(session_start_info)
       self.should_match_window_run_once_on_timeout = session.new_session?
     end
 
@@ -373,12 +375,13 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Starting session...'
       start_session
       Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, agent_connector, session, driver, match_timeout)
+      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, session, driver, match_timeout)
       Applitools::EyesLogger.debug 'Done!'
     end
 
     Applitools::EyesLogger.debug 'Starting match task...'
-    as_expected = match_window_task.match_window(region, specific_timeout, tag, rotation, should_match_window_run_once_on_timeout)
+    as_expected = match_window_task.match_window(region, specific_timeout, tag, rotation,
+      should_match_window_run_once_on_timeout)
     Applitools::EyesLogger.debug 'Match window done!'
     unless as_expected
       self.should_match_window_run_once_on_timeout = true

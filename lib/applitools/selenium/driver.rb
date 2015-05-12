@@ -48,16 +48,8 @@ class  Applitools::Selenium::Driver
     # @remote_server_url = address_of_remote_server
     @remote_server_url = 'MOCK_URL'
     @remote_session_id = remote_session_id
-    begin
-      #noinspection RubyResolve
-      if driver.capabilities.takes_screenshot?
-       @screenshot_taker = false
-      else
-        @screenshot_taker = Applitools::Selenium::ScreenshotTaker.new(@remote_server_url, @remote_session_id)
-      end
-    rescue => e
-      raise Applitools::EyesError.new "Can't take screenshots (#{e.message})"
-    end
+
+    raise 'Uncapable of taking screenshots!' unless driver.capabilities.takes_screenshot?
   end
 
   DRIVER_METHODS.each do |method|
@@ -191,21 +183,6 @@ class  Applitools::Selenium::Driver
   end
 
   private
-
-    # FIXME Fix extraction of remote server, or remove completely if removed ScreenshotTaker
-    # def address_of_remote_server
-    #   # The driver's url is not available using a standard interface, so we use reflection to get it.
-    #   #noinspection RubyResolve
-    #   uri = URI(driver.instance_eval{@bridge}.instance_eval{@http}.instance_eval{@server_url})
-    #   raise Applitools::EyesError.new('Failed to get remote web driver url') if uri.to_s.empty?
-    #
-    #   webdriver_host = uri.host
-    #   if %w[127.0.0.1 localhost].include?(webdriver_host) && !firefox? && !ie?
-    #     uri.host = get_local_ip || 'localhost'
-    #   end
-    #
-    #   uri
-    # end
 
     def remote_session_id
       driver.remote_session_id
