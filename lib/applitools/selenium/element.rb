@@ -1,34 +1,23 @@
-class Applitools::Selenium::Element
-  attr_accessor :driver, :web_element
-
-  ELEMENT_METHODS = [
-    :hash, :id, :id=, :bridge=, :submit, :clear, :tag_name, :attribute,
-    :selected?, :enabled?, :displayed?, :text, :css_value, :find_element,
-    :find_elements, :location, :size, :location_once_scrolled_into_view,
-    :ref, :to_json, :as_json
-                ]
-
-  ELEMENT_METHODS.each do |method|
-    define_method method do |*args, &block|
-      web_element.send(method,*args, &block)
-    end
-  end
+class Applitools::Selenium::Element < SimpleDelegator
   alias_method :style, :css_value
   alias_method :first, :find_element
   alias_method :all, :find_elements
   alias_method :[], :attribute
 
-
-
   def initialize(driver, element)
+    super(element)
+
     @driver = driver
-    @web_element = element
+  end
+
+  def web_element
+    @web_element ||= __getobj__
   end
 
   def click
     current_control = region
     offset = current_control.middle_offset
-    driver.user_inputs << Applitools::Selenium::MouseTrigger.new(:click, current_control, offset)
+    @driver.user_inputs << Applitools::Selenium::MouseTrigger.new(:click, current_control, offset)
 
     web_element.click
   end
@@ -45,7 +34,7 @@ class Applitools::Selenium::Element
   def send_keys(*args)
     current_control = region
     Selenium::WebDriver::Keys.encode(args).each do |key|
-      driver.user_inputs << Applitools::Selenium::TextTrigger.new(key.to_s, current_control)
+      @driver.user_inputs << Applitools::Selenium::TextTrigger.new(key.to_s, current_control)
     end
 
     web_element.send_keys(*args)

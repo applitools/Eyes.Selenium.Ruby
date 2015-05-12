@@ -2,7 +2,7 @@ require 'base64'
 
 class Applitools::Selenium::MatchWindowTask
   MATCH_INTERVAL = 0.5.freeze
-  APP_OUTPUT = Struct.new(:title, :screenshot64)
+  AppOuptut = Struct.new(:title, :screenshot64)
 
   attr_reader :eyes, :session, :driver, :default_retry_timeout, :last_checked_window,
     :last_screenshot_bounds
@@ -115,7 +115,7 @@ class Applitools::Selenium::MatchWindowTask
     compressed_screenshot = Applitools::Utils::ImageDeltaCompressor.compress_by_raw_blocks(@current_screenshot,
       current_screenshot_encoded, last_checked_window)
     Applitools::EyesLogger.debug 'Done! Creating AppOuptut...'
-    app_output = APP_OUTPUT.new(title, nil)
+    app_output = AppOuptut.new(title, nil)
     user_inputs = []
     Applitools::EyesLogger.debug 'Handling user inputs...'
     if !last_checked_window.nil?

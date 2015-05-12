@@ -1,5 +1,4 @@
 class Applitools::Selenium::TextTrigger
-
   attr_reader :text, :control
 
   def initialize(text, control)
@@ -9,7 +8,9 @@ class Applitools::Selenium::TextTrigger
 
   def to_hash
     {
-      triggetType: 'Text', text: text, control: control.to_hash
+      triggetType: 'Text',
+      text: text,
+      control: control.to_hash
     }
   end
 
