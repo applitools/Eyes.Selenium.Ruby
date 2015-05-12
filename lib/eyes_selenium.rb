@@ -16,10 +16,13 @@ module Applitools
 
   class TestFailedError < StandardError
     attr_accessor :test_results
-    def initialize(message, test_results=nil)
+
+    def initialize(message, test_results = nil)
       super(message)
+
       @test_results = test_results
     end
   end
+
   class NewTestError < TestFailedError; end
 end
