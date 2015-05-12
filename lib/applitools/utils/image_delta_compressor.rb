@@ -1,12 +1,6 @@
-=begin
-Applitools SDK class.
-
-Provides image compression based on image sequences and deflate.
-=end
 require 'chunky_png'
 
 class Applitools::Utils::ImageDeltaCompressor
-
   # Compresses the target image based on the source image.
   #
   # +target+:: +ChunkyPNG::Canvas+ The image to compress based on the source image.
@@ -146,4 +140,6 @@ class Applitools::Utils::ImageDeltaCompressor
     # Returning the compare-and-copy result
     CompareAndCopyBlockChannelDataResult.new(identical, channel_bytes)
   end
+
+  include Applitools::MethodTracer
 end

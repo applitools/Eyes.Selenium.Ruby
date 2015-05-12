@@ -3,17 +3,13 @@ require 'selenium-webdriver'
 require 'appium_lib'
 
 class  Applitools::Selenium::Driver
-
   # Prepares an image (in place!) for being sent to the Eyes server (e.g., handling rotation, scaling etc.).
   #
   # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
   # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
   # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
-  #                                 negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate
-  #                                 automatically when needed.
-  #
+  #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
   def self.normalize_image!(driver, image, rotation)
-    Applitools::EyesLogger.debug "#{__method__}()"
     if rotation != 0
       num_quadrants = 0
       if !rotation.nil?
@@ -247,7 +243,6 @@ class  Applitools::Selenium::Driver
         raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
       end
     end
-
 end
 
 ## .bridge, .session_id and .server_url are private methods in Selenium::WebDriver gem
