@@ -1,4 +1,8 @@
+require 'forwardable'
+
 class Applitools::Eyes
+  extend Forwardable
+
   FAILURE_REPORTS = {
     immediate: 'Immediate',
     on_close: 'OnClose'
@@ -12,18 +16,9 @@ class Applitools::Eyes
     exact: 'Exact'
   }.freeze
 
-
   DEFAULT_MATCH_TIMEOUT = 2.0  # Seconds
-  BASE_AGENT_ID = 'eyes.selenium.ruby/' + Applitools::VERSION
-  DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com'
+  BASE_AGENT_ID = ('eyes.selenium.ruby/' + Applitools::VERSION).freeze
 
-  private
-
-  attr_reader :full_agent_id
-  attr_accessor :session, :session_start_info, :match_window_task, :should_match_window_run_once_on_timeout,
-                :dont_get_title
-
-  public
   #
   # Attributes:
   #
@@ -61,57 +56,29 @@ class Applitools::Eyes
   #   values = counter-clockwise, 0 = force no rotation, +nil+ = use Eyes' automatic rotation inference.
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
-                :save_new_tests, :save_failed_tests, :api_key, :is_disabled, :server_url, :agent_id, :log_handler,
-                :failure_reports, :match_level, :baseline_name, :rotation
+    :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports, :match_level,
+    :baseline_name, :rotation
 
-  def log_handler
-    Applitools::EyesLogger.log_handler
-  end
-
-  def log_handler=(handler)
-    Applitools::EyesLogger.log_handler = handler
-  end
-
-  def api_key
-    Applitools::Selenium::ServerConnector.api_key
-  end
-
-  def api_key=(api_key)
-    Applitools::Selenium::ServerConnector.api_key = api_key
-  end
-
-  def server_url
-    Applitools::Selenium::ServerConnector.server_url
-  end
-
-  def server_url=(server_url)
-    if server_url.nil?
-      Applitools::Selenium::ServerConnector.server_url = DEFAULT_EYES_SERVER
-    else
-      Applitools::Selenium::ServerConnector.server_url = server_url
-    end
-  end
+  def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
+  def_delegators 'Applitools::Selenium::ServerConnector', :api_key, :api_key=, :server_url, :server_url=
 
   def full_agent_id
-    if agent_id.nil?
-      return BASE_AGENT_ID
-    end
-    "#{agent_id} [#{BASE_AGENT_ID}]"
+    @full_agent_id ||= agent_id.nil? ? BASE_AGENT_ID : "#{agent_id} [#{BASE_AGENT_ID}]"
   end
 
   def title
     unless dont_get_title
       begin
-       return driver.title
+        return driver.title
       rescue
         self.dont_get_title = true
       end
     end
+
     ''
   end
 
-  def initialize(params={})
-
+  def initialize(options = {})
     @is_disabled = false
 
     return if disabled?
@@ -119,8 +86,7 @@ class Applitools::Eyes
     @api_key = nil
     @user_inputs = []
 
-    server_url = params.fetch(:server_url, DEFAULT_EYES_SERVER)
-    Applitools::Selenium::ServerConnector.server_url = server_url
+    Applitools::Selenium::ServerConnector.server_url = options[:server_url]
 
     @match_timeout = DEFAULT_MATCH_TIMEOUT
     @match_level = Applitools::Eyes::MATCH_LEVEL[:exact]
@@ -130,23 +96,22 @@ class Applitools::Eyes
     @dont_get_title = false
   end
 
-  def open(params={})
-    @driver = get_driver(params)
+  def open(options = {})
+    @driver = get_driver(options)
     return driver if disabled?
 
     if api_key.nil?
-      #noinspection RubyQuotedStringsInspection
-      raise Applitools::EyesError.new(
-                "API key not set! Log in to https://applitools.com to obtain your API Key and use 'api_key' to set it.")
+      raise Applitools::EyesError.new("API key not set! Log in to https://applitools.com to obtain your API Key and "\
+        "use 'api_key' to set it.")
     end
 
     if driver.is_a?(Selenium::WebDriver::Driver)
-      @driver = Applitools::Selenium::Driver.new(self, {driver: driver})
+      @driver = Applitools::Selenium::Driver.new(self, driver: driver)
     elsif driver.is_a?(Appium::Driver)
-      @driver = Applitools::Selenium::Driver.new(self, {driver: driver.driver, is_mobile_device: true})
+      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: true)
     else
       unless driver.is_a?(Applitools::Selenium::Driver)
-        raise Applitools::EyesError.new("Driver is not a Selenium::WebDriver::Driver (#{driver.class.name})")
+        raise Applitools::EyesError.new("Driver is not a Selenium::WebDriver::Driver (#{driver.class.name})!")
       end
     end
 
@@ -159,11 +124,12 @@ class Applitools::Eyes
     end
 
     @user_inputs = []
-    @app_name = params.fetch(:app_name)
-    @test_name = params.fetch(:test_name)
-    @viewport_size = params.fetch(:viewport_size, nil)
+    @app_name = options.fetch(:app_name)
+    @test_name = options.fetch(:test_name)
+    @viewport_size = options.fetch(:viewport_size, nil)
 
     @is_open = true
+
     driver
   end
 
@@ -175,17 +141,19 @@ class Applitools::Eyes
     user_inputs.clear
   end
 
-  def check_region(how, what, tag=nil, specific_timeout=-1)
+  def check_region(how, what, tag = nil, specific_timeout = -1)
     Applitools::EyesLogger.debug 'check_region called'
     return if disabled?
+
     # We have to start the session if it's not started, since we want the viewport size to be set before getting the
     # element's position and size
-    raise Applitools::EyesError.new('Eyes not open') if !open?
-    unless session
+    raise Applitools::EyesError.new('Eyes not open') unless open?
+
+    unless @session
       Applitools::EyesLogger.debug 'Starting session...'
       start_session
       Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, session, driver, match_timeout)
+      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
       Applitools::EyesLogger.debug 'Done!'
     end
 
@@ -202,7 +170,7 @@ class Applitools::Eyes
     Applitools::EyesLogger.debug 'Done!'
   end
 
-  def check_window(tag=nil, specific_timeout=-1)
+  def check_window(tag = nil, specific_timeout = -1)
     check_region_(Applitools::Selenium::Region::EMPTY, tag, specific_timeout)
   end
 
@@ -210,48 +178,56 @@ class Applitools::Eyes
     return if disabled?
     @is_open = false
 
-    # if there's no running session, the test was never started (never reached checkWindow)
-    if !session
-      Applitools::EyesLogger.debug 'close(): Server session was not started'
-      Applitools::EyesLogger.info 'close(): --- Empty test ended.'
+    # If there's no running session, the test was never started (never reached check_window).
+    unless @session
+      Applitools::EyesLogger.debug 'Server session was not started'
+      Applitools::EyesLogger.info '--- Empty test ended.'
+
       return Applitools::Selenium::TestResults.new
     end
 
-    session_results_url = session.url
+    session_results_url = @session.url
     new_session = session.new_session?
-    Applitools::EyesLogger.debug "close(): Ending server session..."
+    Applitools::EyesLogger.debug 'Ending server session...'
     save = (new_session && save_new_tests) || (!new_session && save_failed_tests)
-    results = Applitools::Selenium::ServerConnector.stop_session(session, false, save)
+    results = Applitools::Selenium::ServerConnector.stop_session(@session, false, save)
     results.is_new = new_session
     results.url = session_results_url
-    Applitools::EyesLogger.debug "close(): #{results}"
+    Applitools::EyesLogger.debug "Results: #{results}"
 
-    self.session = nil
+    @session = nil
 
     if new_session
       instructions = "Please approve the new baseline at #{session_results_url}"
-      Applitools::EyesLogger.info "--- New test ended.  #{instructions}"
+      Applitools::EyesLogger.info "--- New test ended. #{instructions}"
+
       if raise_ex
-        message = "'#{session_start_info.scenario_id_or_name}' of"\
-                " '#{session_start_info.app_id_or_name}'. #{instructions}"
+        message = "'#{session_start_info.scenario_id_or_name}' of '#{session_start_info.app_id_or_name}'. "\
+          "#{instructions}"
+
         raise Applitools::NewTestError.new(message, results)
       end
+
       return results
     end
 
-    if !results.is_passed
+    unless results.is_passed
       # Test failed
       Applitools::EyesLogger.info "--- Failed test ended. See details at #{session_results_url}"
+
       if raise_ex
-        message = "'#{session_start_info.scenario_id_or_name}' of"\
-                " '#{session_start_info.app_id_or_name}'. see details at #{session_results_url}"
+        message = "'#{session_start_info.scenario_id_or_name}' of '#{session_start_info.app_id_or_name}'. see details "\
+          "at #{session_results_url}"
+
         raise Applitools::TestFailedError.new(message, results)
       end
+
       return results
     end
 
     # Test passed
     Applitools::EyesLogger.info "--- Test passed. See details at #{session_results_url}"
+
     results
   end
 
@@ -265,9 +241,9 @@ class Applitools::Eyes
   #      check_window("initial")
   #    end
   #noinspection RubyUnusedLocalVariable
-  def test(params={}, &block)
+  def test(options = {}, &block)
     begin
-      open(params)
+      open(options)
       yield(driver)
       close
     ensure
@@ -275,121 +251,120 @@ class Applitools::Eyes
     end
   end
 
-
   def abort_if_not_closed
     return if disabled?
+
     @is_open = false
-    if session
-      begin
-        Applitools::Selenium::ServerConnector.stop_session(session, true, false)
-      rescue Applitools::EyesError => e
-        Applitools::EyesLogger.error "Failed to abort server session -> #{e.message} "
-      ensure
-        self.session = nil
-      end
+
+    return unless @session
+
+    begin
+      Applitools::Selenium::ServerConnector.stop_session(@session, true, false)
+    rescue Exception, Applitools::EyesError => e
+      Applitools::EyesLogger.error "Failed to abort server session: #{e.message}!"
+    ensure
+      @session = nil
     end
   end
 
   private
 
-    def disabled?
-      is_disabled
+  def disabled?
+    is_disabled
+  end
+
+  def get_driver(options)
+    # TODO remove the "browser" related block when possible. It's for backward compatibility.
+    if options.has_key?(:browser)
+      Applitools::EyesLogger.warn('"browser" key is deprecated, please use "driver" instead.')
+
+      return options[:browser]
     end
 
-    def get_driver(params)
-      # TODO remove the "browser" related block when possible. It's for backward compatibility.
-      if params.has_key?(:browser)
-        Applitools::EyesLogger.warn('"browser" key is deprecated, please use "driver" instead.')
-        return params[:browser]
-      end
-      params.fetch(:driver, nil)
-    end
+    options.fetch(:driver, nil)
+  end
 
-    def inferred_environment
-      user_agent = driver.user_agent
-      if user_agent
-        "useragent:#{user_agent}"
-      else
-        nil
-      end
-    end
+  def inferred_environment
+    "useragent:#{user_agent}" if driver.user_agent
+  end
 
-    # Application environment is the environment (e.g., the host OS) which runs the application under test.
-    #
-    # Returns:
-    # +Applitools::Selenium::Environment+ The application environment.
-    def app_environment
-      os = host_os
-      if os.nil?
-        Applitools::EyesLogger.info 'No OS set, checking for mobile OS...'
-        if driver.mobile_device?
-          platform_name = nil
-          Applitools::EyesLogger.info 'Mobile device detected! Checking device type..'
-          if driver.android?
-            Applitools::EyesLogger.info 'Android detected.'
-            platform_name = 'Android'
-          elsif driver.ios?
-            Applitools::EyesLogger.info 'iOS detected.'
-            platform_name = 'iOS'
-          else
-            Applitools::EyesLogger.warn 'Unknown device type.'
-          end
-          # We only set the OS if we identified the device type.
-          unless platform_name.nil?
-            platform_version = driver.platform_version
-            if platform_version.nil?
-              os = platform_name
-            else
-              # Notice that Ruby's +split+ function's +limit+ is the number of elements, whereas in Python it is the
-              # maximum splits performed (which is why they are set differently).
-              major_version = platform_version.split('.', 2)[0]
-              os = "#{platform_name} #{major_version}"
-            end
-            Applitools::EyesLogger.info "Setting OS: #{os}"
-          end
+  # Application environment is the environment (e.g., the host OS) which runs the application under test.
+  #
+  # Returns:
+  # +Applitools::Selenium::Environment+ The application environment.
+  def app_environment
+    os = host_os
+    if os.nil?
+      Applitools::EyesLogger.info 'No OS set, checking for mobile OS...'
+      if driver.mobile_device?
+        platform_name = nil
+        Applitools::EyesLogger.info 'Mobile device detected! Checking device type..'
+        if driver.android?
+          Applitools::EyesLogger.info 'Android detected.'
+          platform_name = 'Android'
+        elsif driver.ios?
+          Applitools::EyesLogger.info 'iOS detected.'
+          platform_name = 'iOS'
         else
-          Applitools::EyesLogger.info 'No mobile OS detected.'
+          Applitools::EyesLogger.warn 'Unknown device type.'
         end
-      end
-      # Create and return the environment object.
-      Applitools::Selenium::Environment.new(os, host_app, viewport_size, inferred_environment)
-    end
-
-    def start_session
-      assign_viewport_size
-      self.batch ||= Applitools::Selenium::BatchInfo.new
-      app_env = app_environment
-      self.session_start_info = Applitools::Selenium::StartInfo.new(
-          full_agent_id, app_name, test_name, batch, baseline_name, app_env, match_level, nil, branch_name, parent_branch_name
-      )
-      self.session = Applitools::Selenium::ServerConnector.start_session(session_start_info)
-      self.should_match_window_run_once_on_timeout = session.new_session?
-    end
-
-    def viewport_size?
-      viewport_size
-    end
-
-    def assign_viewport_size
-      if viewport_size?
-        @viewport_size = Applitools::Selenium::ViewportSize.new(driver, viewport_size)
-	      viewport_size.set
+        # We only set the OS if we identified the device type.
+        unless platform_name.nil?
+          platform_version = driver.platform_version
+          if platform_version.nil?
+            os = platform_name
+          else
+            # Notice that Ruby's +split+ function's +limit+ is the number of elements, whereas in Python it is the
+            # maximum splits performed (which is why they are set differently).
+            major_version = platform_version.split('.', 2)[0]
+            os = "#{platform_name} #{major_version}"
+          end
+          Applitools::EyesLogger.info "Setting OS: #{os}"
+        end
       else
-        @viewport_size =  Applitools::Selenium::ViewportSize.new(driver).extract_viewport_from_browser!
+        Applitools::EyesLogger.info 'No mobile OS detected.'
       end
     end
 
-  def check_region_(region, tag=nil, specific_timeout=-1)
+    # Create and return the environment object.
+    Applitools::Selenium::Environment.new(os, host_app, viewport_size, inferred_environment)
+  end
+
+  def start_session
+    assign_viewport_size
+    @batch ||= Applitools::Selenium::BatchInfo.new
+    app_env = app_environment
+
+    @session_start_info = Applitools::Selenium::StartInfo.new(full_agent_id, app_name, test_name, batch, baseline_name,
+      app_env, match_level, nil, branch_name, parent_branch_name)
+    @session = Applitools::Selenium::ServerConnector.start_session(session_start_info)
+    @should_match_window_run_once_on_timeout = @session.new_session?
+  end
+
+  def viewport_size?
+    viewport_size
+  end
+
+  def assign_viewport_size
+    if viewport_size?
+      @viewport_size = Applitools::Selenium::ViewportSize.new(driver, viewport_size)
+      viewport_size.set
+    else
+      @viewport_size = Applitools::Selenium::ViewportSize.new(driver).extract_viewport_from_browser!
+    end
+  end
+
+  def check_region_(region, tag = nil, specific_timeout = -1)
     return if disabled?
     Applitools::EyesLogger.info "check_region_('#{tag}', #{specific_timeout})"
     raise Applitools::EyesError.new('region cannot be nil!') if region.nil?
-    raise Applitools::EyesError.new('Eyes not open') if !open?
+    raise Applitools::EyesError.new('Eyes not open') unless open?
 
-    unless session
+    unless @session
       Applitools::EyesLogger.debug 'Starting session...'
       start_session
       Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, session, driver, match_timeout)
+      self.match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
       Applitools::EyesLogger.debug 'Done!'
     end
 
@@ -399,11 +374,11 @@ class Applitools::Eyes
     Applitools::EyesLogger.debug 'Match window done!'
     unless as_expected
       self.should_match_window_run_once_on_timeout = true
-      unless session.new_session?
+      unless @session.new_session?
         Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
         if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
-          raise Applitools::TestFailedError.new("Mismatch found in '#{session_start_info.scenario_id_or_name}'"\
-                                                " of '#{session_start_info.app_id_or_name}'")
+          raise Applitools::TestFailedError.new("Mismatch found in '#{session_start_info.scenario_id_or_name}' "\
+            "of '#{session_start_info.app_id_or_name}'")
         end
       end
     end

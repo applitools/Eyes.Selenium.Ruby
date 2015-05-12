@@ -3,6 +3,8 @@ require 'faraday'
 module Applitools::Selenium::ServerConnector
   extend self
 
+  DEFAULT_SERVER_URL = 'https://eyessdk.applitools.com'.freeze
+
   SSL_CERT = File.join(File.dirname(File.expand_path(__FILE__)), '../../../certs/cacert.pem').to_s.freeze
   DEFAULT_TIMEOUT = 300.freeze
 
@@ -16,9 +18,9 @@ module Applitools::Selenium::ServerConnector
   attr_accessor :server_url, :api_key
   attr_reader :endpoint_url
 
-  def server_url=(server_url)
-    @server_url = server_url
-    @endpoint_url = URI.join(server_url, API_SESSIONS_RUNNING).to_s
+  def server_url=(url)
+    @server_url = url.nil? ? DEFAULT_SERVER_URL : url
+    @endpoint_url = URI.join(@server_url, API_SESSIONS_RUNNING).to_s
   end
 
   def match_window(session, data)
