@@ -1,47 +1,25 @@
 require 'logger'
+require 'forwardable'
 
 module Applitools::EyesLogger
-
-  class NullLogger
-    attr_accessor :level
-
-    def info(msg)
-      # do nothing
+  class NullLogger < Logger
+    def initialize(*args)
     end
-    def debug(msg)
-      #do nothing
+
+    def add(*args, &block)
     end
   end
 
-  NULL_LOGGER = NullLogger.new
+  extend Forwardable
+  extend self
 
-  @@log_handler = NULL_LOGGER
+  def_delegators :@@log_handler, :debug, :info, :warn, :error, :fatal, :open, :close
 
-  def self.log_handler=(log_handler)
-    if !log_handler.respond_to?(:info) || !log_handler.respond_to?(:debug)
-      raise Applitools::EyesError.new('log handler must respond to "info" and "debug"!')
-    end
+  @@log_handler = NullLogger.new
+
+  def log_handler=(log_handler)
+    raise Applitools::EyesError.new('log_handler must implement Logger!') unless log_handler.is_a?(Logger)
+
     @@log_handler = log_handler
   end
-
-  def self.info(msg)
-    @@log_handler.info(msg)
-  end
-
-  def self.debug(msg)
-    @@log_handler.debug(msg)
-  end
-
-  def self.open
-    if @@log_handler.respond_to?(:open)
-      @@log_handler.open
-    end
-  end
-
-  def self.close
-    if @@log_handler.respond_to?(:close)
-      @@log_handler.close
-    end
-  end
-
 end
