@@ -1,5 +1,4 @@
 require 'faraday'
-require 'pry'
 
 module Applitools::Selenium::ServerConnector
   extend self
