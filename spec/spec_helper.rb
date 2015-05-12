@@ -1,5 +1,4 @@
 require 'eyes_selenium'
-require 'pry'
 
 RSpec.configure do |config|
   config.before do
