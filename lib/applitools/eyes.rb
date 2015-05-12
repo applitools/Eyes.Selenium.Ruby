@@ -1,10 +1,24 @@
 class Applitools::Eyes
+  FAILURE_REPORTS = {
+    immediate: 'Immediate',
+    on_close: 'OnClose'
+  }.freeze
+
+  MATCH_LEVEL = {
+    none: 'None',
+    layout: 'Layout',
+    content: 'Content',
+    strict: 'Strict',
+    exact: 'Exact'
+  }.freeze
+
 
   DEFAULT_MATCH_TIMEOUT = 2.0  # Seconds
   BASE_AGENT_ID = 'eyes.selenium.ruby/' + Applitools::VERSION
   DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com'
 
   private
+
   attr_reader :full_agent_id
   attr_accessor :session, :session_start_info, :match_window_task, :should_match_window_run_once_on_timeout,
                 :dont_get_title
@@ -109,8 +123,8 @@ class Applitools::Eyes
     Applitools::Selenium::ServerConnector.server_url = server_url
 
     @match_timeout = DEFAULT_MATCH_TIMEOUT
-    @match_level = Applitools::Selenium::MatchLevel::EXACT
-    @failure_reports = Applitools::Selenium::FailureReports::ON_CLOSE
+    @match_level = Applitools::Eyes::MATCH_LEVEL[:exact]
+    @failure_reports = Applitools::Eyes::FAILURE_REPORTS[:on_close]
     @save_new_tests = true
     @save_failed_tests = false
     @dont_get_title = false
@@ -385,7 +399,7 @@ class Applitools::Eyes
       self.should_match_window_run_once_on_timeout = true
       unless session.new_session?
         Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
-        if failure_reports.to_i == Applitools::Selenium::FailureReports::IMMEDIATE
+        if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
           raise Applitools::TestFailedError.new("Mismatch found in '#{session_start_info.scenario_id_or_name}'"\
                                                 " of '#{session_start_info.app_id_or_name}'")
         end
