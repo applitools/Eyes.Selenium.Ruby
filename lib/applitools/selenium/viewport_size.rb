@@ -33,7 +33,7 @@ class Applitools::Selenium::ViewportSize
   EOF
 
   VERIFY_SLEEP_PERIOD = 1.freeze
-  VERIFT_RETRIES = 3.freeze
+  VERIFY_RETRIES = 3.freeze
 
   def initialize(driver, dimension = nil)
     @driver = driver
@@ -81,27 +81,28 @@ class Applitools::Selenium::ViewportSize
     if @dimension.is_a?(Hash) && @dimension.has_key?(:width) && @dimension.has_key?(:height)
       # If @dimension is hash of width/height, we convert it to a struct with width/height properties.
       @dimension = Struct.new(:width, :height).new(@dimension[:width], @dimension[:height])
-    elsif !@dimension.respond_to?(:width) || !dimension.respond_to?(:height)
-      raise ArgumentError, "expected #{dimension.inspect}:#{dimension.class} to respond to #width and #height, or be "\
+    elsif !@dimension.respond_to?(:width) || !@dimension.respond_to?(:height)
+      raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or be "\
         ' a hash with these keys.'
     end
 
-    @browser_size = dimension
+    @browser_size = @dimension
     verify_size(:browser_size)
 
     cur_viewport_size = extract_viewport_from_browser
 
-    @browser_size = Applitools::Selenium::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
-      (2 * browser_size.height) - cur_viewport_size.height)
+    @browser_size = Applitools::Selenium::Dimension.new((2 * @browser_size.width) - cur_viewport_size.width,
+      (2 * @browser_size.height) - cur_viewport_size.height)
     verify_size(:viewport_size)
   end
 
-  def verify_size(to_verify, sleep_time = VERIFY_SLEEP_PERIOD, retries = VERIFT_RETRIES)
+  def verify_size(to_verify, sleep_time = VERIFY_SLEEP_PERIOD, retries = VERIFY_RETRIES)
     cur_size = nil
 
     retries.times do
       sleep(sleep_time)
       cur_size = send(to_verify)
+
       return if cur_size.values == @dimension.values
     end
 
