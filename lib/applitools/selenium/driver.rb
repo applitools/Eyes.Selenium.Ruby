@@ -77,6 +77,10 @@ class Applitools::Selenium::Driver < SimpleDelegator
     version.nil? ? nil : version.to_s
   end
 
+  def chrome?
+    browser == :chrome
+  end
+
   # Returns:
   # +true+ if the driver is an Android driver.
   def android?
