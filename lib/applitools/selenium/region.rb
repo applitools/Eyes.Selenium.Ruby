@@ -18,7 +18,7 @@ class Applitools::Selenium::Region
   end
 
   def empty?
-     self.left == EMPTY.left && self.top == EMPTY.top && self.width == EMPTY.width && self.height == EMPTY.height
+     @left == EMPTY.left && @top == EMPTY.top && @width == EMPTY.width && @height == EMPTY.height
   end
 
   def right
@@ -43,10 +43,10 @@ class Applitools::Selenium::Region
     i_top = (top >= other.top) ? top : other.top
     i_bottom = (bottom <= other.bottom) ? bottom : other.bottom
 
-    self.left = i_left
-    self.top = i_top
-    self.width = i_right - i_left
-    self.height = i_bottom - i_top
+    @left = i_left
+    @top = i_top
+    @width = i_right - i_left
+    @height = i_bottom - i_top
   end
 
   def contains?(other_left, other_top)

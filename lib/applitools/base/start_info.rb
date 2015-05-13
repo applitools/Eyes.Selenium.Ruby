@@ -1,7 +1,6 @@
-class Applitools::Selenium::StartInfo
+class Applitools::Base::StartInfo
   attr_accessor :agent_id, :app_id_or_name, :scenario_id_or_name, :batch_info, :env_name, :environment, :match_level,
     :ver_id, :branch_name, :parent_branch_name
-
 
   def initialize(agent_id, app_id_or_name, scenario_id_or_name, batch_info, env_name, environment, match_level,
     ver_id = nil, branch_name = nil, parent_branch_name = nil)

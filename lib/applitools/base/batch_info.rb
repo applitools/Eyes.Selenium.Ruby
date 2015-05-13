@@ -1,6 +1,6 @@
 require 'securerandom'
 
-class Applitools::Selenium::BatchInfo
+class Applitools::Base::BatchInfo
   attr_accessor :id
   attr_reader :name, :started_at
 

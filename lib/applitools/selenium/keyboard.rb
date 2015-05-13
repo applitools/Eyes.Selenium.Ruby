@@ -10,7 +10,7 @@ class Applitools::Selenium::Keyboard
     active_element = Applitools::Selenium::Element.new(driver, driver.switch_to.active_element)
     current_control = active_element.region
     Selenium::WebDriver::Keys.encode(keys).each do |key|
-      driver.user_inputs << Applitools::Selenium::TextTrigger.new(key.to_s, current_control)
+      driver.user_inputs << Applitools::Base::TextTrigger.new(key.to_s, current_control)
     end
     keyboard.send_keys(*keys)
   end

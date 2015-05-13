@@ -38,7 +38,7 @@ class Applitools::Eyes
   #   you wish to override Eyes' automatic inference.
   # +branch_name+:: +String+ If set, names the branch in which the test should run.
   # +parent_branch_name+:: +String+ If set, names the parent branch of the branch in which the test should run.
-  # +user_inputs+:: +Applitools::Selenium::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which happened after
+  # +user_inputs+:: +Applitools::Base::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which happened after
   #   the last visual validation.
   # +save_new_tests+:: +boolean+ Whether or not new tests should be automatically accepted as baseline.
   # +save_failed_tests+:: +boolean+ Whether or not failed tests should be automatically accepted as baseline.
@@ -61,7 +61,7 @@ class Applitools::Eyes
     :baseline_name, :rotation
 
   def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
-  def_delegators 'Applitools::Selenium::ServerConnector', :api_key, :api_key=, :server_url, :server_url=
+  def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=
 
   def full_agent_id
     @full_agent_id ||= agent_id.nil? ? BASE_AGENT_ID : "#{agent_id} [#{BASE_AGENT_ID}]"
@@ -87,7 +87,7 @@ class Applitools::Eyes
     @api_key = nil
     @user_inputs = []
 
-    Applitools::Selenium::ServerConnector.server_url = options[:server_url]
+    Applitools::Base::ServerConnector.server_url = options[:server_url]
 
     @match_timeout = DEFAULT_MATCH_TIMEOUT
     @match_level = Applitools::Eyes::MATCH_LEVEL[:exact]
@@ -186,14 +186,14 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Server session was not started'
       Applitools::EyesLogger.info '--- Empty test ended.'
 
-      return Applitools::Selenium::TestResults.new
+      return Applitools::Base::TestResults.new
     end
 
     session_results_url = @session.url
     new_session = @session.new_session?
     Applitools::EyesLogger.debug 'Ending server session...'
     save = (new_session && save_new_tests) || (!new_session && save_failed_tests)
-    results = Applitools::Selenium::ServerConnector.stop_session(@session, false, save)
+    results = Applitools::Base::ServerConnector.stop_session(@session, false, save)
     results.is_new = new_session
     results.url = session_results_url
     Applitools::EyesLogger.debug "Results: #{results}"
@@ -262,7 +262,7 @@ class Applitools::Eyes
     return unless @session
 
     begin
-      Applitools::Selenium::ServerConnector.stop_session(@session, true, false)
+      Applitools::Base::ServerConnector.stop_session(@session, true, false)
     rescue Exception, Applitools::EyesError => e
       Applitools::EyesLogger.error "Failed to abort server session: #{e.message}!"
     ensure
@@ -295,7 +295,7 @@ class Applitools::Eyes
   # Application environment is the environment (e.g., the host OS) which runs the application under test.
   #
   # Returns:
-  # +Applitools::Selenium::Environment+ The application environment.
+  # +Applitools::Base::Environment+ The application environment.
   def app_environment
     os = host_os
     if os.nil?
@@ -331,17 +331,17 @@ class Applitools::Eyes
     end
 
     # Create and return the environment object.
-    Applitools::Selenium::Environment.new(os, host_app, viewport_size, inferred_environment)
+    Applitools::Base::Environment.new(os, host_app, viewport_size, inferred_environment)
   end
 
   def start_session
     assign_viewport_size
-    @batch ||= Applitools::Selenium::BatchInfo.new
+    @batch ||= Applitools::Base::BatchInfo.new
     app_env = app_environment
 
-    @session_start_info = Applitools::Selenium::StartInfo.new(full_agent_id, app_name, test_name, batch, baseline_name,
+    @session_start_info = Applitools::Base::StartInfo.new(full_agent_id, app_name, test_name, batch, baseline_name,
       app_env, match_level, nil, branch_name, parent_branch_name)
-    @session = Applitools::Selenium::ServerConnector.start_session(@session_start_info)
+    @session = Applitools::Base::ServerConnector.start_session(@session_start_info)
     @should_match_window_run_once_on_timeout = @session.new_session?
   end
 

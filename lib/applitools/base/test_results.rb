@@ -1,7 +1,7 @@
-class Applitools::Selenium::TestResults
+class Applitools::Base::TestResults
   attr_accessor :is_new, :url
   attr_reader :steps, :matches, :mismatches, :missing, :exact_matches, :strict_matches, :content_matches,
-  :layout_matches, :none_matches, :is_passed
+    :layout_matches, :none_matches, :is_passed
 
   def initialize(steps = 0, matches = 0, mismatches = 0, missing = 0, exact_matches = 0, strict_matches = 0,
     content_matches = 0, layout_matches = 0, none_matches = 0)

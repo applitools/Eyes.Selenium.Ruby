@@ -1,4 +1,4 @@
-class Applitools::Selenium::TextTrigger
+class Applitools::Base::TextTrigger
   attr_reader :text, :control
 
   def initialize(text, control)

@@ -1,4 +1,4 @@
-class Applitools::Selenium::Session
+class Applitools::Base::Session
   attr_reader :id, :url
 
   def initialize(session_id, session_url, new_session)

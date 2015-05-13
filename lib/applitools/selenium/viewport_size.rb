@@ -72,7 +72,7 @@ class Applitools::Selenium::ViewportSize
       end
     end
 
-    Applitools::Selenium::Dimension.new(width,height)
+    Applitools::Base::Dimension.new(width,height)
   end
 
   alias_method :viewport_size, :extract_viewport_from_browser
@@ -91,7 +91,7 @@ class Applitools::Selenium::ViewportSize
 
     cur_viewport_size = extract_viewport_from_browser
 
-    set_browser_size(Applitools::Selenium::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
+    set_browser_size(Applitools::Base::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
       (2 * browser_size.height) - cur_viewport_size.height))
     verify_size(:viewport_size)
   end

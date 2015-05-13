@@ -1,4 +1,4 @@
-class Applitools::Selenium::Environment
+class Applitools::Base::Environment
   attr_accessor :os, :hosting_app, :display_size, :inferred
 
   def initialize(os = nil, hosting_app = nil, display_size = nil, inferred = nil)

@@ -1,4 +1,6 @@
 class Applitools::Selenium::Element < SimpleDelegator
+  TRACE_PREFIX = 'EyesWebElement'.freeze
+
   def initialize(driver, element)
     super(element)
 
@@ -12,13 +14,13 @@ class Applitools::Selenium::Element < SimpleDelegator
   def click
     current_control = region
     offset = current_control.middle_offset
-    @driver.user_inputs << Applitools::Selenium::MouseTrigger.new(:click, current_control, offset)
+    @driver.user_inputs << Applitools::Base::MouseTrigger.new(:click, current_control, offset)
 
     web_element.click
   end
 
   def inspect
-    "EyesWebElement" + web_element.inspect
+    TRACE_PREFIX + web_element.inspect
   end
 
   def ==(other)
@@ -29,7 +31,7 @@ class Applitools::Selenium::Element < SimpleDelegator
   def send_keys(*args)
     current_control = region
     Selenium::WebDriver::Keys.encode(args).each do |key|
-      @driver.user_inputs << Applitools::Selenium::TextTrigger.new(key.to_s, current_control)
+      @driver.user_inputs << Applitools::Base::TextTrigger.new(key.to_s, current_control)
     end
 
     web_element.send_keys(*args)

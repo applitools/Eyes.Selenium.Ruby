@@ -47,9 +47,9 @@ class Applitools::Selenium::MatchWindowTask
     Applitools::EyesLogger.debug 'Trying matching once...'
 
     if wait_before_run
-      Applitools::EyesLogger.debug 'waiting before run...'
+      Applitools::EyesLogger.debug 'Waiting before run...'
       sleep(wait_before_run)
-      Applitools::EyesLogger.debug 'waiting done!'
+      Applitools::EyesLogger.debug 'Wwaiting done!'
     end
 
     match(region, tag, rotation)
@@ -61,7 +61,7 @@ class Applitools::Selenium::MatchWindowTask
     Applitools::EyesLogger.debug 'Matching with intervals...'
     data = prep_match_data(region, tag, rotation, true)
     start = Time.now
-    as_expected = Applitools::Selenium::ServerConnector.match_window(session, data)
+    as_expected = Applitools::Base::ServerConnector.match_window(session, data)
     Applitools::EyesLogger.debug "First call result: #{as_expected}"
     return true if as_expected
     Applitools::EyesLogger.debug "Not as expected, performing retry (total timeout #{retry_timeout})"
@@ -121,7 +121,7 @@ class Applitools::Selenium::MatchWindowTask
     if !last_checked_window.nil?
       driver.user_inputs.each do |trigger|
         Applitools::EyesLogger.debug 'Handling trigger...'
-        if trigger.is_a?(Applitools::Selenium::MouseTrigger)
+        if trigger.is_a?(Applitools::Base::MouseTrigger)
           updated_trigger = nil
           trigger_left = trigger.control.left + trigger.location.x
           trigger_top = trigger.control.top + trigger.location.y
@@ -130,7 +130,7 @@ class Applitools::Selenium::MatchWindowTask
             if trigger.control.empty?
               trigger_left -= - last_screenshot_bounds.left
               trigger_top = trigger_top - last_screenshot_bounds.top
-              updated_trigger = Applitools::Selenium::MouseTrigger.new(trigger.mouse_action, trigger.control,
+              updated_trigger = Applitools::Base::MouseTrigger.new(trigger.mouse_action, trigger.control,
                 Selenium::WebDriver::Point.new(trigger_left, trigger_top))
             else
               trigger_left = trigger_left - trigger.control.left
@@ -139,7 +139,7 @@ class Applitools::Selenium::MatchWindowTask
               control_top = trigger.control.top - last_screenshot_bounds.top
               updated_control = Applitools::Selenium::Region.new(control_left, control_top, trigger.control.width,
                 trigger.control.height)
-              updated_trigger = Applitools::Selenium::MouseTrigger.new(trigger.mouse_action, updated_control,
+              updated_trigger = Applitools::Base::MouseTrigger.new(trigger.mouse_action, updated_control,
                 Selenium::WebDriver::Point.new(trigger_left, trigger_top))
             end
             Applitools::EyesLogger.debug 'Done with trigger!'
@@ -147,7 +147,7 @@ class Applitools::Selenium::MatchWindowTask
           else
             Applitools::EyesLogger.info "Trigger ignored: #{trigger} (out of bounds)"
           end
-        elsif trigger.is_a?(Applitools::Selenium::TextTrigger)
+        elsif trigger.is_a?(Applitools::Base::TextTrigger)
           unless trigger.control.empty?
             trigger.control.intersect(last_screenshot_bounds)
             unless trigger.control.empty?
@@ -155,7 +155,7 @@ class Applitools::Selenium::MatchWindowTask
               control_top = trigger.control.top - last_screenshot_bounds.top
               updated_control = Applitools::Selenium::Region.new(control_left, control_top, trigger.control.width,
                 trigger.control.height)
-              updated_trigger = Applitools::Selenium::TextTrigger.new(trigger.text, updated_control)
+              updated_trigger = Applitools::Base::TextTrigger.new(trigger.text, updated_control)
               Applitools::EyesLogger.debug 'Done with trigger!'
               user_inputs << updated_trigger
             else
@@ -181,7 +181,7 @@ class Applitools::Selenium::MatchWindowTask
   def match(region, tag, rotation, ignore_mismatch=false)
     Applitools::EyesLogger.debug 'Match called...'
     data = prep_match_data(region, tag, rotation, ignore_mismatch)
-    match_result = Applitools::Selenium::ServerConnector.match_window(session, data)
+    match_result = Applitools::Base::ServerConnector.match_window(session, data)
     Applitools::EyesLogger.debug 'Match done!'
     match_result
   end

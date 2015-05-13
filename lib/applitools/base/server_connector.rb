@@ -1,6 +1,6 @@
 require 'faraday'
 
-module Applitools::Selenium::ServerConnector
+module Applitools::Base::ServerConnector
   extend self
 
   DEFAULT_SERVER_URL = 'https://eyessdk.applitools.com'.freeze
@@ -42,7 +42,7 @@ module Applitools::Selenium::ServerConnector
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = JSON.parse(res.body)
-    Applitools::Selenium::Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
+    Applitools::Base::Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
   end
 
   def stop_session(session, aborted = nil, save = false)
@@ -51,7 +51,7 @@ module Applitools::Selenium::ServerConnector
 
     response = JSON.parse(res.body)
     response.delete('$id')
-    Applitools::Selenium::TestResults.new(*response.values)
+    Applitools::Base::TestResults.new(*response.values)
   end
 
   private
