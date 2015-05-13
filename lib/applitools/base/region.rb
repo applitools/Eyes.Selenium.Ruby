@@ -57,7 +57,7 @@ class Applitools::Base::Region
   def middle_offset
     mid_x = width / 2
     mid_y = height / 2
-    Applitools::Base::Point(mid_x.round, mid_y.round)
+    Applitools::Base::Point.new(mid_x.round, mid_y.round)
   end
 
   def to_hash
