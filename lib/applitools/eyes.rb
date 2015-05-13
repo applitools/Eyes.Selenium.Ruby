@@ -17,7 +17,7 @@ class Applitools::Eyes
     exact: 'Exact'
   }.freeze
 
-  DEFAULT_MATCH_TIMEOUT = 2.0  # Seconds
+  DEFAULT_MATCH_TIMEOUT = 2.0.freeze # Seconds
   BASE_AGENT_ID = ('eyes.selenium.ruby/' + Applitools::VERSION).freeze
 
   #
