@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'selenium-webdriver', '>= 2.45.0'
   spec.add_dependency 'oily_png'
   spec.add_dependency 'faraday'
+  spec.add_dependency 'oj'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'

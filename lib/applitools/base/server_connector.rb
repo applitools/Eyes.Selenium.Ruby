@@ -1,5 +1,8 @@
 require 'faraday'
 
+require 'oj'
+Oj.default_options = {:mode => :compat }
+
 module Applitools::Base::ServerConnector
   extend self
 
@@ -24,7 +27,7 @@ module Applitools::Base::ServerConnector
   end
 
   def match_window(session, data)
-    json_data = data.to_hash.to_json.force_encoding('BINARY') # Notice that this does not include the screenshot
+    json_data = Oj.dump(data.to_hash).force_encoding('BINARY') # Notice that this does not include the screenshot.
     body = [json_data.length].pack('L>') + json_data + data.screenshot
 
     Applitools::EyesLogger.debug 'Sending match data...'
@@ -32,16 +35,16 @@ module Applitools::Base::ServerConnector
     res = post(URI.join(endpoint_url, session.id.to_s), content_type: 'application/octet-stream', body: body)
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
-    JSON.parse(res.body)['asExpected'].tap do |as_expected|
+    Oj.load(res.body)['asExpected'].tap do |as_expected|
       Applitools::EyesLogger.debug "Got response! #{as_expected}"
     end
   end
 
   def start_session(session_start_info)
-    res = post(endpoint_url, body: {startInfo: session_start_info.to_hash}.to_json)
+    res = post(endpoint_url, body: Oj.dump(startInfo: session_start_info.to_hash))
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
-    response = JSON.parse(res.body)
+    response = Oj.load(res.body)
     Applitools::Base::Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
   end
 
@@ -49,7 +52,7 @@ module Applitools::Base::ServerConnector
     res = long_delete(URI.join(endpoint_url, session.id.to_s), query: {aborted: aborted, updateBaseline: save})
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
-    response = JSON.parse(res.body)
+    response = Oj.load(res.body)
     response.delete('$id')
     Applitools::Base::TestResults.new(*response.values)
   end
