@@ -21,7 +21,7 @@ class Applitools::Base::MouseTrigger
       triggetType: 'Mouse',
       mouseAction: MOUSE_ACTION[mouse_action],
       control: control.to_hash,
-      location: Hash[location.each_pair.to_a]
+      location: Hash[location.values]
     }
   end
 
