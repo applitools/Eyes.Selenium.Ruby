@@ -3,6 +3,10 @@ module Applitools
 
   Dir["#{ROOT_DIR}/*.rb"].each {|f| require f}
 
+  module Base
+    Dir["#{ROOT_DIR}/base/**/*.rb"].each {|f| require f}
+  end
+
   module Utils
     Dir["#{ROOT_DIR}/utils/**/*.rb"].each {|f| require f}
   end
