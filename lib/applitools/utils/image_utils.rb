@@ -1,4 +1,4 @@
-require 'chunky_png'
+require 'oily_png'
 require 'base64'
 
 module Applitools::Utils::ImageUtils

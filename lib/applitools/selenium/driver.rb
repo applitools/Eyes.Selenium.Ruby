@@ -119,7 +119,7 @@ class Applitools::Selenium::Driver < SimpleDelegator
   # Returns: +String+ A screenshot in the requested format.
   def screenshot_as(output_type, rotation = nil)
     screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
-    Applitools::Selenium::Driver.normalize_rotation!(self, screenshot, rotation)
+    Applitools::Selenium::Driver.normalize_rotation(self, screenshot, rotation)
 
     case output_type
     when :base64

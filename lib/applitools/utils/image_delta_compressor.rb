@@ -1,4 +1,4 @@
-require 'chunky_png'
+require 'oily_png'
 
 class Applitools::Utils::ImageDeltaCompressor
   BLOCK_SIZE = 10.freeze
