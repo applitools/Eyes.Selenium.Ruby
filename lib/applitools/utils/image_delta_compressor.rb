@@ -1,6 +1,8 @@
 require 'oily_png'
 
-class Applitools::Utils::ImageDeltaCompressor
+module Applitools::Utils::ImageDeltaCompressor
+  extend self
+
   BLOCK_SIZE = 10.freeze
 
   # Compresses the target image based on the source image.
@@ -12,7 +14,7 @@ class Applitools::Utils::ImageDeltaCompressor
   #
   # Returns +String+ The binary result (either the compressed image, or the uncompressed image if the compression
   # is greater in length).
-  def self.compress_by_raw_blocks(target, target_encoded, source, block_size = BLOCK_SIZE)
+  def compress_by_raw_blocks(target, target_encoded, source, block_size = BLOCK_SIZE)
     # If we can't compress for any reason, return the target image as is.
     if source.nil? || (source.height != target.height) || (source.width != target.width)
       # Returning a COPY of the target binary string.
@@ -93,7 +95,7 @@ class Applitools::Utils::ImageDeltaCompressor
   # +block_row+:: The block row index.
   # ++
   # Returns the width and height of the image data contained in the block are returned as a +Dimension+.
-  def self.get_actual_block_size(image_size, block_size, block_column, block_row)
+  def get_actual_block_size(image_size, block_size, block_column, block_row)
     actual_width = [image_size.width - (block_column * block_size), block_size].min
     actual_height = [image_size.height - (block_row * block_size), block_size].min
     Dimension.new(actual_width, actual_height)
@@ -111,7 +113,7 @@ class Applitools::Utils::ImageDeltaCompressor
   # ++
   # Returns +CompareAndCopyBlockChannelDataResult+ object containing a flag saying whether the blocks are identical
   # and a copy of the target block's bytes.
-  def self.compare_and_copy_block_channel_data(source_pixels, target_pixels, image_size, pixel_length, block_size,
+  def compare_and_copy_block_channel_data(source_pixels, target_pixels, image_size, pixel_length, block_size,
       block_column, block_row, channel)
     identical = true
 
