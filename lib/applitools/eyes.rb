@@ -167,14 +167,14 @@ class Applitools::Eyes
     Applitools::EyesLogger.debug 'Done! Getting element size...'
     size = element_to_check.size
     Applitools::EyesLogger.debug 'Done! Creating region...'
-    region = Applitools::Selenium::Region.new(location.x, location.y, size.width, size.height)
+    region = Applitools::Base::Region.new(location.x, location.y, size.width, size.height)
     Applitools::EyesLogger.debug 'Done! Checking region...'
     check_region_(region, tag, specific_timeout)
     Applitools::EyesLogger.debug 'Done!'
   end
 
   def check_window(tag = nil, specific_timeout = -1)
-    check_region_(Applitools::Selenium::Region::EMPTY, tag, specific_timeout)
+    check_region_(Applitools::Base::Region::EMPTY, tag, specific_timeout)
   end
 
   def close(raise_ex=true)

@@ -14,7 +14,7 @@ class Applitools::Selenium::MatchWindowTask
     @driver = driver
     @default_retry_timeout = default_retry_timeout
     @last_checked_window = nil # +ChunkyPNG::Canvas+
-    @last_screenshot_bounds = Applitools::Selenium::Region::EMPTY # +Applitools::Selenium::Region+
+    @last_screenshot_bounds = Applitools::Base::Region::EMPTY # +Applitools::Base::Region+
     @current_screenshot = nil # +ChunkyPNG::Canvas+
   end
 
@@ -36,7 +36,7 @@ class Applitools::Selenium::MatchWindowTask
     Applitools::EyesLogger.debug "match_window(): Completed in #{format('%.2f', elapsed_time)} seconds"
 
     @last_checked_window = @current_screenshot
-    @last_screenshot_bounds = region.empty? ? Applitools::Selenium::Region.new(0, 0, last_checked_window.width,
+    @last_screenshot_bounds = region.empty? ? Applitools::Base::Region.new(0, 0, last_checked_window.width,
       last_checked_window.height) : region
     driver.clear_user_inputs
 
@@ -88,7 +88,7 @@ class Applitools::Selenium::MatchWindowTask
     max_width = image.width - left
     max_height = image.height - top
     width, height = [region.width, max_width].min, [region.height, max_height].min
-    Applitools::Selenium::Region.new(left, top, width, height)
+    Applitools::Base::Region.new(left, top, width, height)
   end
 
   def prep_match_data(region, tag, rotation, ignore_mismatch)
@@ -131,16 +131,16 @@ class Applitools::Selenium::MatchWindowTask
               trigger_left -= - last_screenshot_bounds.left
               trigger_top = trigger_top - last_screenshot_bounds.top
               updated_trigger = Applitools::Base::MouseTrigger.new(trigger.mouse_action, trigger.control,
-                Selenium::WebDriver::Point.new(trigger_left, trigger_top))
+                Applitools::Base::Point.new(trigger_left, trigger_top))
             else
               trigger_left = trigger_left - trigger.control.left
               trigger_top = trigger_top - trigger.control.top
               control_left = trigger.control.left - last_screenshot_bounds.left
               control_top = trigger.control.top - last_screenshot_bounds.top
-              updated_control = Applitools::Selenium::Region.new(control_left, control_top, trigger.control.width,
+              updated_control = Applitools::Base::Region.new(control_left, control_top, trigger.control.width,
                 trigger.control.height)
               updated_trigger = Applitools::Base::MouseTrigger.new(trigger.mouse_action, updated_control,
-                Selenium::WebDriver::Point.new(trigger_left, trigger_top))
+                Applitools::Base::Point.new(trigger_left, trigger_top))
             end
             Applitools::EyesLogger.debug 'Done with trigger!'
             user_inputs << updated_trigger
@@ -153,7 +153,7 @@ class Applitools::Selenium::MatchWindowTask
             unless trigger.control.empty?
               control_left = trigger.control.left - last_screenshot_bounds.left
               control_top = trigger.control.top - last_screenshot_bounds.top
-              updated_control = Applitools::Selenium::Region.new(control_left, control_top, trigger.control.width,
+              updated_control = Applitools::Base::Region.new(control_left, control_top, trigger.control.width,
                 trigger.control.height)
               updated_trigger = Applitools::Base::TextTrigger.new(trigger.text, updated_control)
               Applitools::EyesLogger.debug 'Done with trigger!'

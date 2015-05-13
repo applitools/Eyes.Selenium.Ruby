@@ -59,6 +59,6 @@ class Applitools::Selenium::Element < SimpleDelegator
       top = 0
     end
 
-    return Applitools::Selenium::Region.new(left, top, width, height)
+    return Applitools::Base::Region.new(left, top, width, height)
   end
 end
