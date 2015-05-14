@@ -26,6 +26,17 @@ class Applitools::Selenium::Driver < SimpleDelegator
   }.freeze
 
   JS_GET_USER_AGENT = 'return navigator.userAgent;'.freeze
+  JS_GET_DEVICE_PIXEL_RATIO = 'return window.devicePixelRatio;'.freeze
+  JS_GET_PAGE_METRICS = <<-EOF
+    return {
+      scrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      clientHeight: document.documentElement.clientHeight,
+      bodyClientHeight: document.body.clientHeight,
+      scrollHeight: document.documentElement.scrollHeight,
+      bodyScrollHeight: document.body.scrollHeight
+    };
+  EOF
 
   def_delegators :@eyes, :user_inputs, :clear_user_inputs
 
@@ -165,6 +176,14 @@ class Applitools::Selenium::Driver < SimpleDelegator
     Applitools::EyesLogger.error "Failed to obtain user-agent string (#{e.message})"
 
     nil
+  end
+
+  def device_pixel_ratio
+    @device_pixel_ratio ||= execute_script(JS_GET_DEVICE_PIXEL_RATIO)
+  end
+
+  def get_page_metrics
+    Applitools::Utils.symbolize_and_underscore_hash_keys(execute_script(JS_GET_PAGE_METRICS))
   end
 
   private
