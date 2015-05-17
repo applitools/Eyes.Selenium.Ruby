@@ -13,7 +13,7 @@ def android_caps
       appPackage: 'com.example.android.notepad',
       appActivity: '.NotesList',
       # orientation:         'landscape',
-      newCommandTimeout:   300
+      newCommandTimeout: 300
   }
 end
 
