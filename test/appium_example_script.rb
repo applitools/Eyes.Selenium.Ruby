@@ -1,4 +1,5 @@
-require 'eyes_selenium'
+require_relative '../lib/eyes_selenium'
+
 require 'logger'
 require 'appium_lib'
 

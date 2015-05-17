@@ -1,3 +1,6 @@
+require_relative 'version'
+require_relative 'eyes_logger'
+
 require 'forwardable'
 
 class Applitools::Eyes
