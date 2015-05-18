@@ -3,6 +3,8 @@ require 'faraday'
 require 'oj'
 Oj.default_options = {:mode => :compat }
 
+require 'uri'
+
 module Applitools::Base::ServerConnector
   extend self
 

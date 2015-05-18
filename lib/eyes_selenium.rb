@@ -2,18 +2,7 @@ module Applitools
   ROOT_DIR = File.join(File.dirname(File.expand_path(__FILE__)), 'applitools').freeze
 
   Dir["#{ROOT_DIR}/*.rb"].each {|f| require f}
-
-  module Base
-    Dir["#{ROOT_DIR}/base/**/*.rb"].each {|f| require f}
-  end
-
-  module Utils
-    Dir["#{ROOT_DIR}/utils/**/*.rb"].each {|f| require f}
-  end
-
-  module Selenium
-    Dir["#{ROOT_DIR}/selenium/**/*.rb"].each {|f| require f}
-  end
+  Dir["#{ROOT_DIR}/**/*.rb"].each {|f| require f}
 
   class EyesError < StandardError; end
   class EyesAbort < EyesError; end

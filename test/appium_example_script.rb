@@ -1,4 +1,5 @@
-require 'eyes_selenium'
+require_relative '../lib/eyes_selenium'
+
 require 'logger'
 require 'appium_lib'
 
@@ -13,7 +14,7 @@ def android_caps
       appPackage: 'com.example.android.notepad',
       appActivity: '.NotesList',
       # orientation:         'landscape',
-      newCommandTimeout:   300
+      newCommandTimeout: 300
   }
 end
 
