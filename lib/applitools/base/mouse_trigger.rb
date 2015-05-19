@@ -22,7 +22,7 @@ module Applitools::Base
         triggetType: 'Mouse',
         mouseAction: MOUSE_ACTION[mouse_action],
         control: control.to_hash,
-        location: Hash[location.values]
+        location: location.to_hash
       }
     end
 
