@@ -63,7 +63,10 @@ module Applitools::Base
 
     def to_hash
       {
-        left: left, top: top, height: height, width: width
+        left: left,
+        top: top,
+        height: height,
+        width: width
       }
     end
 
