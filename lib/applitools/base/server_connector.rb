@@ -29,7 +29,8 @@ module Applitools::Base::ServerConnector
   end
 
   def match_window(session, data)
-    json_data = Oj.dump(data.to_hash).force_encoding('BINARY') # Notice that this does not include the screenshot.
+    # Notice that this does not include the screenshot.
+    json_data = Oj.dump(Applitools::Utils.camelcase_hash_keys(data.to_hash)).force_encoding('BINARY')
     body = [json_data.length].pack('L>') + json_data + data.screenshot
 
     Applitools::EyesLogger.debug 'Sending match data...'
@@ -43,7 +44,7 @@ module Applitools::Base::ServerConnector
   end
 
   def start_session(session_start_info)
-    res = post(endpoint_url, body: Oj.dump(startInfo: session_start_info.to_hash))
+    res = post(endpoint_url, body: Oj.dump(startInfo: Applitools::Utils.camelcase_hash_keys(session_start_info.to_hash)))
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)

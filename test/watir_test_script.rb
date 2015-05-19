@@ -10,7 +10,7 @@ eyes.log_handler = Logger.new(STDOUT)
 browser = Watir::Browser.new
 
 begin
-  eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: {width: 1024, height: 768},
+  eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: {width: 900, height: 600},
     driver: browser) do |driver|
     driver.get 'http://www.applitools.com'
     eyes.check_window('initial')

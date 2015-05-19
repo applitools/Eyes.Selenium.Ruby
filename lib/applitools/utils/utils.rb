@@ -7,12 +7,42 @@ module Applitools::Utils
     str.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr('-', '_').downcase
   end
 
-  def symbolize_and_underscore_hash_keys(value, options = {})
+  def uncapitalize(str)
+    str[0, 1].downcase + str[1..-1]
+  end
+
+  def camelcase(str)
+    tokens = str.split('_')
+    uncapitalize(tokens.shift) + tokens.map(&:capitalize).join
+  end
+
+  def wrap(object)
+    if object.nil?
+      []
+    elsif object.respond_to?(:to_ary)
+      object.to_ary || [object]
+    else
+      [object]
+    end
+  end
+
+  def underscore_hash_keys(hash)
+    convert_hash_keys(hash, :underscore)
+  end
+
+  def camelcase_hash_keys(hash)
+    convert_hash_keys(hash, :camelcase)
+  end
+
+  private
+
+  def convert_hash_keys(value, method)
     case value
     when Array
-      value.map {|v| symbolize_and_underscore_hash_keys(v, options) }
+      value.map {|v| convert_hash_keys(v, method) }
     when Hash
-      Hash[value.map {|k, v| [underscore(k.to_s).to_sym, symbolize_and_underscore_hash_keys(v, options)] }]
+      Hash[value.map {|k, v| [send(method, k.to_s).to_sym,
+        convert_hash_keys(v, method)]}]
     else
       value
     end

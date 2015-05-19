@@ -14,10 +14,10 @@ module Applitools::Selenium
     # not be included as part of the json.
     def to_hash
       {
-        userInputs: user_inputs.map(&:to_hash),
-        appOutput: Hash[app_output.each_pair.to_a],
+        user_inputs: user_inputs.map(&:to_hash),
+        app_output: Hash[app_output.each_pair.to_a],
         tag: @tag,
-        ignoreMismatch: @ignore_mismatch
+        ignore_mismatch: @ignore_mismatch
       }
     end
   end
