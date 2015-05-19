@@ -9,7 +9,7 @@ module Applitools::Base
 
     def to_hash
       {
-        triggetType: 'Text',
+        trigget_type: 'Text',
         text: text,
         control: control.to_hash
       }

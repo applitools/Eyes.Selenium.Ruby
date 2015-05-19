@@ -19,10 +19,10 @@ module Applitools::Base
 
     def to_hash
       {
-        triggetType: 'Mouse',
-        mouseAction: MOUSE_ACTION[mouse_action],
+        trigget_type: 'Mouse',
+        mouse_action: MOUSE_ACTION[mouse_action],
         control: control.to_hash,
-        location: Hash[location.values]
+        location: location.to_hash
       }
     end
 
