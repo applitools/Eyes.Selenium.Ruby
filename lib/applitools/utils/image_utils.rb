@@ -58,6 +58,10 @@ module Applitools::Utils
       end
     end
 
+    def scale!(image, factor)
+      image.resample_nearest_neighbor!(image.width.to_f * factor, image.height.to_f * factor)
+    end
+
     include Applitools::MethodTracer
   end
 end

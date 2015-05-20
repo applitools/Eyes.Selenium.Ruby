@@ -73,7 +73,7 @@ module Applitools::Selenium
         end
       end
 
-      Applitools::Base::Dimension.new(width,height)
+      Applitools::Base::Dimension.new(width, height)
     end
 
     alias_method :viewport_size, :extract_viewport_from_browser

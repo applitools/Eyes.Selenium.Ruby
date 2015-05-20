@@ -10,7 +10,6 @@ module Applitools::Selenium
 
     RIGHT_ANGLE = 90.freeze
     ANDROID = 'ANDROID'.freeze
-    IOS = 'IOS'.freeze
     LANDSCAPE = 'LANDSCAPE'.freeze
 
     FINDERS = {
@@ -26,20 +25,9 @@ module Applitools::Selenium
       xpath: 'xpath'
     }.freeze
 
-    JS_GET_USER_AGENT = 'return navigator.userAgent;'.freeze
-    JS_GET_DEVICE_PIXEL_RATIO = 'return window.devicePixelRatio;'.freeze
-    JS_GET_PAGE_METRICS = <<-EOF
-      return {
-        scrollWidth: document.documentElement.scrollWidth,
-        bodyScrollWidth: document.body.scrollWidth,
-        clientHeight: document.documentElement.clientHeight,
-        bodyClientHeight: document.body.clientHeight,
-        scrollHeight: document.documentElement.scrollHeight,
-        bodyScrollHeight: document.body.scrollHeight
-      };
-    EOF
-
+    attr_reader :browser
     def_delegators :@eyes, :user_inputs, :clear_user_inputs
+    def_delegators :@browser, :user_agent
 
     # If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
     def initialize(eyes, options)
@@ -47,49 +35,15 @@ module Applitools::Selenium
 
       @is_mobile_device = options.fetch(:is_mobile_device, false)
       @eyes = eyes
+      @browser = Applitools::Selenium::Browser.new(self, @eyes)
 
       raise 'Uncapable of taking screenshots!' unless capabilities.takes_screenshot?
-    end
-
-    # Rotates the image as necessary. The rotation is either manually forced by passing a value in
-    # the +rotation+ parameter, or automatically inferred if the +rotation+ parameter is +nil+.
-    #
-    # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
-    # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
-    # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
-    #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
-    def self.normalize_rotation(driver, image, rotation)
-      return if rotation == 0
-
-      num_quadrants = 0
-      if !rotation.nil?
-        if rotation % RIGHT_ANGLE != 0
-          raise Applitools::EyesError.new("Currently only quadrant rotations are supported. Current rotation: "\
-            "#{rotation}")
-        end
-        num_quadrants = (rotation / RIGHT_ANGLE).to_i
-      elsif rotation.nil? && driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
-        # For Android, we need to rotate images to the right, and for iOS to the left.
-        num_quadrants = driver.android? ? 1 : -1
-      end
-
-      Applitools::Utils::ImageUtils.quadrant_rotate!(image, num_quadrants)
     end
 
     # Returns:
     # +String+ The platform name or +nil+ if it is undefined.
     def platform_name
       capabilities['platformName']
-    end
-
-    def chrome?
-      browser == :chrome
-    end
-
-    # Returns:
-    # +true+ if the driver is an Android driver.
-    def android?
-      platform_name.to_s.upcase == ANDROID
     end
 
     # Returns:
@@ -126,7 +80,8 @@ module Applitools::Selenium
     # Returns: +String+ A screenshot in the requested format.
     def screenshot_as(output_type, rotation = nil)
       screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
-      Applitools::Selenium::Driver.normalize_rotation(self, screenshot, rotation)
+
+      Applitools::Selenium::Driver.normalize_image(self, screenshot, rotation)
 
       case output_type
       when :base64
@@ -157,16 +112,10 @@ module Applitools::Selenium
       Applitools::Selenium::Element.new(self, driver.find_element(how, what))
     end
 
-    def user_agent
-      @user_agent ||= execute_script(JS_GET_USER_AGENT)
-    end
-
-    def device_pixel_ratio
-      @device_pixel_ratio ||= execute_script(JS_GET_DEVICE_PIXEL_RATIO)
-    end
-
-    def get_page_metrics
-      Applitools::Utils.symbolize_and_underscore_hash_keys(execute_script(JS_GET_PAGE_METRICS))
+    # Returns:
+    # +true+ if the driver is an Android driver.
+    def android?
+      platform_name.to_s.upcase == ANDROID
     end
 
     private
@@ -191,6 +140,41 @@ module Applitools::Selenium
       else
         raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
       end
+    end
+
+    def self.normalize_image(driver, image, rotation)
+      normalize_rotation(driver, image, rotation)
+      normalize_width(driver, image)
+    end
+
+    # Rotates the image as necessary. The rotation is either manually forced by passing a value in
+    # the +rotation+ parameter, or automatically inferred if the +rotation+ parameter is +nil+.
+    #
+    # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
+    # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
+    # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
+    #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
+    def self.normalize_rotation(driver, image, rotation)
+      return if rotation == 0
+
+      num_quadrants = 0
+      if !rotation.nil?
+        if rotation % RIGHT_ANGLE != 0
+          raise Applitools::EyesError.new("Currently only quadrant rotations are supported. Current rotation: "\
+            "#{rotation}")
+        end
+        num_quadrants = (rotation / RIGHT_ANGLE).to_i
+      elsif rotation.nil? && driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
+        # For Android, we need to rotate images to the right, and for iOS to the left.
+        num_quadrants = driver.android? ? 1 : -1
+      end
+
+      Applitools::Utils::ImageUtils.quadrant_rotate!(image, num_quadrants)
+    end
+
+    def self.normalize_width(driver, image)
+      normalization_factor = driver.browser.image_normalization_factor(image)
+      Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
     end
   end
 end
