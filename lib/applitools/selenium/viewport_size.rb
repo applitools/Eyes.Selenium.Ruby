@@ -68,7 +68,7 @@ module Applitools::Selenium
         width, height = *browser_size.values
         width, height = width.ceil, height.ceil
 
-        if driver.landscape_orientation? && height > width
+        if @driver.landscape_orientation? && height > width
           width, height = height, width
         end
       end
