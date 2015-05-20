@@ -82,11 +82,11 @@ module Applitools::Base::ServerConnector
   end
 
   def request(url, method, options = {})
-    Faraday::Connection.new(url, ssl: {ca_file: SSL_CERT}).send(method) do |req|
+    Faraday::Connection.new(url, ssl: { ca_file: SSL_CERT }).send(method) do |req|
       req.options.timeout  = DEFAULT_TIMEOUT
       req.headers = DEFAULT_HEADERS.merge(options[:headers] || {})
       req.headers['Content-Type'] = options[:content_type] if options.key?(:content_type)
-      req.params = {apiKey: api_key}.merge(options[:query] || {})
+      req.params = { apiKey: api_key }.merge(options[:query] || {})
       req.body = options[:body]
     end
   end
@@ -95,7 +95,7 @@ module Applitools::Base::ServerConnector
     delay = LONG_REQUEST_DELAY
     (options[:headers] ||= {})['Eyes-Expect'] = '202-accepted'
 
-    while true
+    loop do
       # Date should be in RFC 1123 format.
       options[:headers]['Eyes-Date'] = Time.now.utc.strftime('%a, %d %b %Y %H:%M:%S GMT')
 

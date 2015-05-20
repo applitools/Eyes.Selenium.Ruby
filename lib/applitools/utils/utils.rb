@@ -4,7 +4,7 @@ module Applitools::Utils
   extend self
 
   def underscore(str)
-    str.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').tr('-', '_').downcase
+    str.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2').gsub(/([a-z\d])([A-Z])/, '\1_\2').tr('-', '_').downcase
   end
 
   def uncapitalize(str)
@@ -39,14 +39,11 @@ module Applitools::Utils
   def convert_hash_keys(value, method)
     case value
     when Array
-      value.map {|v| convert_hash_keys(v, method) }
+      value.map { |v| convert_hash_keys(v, method) }
     when Hash
-      Hash[value.map {|k, v| [send(method, k.to_s).to_sym,
-        convert_hash_keys(v, method)]}]
+      Hash[value.map {|k, v| [send(method, k.to_s).to_sym, convert_hash_keys(v, method)]}]
     else
       value
     end
   end
 end
-
-

@@ -180,7 +180,7 @@ class Applitools::Eyes
     check_region_(Applitools::Base::Region::EMPTY, tag, specific_timeout)
   end
 
-  def close(raise_ex=true)
+  def close(raise_ex = true)
     return if disabled?
     @is_open = false
 
@@ -246,15 +246,13 @@ class Applitools::Eyes
   #      get "http://www.google.com"
   #      check_window("initial")
   #    end
-  #noinspection RubyUnusedLocalVariable
-  def test(options = {}, &block)
-    begin
-      open(options)
-      yield(driver)
-      close
-    ensure
-      abort_if_not_closed
-    end
+  # noinspection RubyUnusedLocalVariable
+  def test(options = {}, &_block)
+    open(options)
+    yield(driver)
+    close
+  ensure
+    abort_if_not_closed
   end
 
   def abort_if_not_closed
@@ -280,8 +278,8 @@ class Applitools::Eyes
   end
 
   def get_driver(options)
-    # TODO remove the "browser" related block when possible. It's for backward compatibility.
-    if options.has_key?(:browser)
+    # TODO: remove the "browser" related block when possible. It's for backward compatibility.
+    if options.key?(:browser)
       Applitools::EyesLogger.warn('"browser" key is deprecated, please use "driver" instead.')
 
       return options[:browser]

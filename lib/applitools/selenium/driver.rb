@@ -96,11 +96,9 @@ module Applitools::Selenium
     # Returns:
     # +true+ if the driver orientation is landscape.
     def landscape_orientation?
-      begin
-        driver.orientation.to_s.upcase == LANDSCAPE
-      rescue NameError
-        Applitools::EyesLogger.debug 'driver has no "orientation" attribute. Assuming: portrait.'
-      end
+      driver.orientation.to_s.upcase == LANDSCAPE
+    rescue NameError
+      Applitools::EyesLogger.debug 'driver has no "orientation" attribute. Assuming: portrait.'
     end
 
     # Returns:

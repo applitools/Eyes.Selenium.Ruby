@@ -19,7 +19,7 @@ module Applitools::Base
     end
 
     def empty?
-       @left == EMPTY.left && @top == EMPTY.top && @width == EMPTY.width && @height == EMPTY.height
+      @left == EMPTY.left && @top == EMPTY.top && @width == EMPTY.width && @height == EMPTY.height
     end
 
     def right
@@ -31,14 +31,17 @@ module Applitools::Base
     end
 
     def intersecting?(other)
-      ((left <= other.left && other.left <= right) || (other.left <= left && left <= other.right)) \
-      && ((top <= other.top && other.top <= bottom) || (other.top <= top && top <=other.bottom))
+      ((left <= other.left && other.left <= right) || (other.left <= left && left <= other.right)) &&
+      ((top <= other.top && other.top <= bottom) || (other.top <= top && top <= other.bottom))
     end
 
     def intersect(other)
-      if !intersecting?(other)
-        make_empty and return
+      unless intersecting?(other)
+        make_empty
+
+        return
       end
+
       i_left = (left >= other.left) ? left : other.left
       i_right = (right <= other.right) ? right : other.right
       i_top = (top >= other.top) ? top : other.top
@@ -51,8 +54,7 @@ module Applitools::Base
     end
 
     def contains?(other_left, other_top)
-      other_left >= left && other_left <= right && \
-      other_top >= top && other_top <= bottom
+      other_left >= left && other_left <= right && other_top >= top && other_top <= bottom
     end
 
     def middle_offset

@@ -25,9 +25,7 @@ module Applitools::Base
 
     def to_s
       is_new_str = ''
-      unless is_new.nil?
-        is_new_str = is_new ? 'New test' : 'Existing test'
-      end
+      is_new_str = is_new ? 'New test' : 'Existing test' unless is_new.nil?
 
       "#{is_new_str} [ steps: #{steps}, matches: #{matches}, mismatches: #{mismatches}, missing: #{missing} ], "\
         "URL: #{url}"

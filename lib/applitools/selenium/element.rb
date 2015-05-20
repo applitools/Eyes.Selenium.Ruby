@@ -25,7 +25,7 @@ module Applitools::Selenium
     end
 
     def ==(other)
-      other.kind_of?(web_element.class) && web_element == other
+      other.is_a?(web_element.class) && web_element == other
     end
     alias_method :eql?, :==
 
@@ -41,11 +41,15 @@ module Applitools::Selenium
 
     def region
       point = location
-      left, top, width, height  = point.x, point.y, 0, 0
+      left = point.x
+      top = point.y
+      width = 0
+      height = 0
 
       begin
         dimension = size
-        width, height = dimension.width, dimension.height
+        width = dimension.width
+        height = dimension.height
       rescue
         # Not supported on all platforms.
       end
@@ -60,7 +64,7 @@ module Applitools::Selenium
         top = 0
       end
 
-      return Applitools::Base::Region.new(left, top, width, height)
+      Applitools::Base::Region.new(left, top, width, height)
     end
   end
 end

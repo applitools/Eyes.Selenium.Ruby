@@ -3,11 +3,11 @@ require 'eyes_selenium'
 RSpec.configure do |config|
   config.before do
     allow_any_instance_of(Applitools::Base::ServerConnector).to receive(:start_session) do
-      Applitools::Base::Session.new('dummy_id', 'dummy_url', true )
+      Applitools::Base::Session.new('dummy_id', 'dummy_url', true)
     end
 
     allow_any_instance_of(Applitools::Base::ServerConnector).to receive(:stop_session) do
-      Applitools::Base::TestResults.new()
+      Applitools::Base::TestResults.new
     end
 
     allow_any_instance_of(Applitools::Base::ServerConnector).to receive(:match_window) do
@@ -15,6 +15,3 @@ RSpec.configure do |config|
     end
   end
 end
-
-
-

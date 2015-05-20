@@ -3,10 +3,10 @@ require 'forwardable'
 
 module Applitools::EyesLogger
   class NullLogger < Logger
-    def initialize(*args)
+    def initialize(*_args)
     end
 
-    def add(*args, &block)
+    def add(*_args, &_block)
     end
   end
 
@@ -35,6 +35,6 @@ module Applitools::EyesLogger
   private
 
   def valid?(log_handler)
-    MANDATORY_METHODS.all? {|method| log_handler.respond_to?(method)}
+    MANDATORY_METHODS.all? { |method| log_handler.respond_to?(method) }
   end
 end
