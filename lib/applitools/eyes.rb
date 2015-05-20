@@ -33,7 +33,8 @@ class Applitools::Eyes
   # +is_open+:: +boolean+ Is there an open session.
   # +viewport_size+:: +Hash+ The viewport size which was provided as an argument to +open+. Should include +width+
   #   and +height+.
-  # +driver+:: +Applitools::Selenium::Driver+ The driver instance wrapping the driver which was provided as an argument to +open+.
+  # +driver+:: +Applitools::Selenium::Driver+ The driver instance wrapping the driver which was provided as an argument
+  #   to +open+.
   # +api_key+:: +String+ The user's API key.
   # +match_timeout+:: +Float+ The default timeout for check_XXXX operations. (Seconds)
   # +batch+:: +BatchInfo+ The current tests grouping, if any.
@@ -43,8 +44,8 @@ class Applitools::Eyes
   #   you wish to override Eyes' automatic inference.
   # +branch_name+:: +String+ If set, names the branch in which the test should run.
   # +parent_branch_name+:: +String+ If set, names the parent branch of the branch in which the test should run.
-  # +user_inputs+:: +Applitools::Base::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which happened after
-  #   the last visual validation.
+  # +user_inputs+:: +Applitools::Base::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which
+  #   happened after the last visual validation.
   # +save_new_tests+:: +boolean+ Whether or not new tests should be automatically accepted as baseline.
   # +save_failed_tests+:: +boolean+ Whether or not failed tests should be automatically accepted as baseline.
   # +match_level+:: +String+ The default match level for the entire session. See +Applitools::Eyes::MATCH_LEVEL+.
@@ -107,7 +108,7 @@ class Applitools::Eyes
     return driver if disabled?
 
     if api_key.nil?
-      raise Applitools::EyesError.new("API key not set! Log in to https://applitools.com to obtain your API Key and "\
+      raise Applitools::EyesError.new('API key not set! Log in to https://applitools.com to obtain your API Key and '\
         "use 'api_key' to set it.")
     end
 
@@ -182,7 +183,7 @@ class Applitools::Eyes
     check_region_(Applitools::Base::Region::EMPTY, tag, specific_timeout)
   end
 
-  def close(raise_ex=true)
+  def close(raise_ex = true)
     return if disabled?
     @is_open = false
 
@@ -219,7 +220,7 @@ class Applitools::Eyes
       return results
     end
 
-    unless results.is_passed
+    unless results.passed?
       # Test failed
       Applitools::EyesLogger.info "--- Failed test ended. See details at #{session_results_url}"
 
@@ -248,15 +249,13 @@ class Applitools::Eyes
   #      get "http://www.google.com"
   #      check_window("initial")
   #    end
-  #noinspection RubyUnusedLocalVariable
-  def test(options = {}, &block)
-    begin
-      open(options)
-      yield(driver)
-      close
-    ensure
-      abort_if_not_closed
-    end
+  # noinspection RubyUnusedLocalVariable
+  def test(options = {}, &_block)
+    open(options)
+    yield(driver)
+    close
+  ensure
+    abort_if_not_closed
   end
 
   def abort_if_not_closed
@@ -268,7 +267,7 @@ class Applitools::Eyes
 
     begin
       Applitools::Base::ServerConnector.stop_session(@session, true, false)
-    rescue Exception, Applitools::EyesError => e
+    rescue => e
       Applitools::EyesLogger.error "Failed to abort server session: #{e.message}!"
     ensure
       @session = nil
@@ -282,8 +281,8 @@ class Applitools::Eyes
   end
 
   def get_driver(options)
-    # TODO remove the "browser" related block when possible. It's for backward compatibility.
-    if options.has_key?(:browser)
+    # TODO: remove the "browser" related block when possible. It's for backward compatibility.
+    if options.key?(:browser)
       Applitools::EyesLogger.warn('"browser" key is deprecated, please use "driver" instead.')
 
       return options[:browser]
@@ -381,15 +380,15 @@ class Applitools::Eyes
     as_expected = @match_window_task.match_window(region, specific_timeout, tag, rotation,
       @should_match_window_run_once_on_timeout)
     Applitools::EyesLogger.debug 'Match window done!'
-    unless as_expected
-      @should_match_window_run_once_on_timeout = true
-      unless @session.new_session?
-        Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
-        if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
-          raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
-            "of '#{@session_start_info.app_id_or_name}'")
-        end
-      end
-    end
+    return if as_expected
+
+    @should_match_window_run_once_on_timeout = true
+    return if @session.new_session?
+
+    Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
+    return unless failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
+
+    raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
+      "of '#{@session_start_info.app_id_or_name}'")
   end
 end

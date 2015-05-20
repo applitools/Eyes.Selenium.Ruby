@@ -9,7 +9,7 @@ describe 'passthrough methods' do
     eyes.api_key = 'dummy_key'
 
     @driver = eyes.open(app_name: 'Specs', test_name: example.metadata[:full_description],
-      viewport_size: {width: 800, height: 600}, driver: web_driver)
+      viewport_size: { width: 800, height: 600 }, driver: web_driver)
     @driver.get static_file
   end
 

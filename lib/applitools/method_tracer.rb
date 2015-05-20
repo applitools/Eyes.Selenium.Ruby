@@ -15,8 +15,8 @@ module Applitools::MethodTracer
         end
       end
 
-      instance_methods.each {|method_name| trace_method(base, method_name) }
-      class_methods.each {|method_name| trace_method(base, method_name, false) }
+      instance_methods.each { |method_name| trace_method(base, method_name) }
+      class_methods.each { |method_name| trace_method(base, method_name, false) }
     end
   end
 end
