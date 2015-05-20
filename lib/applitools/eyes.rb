@@ -265,7 +265,7 @@ class Applitools::Eyes
 
     begin
       Applitools::Base::ServerConnector.stop_session(@session, true, false)
-    rescue Exception, Applitools::EyesError => e
+    rescue => e
       Applitools::EyesLogger.error "Failed to abort server session: #{e.message}!"
     ensure
       @session = nil
