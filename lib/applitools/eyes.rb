@@ -218,7 +218,7 @@ class Applitools::Eyes
       return results
     end
 
-    unless results.is_passed
+    unless results.passed?
       # Test failed
       Applitools::EyesLogger.info "--- Failed test ended. See details at #{session_results_url}"
 
