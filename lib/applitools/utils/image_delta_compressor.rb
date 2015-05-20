@@ -47,8 +47,8 @@ module Applitools::Utils
         block_rows_count.times do |block_row|
           block_columns_count.times do |block_column|
             actual_channel_index = 2 - channel # Since the image bytes are BGR and the server expects RGB...
-            compare_result = compare_and_copy_block_channel_data(source_pixels, target_pixels, image_size, 3, block_size,
-              block_column, block_row, actual_channel_index)
+            compare_result = compare_and_copy_block_channel_data(source_pixels, target_pixels, image_size, 3,
+              block_size, block_column, block_row, actual_channel_index)
 
             unless compare_result.identical
               channel_bytes = compare_result.channel_bytes

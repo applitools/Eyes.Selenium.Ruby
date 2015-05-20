@@ -85,8 +85,8 @@ module Applitools::Selenium
         # If @dimension is hash of width/height, we convert it to a struct with width/height properties.
         @dimension = Struct.new(:width, :height).new(@dimension[:width], @dimension[:height])
       elsif !@dimension.respond_to?(:width) || !@dimension.respond_to?(:height)
-        raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or be "\
-          ' a hash with these keys.'
+        raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or "\
+          'be  a hash with these keys.'
       end
 
       set_browser_size(@dimension)

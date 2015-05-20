@@ -151,9 +151,9 @@ module Applitools::Selenium
               Applitools::EyesLogger.info "Trigger ignored: #{trigger} (out of bounds)"
             end
           elsif trigger.is_a?(Applitools::Base::TextTrigger)
-            unless trigger.control.empty?
+            if !trigger.control.empty?
               trigger.control.intersect(last_screenshot_bounds)
-              unless trigger.control.empty?
+              if !trigger.control.empty?
                 control_left = trigger.control.left - last_screenshot_bounds.left
                 control_top = trigger.control.top - last_screenshot_bounds.top
                 updated_control = Applitools::Base::Region.new(control_left, control_top, trigger.control.width,
