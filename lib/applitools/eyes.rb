@@ -31,7 +31,8 @@ class Applitools::Eyes
   # +is_open+:: +boolean+ Is there an open session.
   # +viewport_size+:: +Hash+ The viewport size which was provided as an argument to +open+. Should include +width+
   #   and +height+.
-  # +driver+:: +Applitools::Selenium::Driver+ The driver instance wrapping the driver which was provided as an argument to +open+.
+  # +driver+:: +Applitools::Selenium::Driver+ The driver instance wrapping the driver which was provided as an argument
+  #   to +open+.
   # +api_key+:: +String+ The user's API key.
   # +match_timeout+:: +Float+ The default timeout for check_XXXX operations. (Seconds)
   # +batch+:: +BatchInfo+ The current tests grouping, if any.
@@ -41,8 +42,8 @@ class Applitools::Eyes
   #   you wish to override Eyes' automatic inference.
   # +branch_name+:: +String+ If set, names the branch in which the test should run.
   # +parent_branch_name+:: +String+ If set, names the parent branch of the branch in which the test should run.
-  # +user_inputs+:: +Applitools::Base::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which happened after
-  #   the last visual validation.
+  # +user_inputs+:: +Applitools::Base::MouseTrigger+/+Applitools::Selenium::KeyboardTrigger+ Mouse/Keyboard events which
+  #   happened after the last visual validation.
   # +save_new_tests+:: +boolean+ Whether or not new tests should be automatically accepted as baseline.
   # +save_failed_tests+:: +boolean+ Whether or not failed tests should be automatically accepted as baseline.
   # +match_level+:: +String+ The default match level for the entire session. See +Applitools::Eyes::MATCH_LEVEL+.

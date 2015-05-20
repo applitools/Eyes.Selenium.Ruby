@@ -44,7 +44,8 @@ module Applitools::Base::ServerConnector
   end
 
   def start_session(session_start_info)
-    res = post(endpoint_url, body: Oj.dump(startInfo: Applitools::Utils.camelcase_hash_keys(session_start_info.to_hash)))
+    res = post(endpoint_url, body: Oj.dump(startInfo:
+      Applitools::Utils.camelcase_hash_keys(session_start_info.to_hash)))
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)
