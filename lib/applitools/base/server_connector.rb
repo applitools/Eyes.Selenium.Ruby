@@ -1,7 +1,7 @@
 require 'faraday'
 
 require 'oj'
-Oj.default_options = {:mode => :compat }
+Oj.default_options = { :mode => :compat }
 
 require 'uri'
 
