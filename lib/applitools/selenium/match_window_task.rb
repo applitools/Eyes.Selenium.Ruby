@@ -38,8 +38,12 @@ module Applitools::Selenium
       Applitools::EyesLogger.debug "match_window(): Completed in #{format('%.2f', elapsed_time)} seconds"
 
       @last_checked_window = @current_screenshot
-      @last_screenshot_bounds = region.empty? ? Applitools::Base::Region.new(0, 0, last_checked_window.width,
-        last_checked_window.height) : region
+      @last_screenshot_bounds =
+        if region.empty?
+          Applitools::Base::Region.new(0, 0, last_checked_window.width, last_checked_window.height)
+        else
+          region
+        end
       driver.clear_user_inputs
 
       res

@@ -378,15 +378,15 @@ class Applitools::Eyes
     as_expected = @match_window_task.match_window(region, specific_timeout, tag, rotation,
       @should_match_window_run_once_on_timeout)
     Applitools::EyesLogger.debug 'Match window done!'
-    unless as_expected
-      @should_match_window_run_once_on_timeout = true
-      unless @session.new_session?
-        Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
-        if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
-          raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
-            "of '#{@session_start_info.app_id_or_name}'")
-        end
-      end
+    return if as_expected
+
+    @should_match_window_run_once_on_timeout = true
+    return if @session.new_session?
+
+    Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
+    if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
+      raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
+        "of '#{@session_start_info.app_id_or_name}'")
     end
   end
 end
