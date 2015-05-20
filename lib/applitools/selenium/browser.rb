@@ -1,7 +1,3 @@
-require 'forwardable'
-require 'socket'
-require 'selenium-webdriver'
-
 module Applitools::Selenium
   class Browser
     JS_GET_USER_AGENT = 'return navigator.userAgent;'.freeze
