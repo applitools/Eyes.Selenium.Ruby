@@ -1,0 +1,16 @@
+language: ruby
+rvm:
+  - 1.9.3
+  - 2.0.0
+  - 2.1.6
+  - 2.2.2
+  - ruby-head
+  - rbx-2
+matrix:
+  allow_failures:
+    - rvm: rbx-2
+# Use the faster container based infrastructure.
+sudo: false
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
