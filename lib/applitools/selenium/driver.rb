@@ -112,6 +112,14 @@ module Applitools::Selenium
       Applitools::Selenium::Element.new(self, driver.find_element(how, what))
     end
 
+     def find_elements(*args)
+      how, what = extract_args(args)
+
+      raise ArgumentError, "cannot find element by: #{how.inspect}" unless FINDERS[how.to_sym]
+
+      driver.find_elements(how, what).map { |el| Applitools::Selenium::Element.new(self, el) }
+    end
+
     # Returns:
     # +true+ if the driver is an Android driver.
     def android?
