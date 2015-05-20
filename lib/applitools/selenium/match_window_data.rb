@@ -10,7 +10,7 @@ module Applitools::Selenium
       @screenshot = screenshot
     end
 
-    # IMPORTANT This method returns a hash WITHOUT the screenshot property. This is on purspose! The screenshot should
+    # IMPORTANT This method returns a hash WITHOUT the screenshot property. This is on purpose! The screenshot should
     # not be included as part of the json.
     def to_hash
       {

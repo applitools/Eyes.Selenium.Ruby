@@ -25,26 +25,31 @@ module Applitools::Selenium
       Applitools::EyesLogger.debug "Retry timeout set to: #{retry_timeout}"
 
       start = Time.now
-      res = if retry_timeout.zero?
-        run(region, tag, rotation)
-      elsif run_once_after_wait
-        run(region, tag, rotation, retry_timeout)
-      else
-        run_with_intervals(region, tag, rotation, retry_timeout)
-      end
+      res =
+        if retry_timeout.zero?
+          run(region, tag, rotation)
+        elsif run_once_after_wait
+          run(region, tag, rotation, retry_timeout)
+        else
+          run_with_intervals(region, tag, rotation, retry_timeout)
+        end
       elapsed_time = Time.now - start
 
       Applitools::EyesLogger.debug "match_window(): Completed in #{format('%.2f', elapsed_time)} seconds"
 
       @last_checked_window = @current_screenshot
-      @last_screenshot_bounds = region.empty? ? Applitools::Base::Region.new(0, 0, last_checked_window.width,
-        last_checked_window.height) : region
+      @last_screenshot_bounds =
+        if region.empty?
+          Applitools::Base::Region.new(0, 0, last_checked_window.width, last_checked_window.height)
+        else
+          region
+        end
       driver.clear_user_inputs
 
       res
     end
 
-    def run(region, tag, rotation, wait_before_run=nil)
+    def run(region, tag, rotation, wait_before_run = nil)
       Applitools::EyesLogger.debug 'Trying matching once...'
 
       if wait_before_run
@@ -85,10 +90,12 @@ module Applitools::Selenium
     private
 
     def get_clipped_region(region, image)
-      left, top = [region.left, 0].max, [region.top, 0].max
+      left = [region.left, 0].max
+      top = [region.top, 0].max
       max_width = image.width - left
       max_height = image.height - top
-      width, height = [region.width, max_width].min, [region.height, max_height].min
+      width = [region.width, max_width].min
+      height = [region.height, max_height].min
       Applitools::Base::Region.new(left, top, width, height)
     end
 
@@ -130,12 +137,12 @@ module Applitools::Selenium
               trigger.control.intersect(last_screenshot_bounds)
               if trigger.control.empty?
                 trigger_left -= - last_screenshot_bounds.left
-                trigger_top = trigger_top - last_screenshot_bounds.top
+                trigger_top -= last_screenshot_bounds.top
                 updated_trigger = Applitools::Base::MouseTrigger.new(trigger.mouse_action, trigger.control,
                   Applitools::Base::Point.new(trigger_left, trigger_top))
               else
-                trigger_left = trigger_left - trigger.control.left
-                trigger_top = trigger_top - trigger.control.top
+                trigger_left -= trigger.control.left
+                trigger_top -= trigger.control.top
                 control_left = trigger.control.left - last_screenshot_bounds.left
                 control_top = trigger.control.top - last_screenshot_bounds.top
                 updated_control = Applitools::Base::Region.new(control_left, control_top, trigger.control.width,
@@ -149,9 +156,9 @@ module Applitools::Selenium
               Applitools::EyesLogger.info "Trigger ignored: #{trigger} (out of bounds)"
             end
           elsif trigger.is_a?(Applitools::Base::TextTrigger)
-            unless trigger.control.empty?
+            if !trigger.control.empty?
               trigger.control.intersect(last_screenshot_bounds)
-              unless trigger.control.empty?
+              if !trigger.control.empty?
                 control_left = trigger.control.left - last_screenshot_bounds.left
                 control_top = trigger.control.top - last_screenshot_bounds.top
                 updated_control = Applitools::Base::Region.new(control_left, control_top, trigger.control.width,
@@ -179,7 +186,7 @@ module Applitools::Selenium
       match_window_data_obj
     end
 
-    def match(region, tag, rotation, ignore_mismatch=false)
+    def match(region, tag, rotation, ignore_mismatch = false)
       Applitools::EyesLogger.debug 'Match called...'
       data = prep_match_data(region, tag, rotation, ignore_mismatch)
       match_result = Applitools::Base::ServerConnector.match_window(session, data)

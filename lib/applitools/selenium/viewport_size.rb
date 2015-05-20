@@ -54,7 +54,8 @@ module Applitools::Selenium
     end
 
     def extract_viewport_from_browser
-      width, height = nil, nil
+      width = nil
+      height = nil
       begin
         width  = extract_viewport_width
         height = extract_viewport_height
@@ -63,36 +64,37 @@ module Applitools::Selenium
       end
 
       if width.nil? || height.nil?
-        Applitools::EyesLogger.info "Using window size as viewport size."
+        Applitools::EyesLogger.info 'Using window size as viewport size.'
 
         width, height = *browser_size.values
-        width, height = width.ceil, height.ceil
+        width = width.ceil
+        height = height.ceil
 
         if @driver.landscape_orientation? && height > width
           width, height = height, width
         end
       end
 
-      Applitools::Base::Dimension.new(width,height)
+      Applitools::Base::Dimension.new(width, height)
     end
 
     alias_method :viewport_size, :extract_viewport_from_browser
 
     def set
-      if @dimension.is_a?(Hash) && @dimension.has_key?(:width) && @dimension.has_key?(:height)
+      if @dimension.is_a?(Hash) && @dimension.key?(:width) && @dimension.key?(:height)
         # If @dimension is hash of width/height, we convert it to a struct with width/height properties.
         @dimension = Struct.new(:width, :height).new(@dimension[:width], @dimension[:height])
       elsif !@dimension.respond_to?(:width) || !@dimension.respond_to?(:height)
-        raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or be "\
-          ' a hash with these keys.'
+        raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or "\
+          'be  a hash with these keys.'
       end
 
-      set_browser_size(@dimension)
+      resize_browser(@dimension)
       verify_size(:browser_size)
 
       cur_viewport_size = extract_viewport_from_browser
 
-      set_browser_size(Applitools::Base::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
+      resize_browser(Applitools::Base::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
         (2 * browser_size.height) - cur_viewport_size.height))
       verify_size(:viewport_size)
     end
@@ -117,7 +119,7 @@ module Applitools::Selenium
       @driver.manage.window.size
     end
 
-    def set_browser_size(other)
+    def resize_browser(other)
       # Before resizing the window, set its position to the upper left corner (otherwise, there might not be enough
       # "space" below/next to it and the operation won't be successful).
       @driver.manage.window.position = Selenium::WebDriver::Point.new(0, 0)
