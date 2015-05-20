@@ -40,7 +40,7 @@ module Applitools::Selenium
       @is_mobile_device = options.fetch(:is_mobile_device, false)
       @eyes = eyes
 
-      raise 'Uncapable of taking screenshots!' unless capabilities.takes_screenshot?
+      raise 'Incapable of taking screenshots!' unless capabilities.takes_screenshot?
     end
 
     # Rotates the image as necessary. The rotation is either manually forced by passing a value in
