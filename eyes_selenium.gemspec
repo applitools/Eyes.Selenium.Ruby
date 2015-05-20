@@ -27,6 +27,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '>= 3'
   spec.add_development_dependency 'watir-webdriver'
+  spec.add_development_dependency 'appium_lib'
 
   # Exclude debugging support on Travis CI, due to its incompatibility with jruby and older rubies.
   unless ENV['TRAVIS']
