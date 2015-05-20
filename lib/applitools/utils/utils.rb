@@ -41,7 +41,7 @@ module Applitools::Utils
     when Array
       value.map { |v| convert_hash_keys(v, method) }
     when Hash
-      Hash[value.map {|k, v| [send(method, k.to_s).to_sym, convert_hash_keys(v, method)]}]
+      Hash[value.map { |k, v| [send(method, k.to_s).to_sym, convert_hash_keys(v, method)] }]
     else
       value
     end

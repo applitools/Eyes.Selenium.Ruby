@@ -32,7 +32,7 @@ module Applitools::Base
 
     def intersecting?(other)
       ((left <= other.left && other.left <= right) || (other.left <= left && left <= other.right)) &&
-      ((top <= other.top && other.top <= bottom) || (other.top <= top && top <= other.bottom))
+        ((top <= other.top && other.top <= bottom) || (other.top <= top && top <= other.bottom))
     end
 
     def intersect(other)

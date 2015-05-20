@@ -105,7 +105,7 @@ class Applitools::Eyes
     return driver if disabled?
 
     if api_key.nil?
-      raise Applitools::EyesError.new("API key not set! Log in to https://applitools.com to obtain your API Key and "\
+      raise Applitools::EyesError.new('API key not set! Log in to https://applitools.com to obtain your API Key and '\
         "use 'api_key' to set it.")
     end
 

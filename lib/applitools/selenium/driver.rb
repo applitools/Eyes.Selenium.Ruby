@@ -56,7 +56,7 @@ module Applitools::Selenium
       num_quadrants = 0
       if !rotation.nil?
         if rotation % RIGHT_ANGLE != 0
-          raise Applitools::EyesError.new("Currently only quadrant rotations are supported. Current rotation: "\
+          raise Applitools::EyesError.new('Currently only quadrant rotations are supported. Current rotation: '\
             "#{rotation}")
         end
         num_quadrants = (rotation / RIGHT_ANGLE).to_i
@@ -126,7 +126,7 @@ module Applitools::Selenium
       when :png
         screenshot = Applitools::Utils::ImageUtils.bytes_from_png_image(screenshot)
       else
-        raise Applitools::EyesError.new("Unsupported screenshot output type: #{output_type.to_s}")
+        raise Applitools::EyesError.new("Unsupported screenshot output type: #{output_type}")
       end
 
       screenshot.force_encoding('BINARY')

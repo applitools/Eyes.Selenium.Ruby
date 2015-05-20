@@ -52,7 +52,7 @@ module Applitools::Base::ServerConnector
   end
 
   def stop_session(session, aborted = nil, save = false)
-    res = long_delete(URI.join(endpoint_url, session.id.to_s), query: {aborted: aborted, updateBaseline: save})
+    res = long_delete(URI.join(endpoint_url, session.id.to_s), query: { aborted: aborted, updateBaseline: save })
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)
