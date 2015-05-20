@@ -89,12 +89,12 @@ module Applitools::Selenium
           'be  a hash with these keys.'
       end
 
-      set_browser_size(@dimension)
+      resize_browser(@dimension)
       verify_size(:browser_size)
 
       cur_viewport_size = extract_viewport_from_browser
 
-      set_browser_size(Applitools::Base::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
+      resize_browser(Applitools::Base::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
         (2 * browser_size.height) - cur_viewport_size.height))
       verify_size(:viewport_size)
     end
@@ -119,7 +119,7 @@ module Applitools::Selenium
       @driver.manage.window.size
     end
 
-    def set_browser_size(other)
+    def resize_browser(other)
       @driver.manage.window.size = other
     end
 

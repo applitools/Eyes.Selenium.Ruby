@@ -25,13 +25,14 @@ module Applitools::Selenium
       Applitools::EyesLogger.debug "Retry timeout set to: #{retry_timeout}"
 
       start = Time.now
-      res = if retry_timeout.zero?
-        run(region, tag, rotation)
-      elsif run_once_after_wait
-        run(region, tag, rotation, retry_timeout)
-      else
-        run_with_intervals(region, tag, rotation, retry_timeout)
-      end
+      res =
+        if retry_timeout.zero?
+          run(region, tag, rotation)
+        elsif run_once_after_wait
+          run(region, tag, rotation, retry_timeout)
+        else
+          run_with_intervals(region, tag, rotation, retry_timeout)
+        end
       elapsed_time = Time.now - start
 
       Applitools::EyesLogger.debug "match_window(): Completed in #{format('%.2f', elapsed_time)} seconds"

@@ -50,8 +50,9 @@ module Applitools::Selenium
         dimension = size
         width = dimension.width
         height = dimension.height
-      rescue
+      rescue => e
         # Not supported on all platforms.
+        Applitools::EyesLogger.error("Failed extracting size size using JavaScript: (#{e.message})")
       end
 
       if left < 0
