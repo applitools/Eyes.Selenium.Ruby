@@ -7,31 +7,31 @@ require 'appium_lib'
 
 def android_caps
   {
-      deviceName: 'Samsung Galaxy S4 Emulator',
-      platformName: 'Android',
-      platformVersion: 4.4,
-      app: ENV['ANDROID_NOTES_LIST_APP'],
-      appPackage: 'com.example.android.notepad',
-      appActivity: '.NotesList',
-      # orientation:         'landscape',
-      newCommandTimeout: 300
+    deviceName: 'Samsung Galaxy S4 Emulator',
+    platformName: 'Android',
+    platformVersion: 4.4,
+    app: ENV['ANDROID_NOTES_LIST_APP'],
+    appPackage: 'com.example.android.notepad',
+    appActivity: '.NotesList',
+    # orientation:         'landscape',
+    newCommandTimeout: 300
   }
 end
 
 def ios_caps
   {
-      deviceName: 'iPhone 6',
-      platformName: 'ios',
-      platformVersion: 8.3,
-      app: ENV['IOS_DEMO_APP'],
-      orientation: 'landscape',
-      newCommandTimeout: 300
+    deviceName: 'iPhone 6',
+    platformName: 'ios',
+    platformVersion: 8.3,
+    app: ENV['IOS_DEMO_APP'],
+    orientation: 'landscape',
+    newCommandTimeout: 300
   }
 end
 
 def appium_opts
   {
-      server_url: 'http://127.0.0.1:4723/wd/hub',
+    server_url: 'http://127.0.0.1:4723/wd/hub'
   }
 end
 

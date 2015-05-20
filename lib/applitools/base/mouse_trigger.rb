@@ -7,7 +7,7 @@ module Applitools::Base
       move: 'Move',
       down: 'Down',
       up: 'Up'
-     }.freeze
+    }.freeze
 
     attr_reader :mouse_action, :control, :location
 

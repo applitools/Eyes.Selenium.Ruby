@@ -1,7 +1,7 @@
 require 'faraday'
 
 require 'oj'
-Oj.default_options = {:mode => :compat }
+Oj.default_options = { :mode => :compat }
 
 require 'uri'
 
@@ -44,7 +44,8 @@ module Applitools::Base::ServerConnector
   end
 
   def start_session(session_start_info)
-    res = post(endpoint_url, body: Oj.dump(startInfo: Applitools::Utils.camelcase_hash_keys(session_start_info.to_hash)))
+    res = post(endpoint_url, body: Oj.dump(startInfo:
+      Applitools::Utils.camelcase_hash_keys(session_start_info.to_hash)))
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)
@@ -52,7 +53,7 @@ module Applitools::Base::ServerConnector
   end
 
   def stop_session(session, aborted = nil, save = false)
-    res = long_delete(URI.join(endpoint_url, session.id.to_s), query: {aborted: aborted, updateBaseline: save})
+    res = long_delete(URI.join(endpoint_url, session.id.to_s), query: { aborted: aborted, updateBaseline: save })
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)
@@ -82,11 +83,11 @@ module Applitools::Base::ServerConnector
   end
 
   def request(url, method, options = {})
-    Faraday::Connection.new(url, ssl: {ca_file: SSL_CERT}).send(method) do |req|
+    Faraday::Connection.new(url, ssl: { ca_file: SSL_CERT }).send(method) do |req|
       req.options.timeout  = DEFAULT_TIMEOUT
       req.headers = DEFAULT_HEADERS.merge(options[:headers] || {})
       req.headers['Content-Type'] = options[:content_type] if options.key?(:content_type)
-      req.params = {apiKey: api_key}.merge(options[:query] || {})
+      req.params = { apiKey: api_key }.merge(options[:query] || {})
       req.body = options[:body]
     end
   end
@@ -95,7 +96,7 @@ module Applitools::Base::ServerConnector
     delay = LONG_REQUEST_DELAY
     (options[:headers] ||= {})['Eyes-Expect'] = '202-accepted'
 
-    while true
+    loop do
       # Date should be in RFC 1123 format.
       options[:headers]['Eyes-Date'] = Time.now.utc.strftime('%a, %d %b %Y %H:%M:%S GMT')
 

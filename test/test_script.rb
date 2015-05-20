@@ -9,7 +9,7 @@ eyes.log_handler = Logger.new(STDOUT)
 begin
   web_driver = Selenium::WebDriver.for :chrome
 
-  eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: {width: 900, height: 600},
+  eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: { width: 900, height: 600 },
     driver: web_driver) do |driver|
     driver.get 'http://www.applitools.com'
     eyes.check_window('initial')

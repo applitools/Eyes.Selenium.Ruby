@@ -35,16 +35,16 @@ module Applitools::Selenium
       current_control = Applitools::Base::Region.new(0, 0, *location.values)
       driver.user_inputs << Applitools::Base::MouseTrigger.new(:move, current_control, location)
       element = element.web_element if element.is_a?(Applitools::Selenium::Element)
-      mouse.move_to(element,right_by, down_by)
+      mouse.move_to(element, right_by, down_by)
     end
 
     def move_by(right_by, down_by)
       right = [0, right_by].max.round
       down = [0, down_by].max.round
-      location = Applitools::Base::Point.new(right,down)
+      location = Applitools::Base::Point.new(right, down)
       current_control = Applitools::Base::Region.new(0, 0, right, down)
       driver.user_inputs << Applitools::Base::MouseTrigger.new(:move, current_control, location)
-      mouse.move_by(right_by,down_by)
+      mouse.move_by(right_by, down_by)
     end
 
     private
