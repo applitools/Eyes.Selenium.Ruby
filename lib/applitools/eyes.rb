@@ -384,9 +384,9 @@ class Applitools::Eyes
     return if @session.new_session?
 
     Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
-    if failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
-      raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
-        "of '#{@session_start_info.app_id_or_name}'")
-    end
+    return unless failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
+
+    raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
+      "of '#{@session_start_info.app_id_or_name}'")
   end
 end

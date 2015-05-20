@@ -18,17 +18,17 @@ module Applitools::EyesLogger
 
   def_delegators :@@log_handler, *MANDATORY_METHODS
 
-  @@log_handler = NullLogger.new
+  @log_handler = NullLogger.new
 
   def log_handler=(log_handler)
     raise Applitools::EyesError.new('log_handler must implement Logger!') unless valid?(log_handler)
 
-    @@log_handler = log_handler
+    @log_handler = log_handler
   end
 
   OPTIONAL_METHODS.each do |method|
     define_singleton_method(method) do |msg|
-      @@log_handler.respond_to?(method) ? @@log_handler.send(method, msg) : @@log_handler.info(msg)
+      @log_handler.respond_to?(method) ? @log_handler.send(method, msg) : @log_handler.info(msg)
     end
   end
 
