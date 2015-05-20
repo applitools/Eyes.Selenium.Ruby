@@ -35,6 +35,9 @@ Style/AlignParameters:
 Style/HashSyntax:
   UseHashRocketsWithSymbolValues: true
 
+Style/AlignHash:
+  Enabled: false
+
 Style/MultilineOperationIndentation:
   EnforcedStyle: indented
 
