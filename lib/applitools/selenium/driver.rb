@@ -110,7 +110,7 @@ module Applitools::Selenium
       Applitools::Selenium::Element.new(self, driver.find_element(how, what))
     end
 
-     def find_elements(*args)
+    def find_elements(*args)
       how, what = extract_args(args)
 
       raise ArgumentError, "cannot find element by: #{how.inspect}" unless FINDERS[how.to_sym]
@@ -166,7 +166,7 @@ module Applitools::Selenium
       num_quadrants = 0
       if !rotation.nil?
         if rotation % RIGHT_ANGLE != 0
-          raise Applitools::EyesError.new("Currently only quadrant rotations are supported. Current rotation: "\
+          raise Applitools::EyesError.new('Currently only quadrant rotations are supported. Current rotation: '\
             "#{rotation}")
         end
         num_quadrants = (rotation / RIGHT_ANGLE).to_i

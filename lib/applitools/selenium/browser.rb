@@ -34,7 +34,7 @@ module Applitools::Selenium
 
     def image_normalization_factor(image)
       if image.width == @eyes.viewport_size.extract_viewport_from_browser.width ||
-        (image.width - entire_page_size.width).abs <= EPSILON_WIDTH
+          (image.width - entire_page_size.width).abs <= EPSILON_WIDTH
         return 1
       end
 
