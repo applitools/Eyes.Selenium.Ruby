@@ -38,8 +38,8 @@ module Applitools::Utils
       # Writing the data header.
       compression_result += PREAMBLE.encode('UTF-8')
       compression_result += [FORMAT_RAW_BLOCKS].pack('C')
-      compression_result += [0].pack('S>') #Source id, Big Endian
-      compression_result += [block_size].pack('S>') #Big Endian
+      compression_result += [0].pack('S>') # Source id, Big Endian
+      compression_result += [block_size].pack('S>') # Big Endian
 
       # We perform the compression for each channel.
       3.times do |channel|
@@ -61,7 +61,7 @@ module Applitools::Utils
               # If the compressed data so far is greater than the uncompressed representation of the target, just return
               # the target.
               if compression_result.length > target_encoded.length
-  	             compressor.finish
+                compressor.finish
                 compressor.close
                 # Returning a copy of the target bytes.
                 return String.new(target_encoded)
@@ -130,12 +130,10 @@ module Applitools::Utils
       channel_bytes = []
       actual_block_height.times do |h|
         offset = (((block_size * block_row) + h) * stride) + (block_size * block_column * pixel_length) + channel
-        actual_block_width.times do |w|
+        actual_block_width.times do |_w|
           source_byte = source_pixels[offset]
           target_byte = target_pixels[offset]
-          if source_byte != target_byte
-            identical = false
-          end
+          identical = false if source_byte != target_byte
           channel_bytes << target_byte
           offset += pixel_length
         end
