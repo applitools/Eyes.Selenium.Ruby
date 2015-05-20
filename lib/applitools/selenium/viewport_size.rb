@@ -1,36 +1,40 @@
 module Applitools::Selenium
   class ViewportSize
     JS_GET_VIEWPORT_HEIGHT = <<-EOF
-      var height = undefined;
-      if (window.innerHeight) {
-        height = window.innerHeight;
-      }
-      else if (document.documentElement && document.documentElement.clientHeight) {
-        height = document.documentElement.clientHeight;
-      } else {
-        var b = document.getElementsByTagName("body")[0];
-        if (b.clientHeight) {
-          height = b.clientHeight;
+      return (function() {
+        var height = undefined;
+        if (window.innerHeight) {
+          height = window.innerHeight;
         }
-      }
+        else if (document.documentElement && document.documentElement.clientHeight) {
+          height = document.documentElement.clientHeight;
+        } else {
+          var b = document.getElementsByTagName("body")[0];
+          if (b.clientHeight) {
+            height = b.clientHeight;
+          }
+        }
 
-      return height;
+        return height;
+      }());
     EOF
 
     JS_GET_VIEWPORT_WIDTH  = <<-EOF
-      var width = undefined;
-      if (window.innerWidth) {
-        width = window.innerWidth
-      } else if (document.documentElement && document.documentElement.clientWidth) {
-        width = document.documentElement.clientWidth;
-      } else {
-        var b = document.getElementsByTagName("body")[0];
-        if (b.clientWidth) {
-          width = b.clientWidth;
+      return (function() {
+        var width = undefined;
+        if (window.innerWidth) {
+          width = window.innerWidth
+        } else if (document.documentElement && document.documentElement.clientWidth) {
+          width = document.documentElement.clientWidth;
+        } else {
+          var b = document.getElementsByTagName("body")[0];
+          if (b.clientWidth) {
+            width = b.clientWidth;
+          }
         }
-      }
 
-      return width;
+        return width;
+      }());
     EOF
 
     VERIFY_SLEEP_PERIOD = 1.freeze
