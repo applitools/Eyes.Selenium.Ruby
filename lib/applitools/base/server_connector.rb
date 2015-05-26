@@ -49,7 +49,7 @@ module Applitools::Base::ServerConnector
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)
-    Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
+    Applitools::Base::Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
   end
 
   def stop_session(session, aborted = nil, save = false)
@@ -58,7 +58,7 @@ module Applitools::Base::ServerConnector
 
     response = Oj.load(res.body)
     response.delete('$id')
-    TestResults.new(*response.values)
+    Applitools::Base::TestResults.new(*response.values)
   end
 
   private
