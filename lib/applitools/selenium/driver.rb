@@ -25,7 +25,9 @@ module Applitools::Selenium
       xpath: 'xpath'
     }.freeze
 
-    JS_GET_USER_AGENT = 'return navigator.userAgent;'.freeze
+    JS_GET_USER_AGENT = (<<-JS).freeze
+      return navigator.userAgent;
+    JS
 
     def_delegators :@eyes, :user_inputs, :clear_user_inputs
 
