@@ -1,3 +1,5 @@
+require 'pry'
+
 module Applitools::Selenium
   class Browser
     JS_GET_USER_AGENT = (<<-JS).freeze
@@ -54,8 +56,8 @@ module Applitools::Selenium
     JS
 
     EPSILON_WIDTH = 12.freeze
-    MIN_SCREENSHOT_PART_HEIGHT = 10.0.freeze
-    MAX_SCROLLBAR_SIZE = 50.0.freeze
+    MIN_SCREENSHOT_PART_HEIGHT = 10.freeze
+    MAX_SCROLLBAR_SIZE = 50.freeze
 
     def initialize(driver, eyes)
       @driver = driver
@@ -67,7 +69,7 @@ module Applitools::Selenium
     end
 
     def user_agent
-      @user_agent ||= @driver.execute_script(JS_GET_USER_AGENT)
+      @user_agent ||= execute_script(JS_GET_USER_AGENT).freeze
     end
 
     def image_normalization_factor(image)
@@ -84,28 +86,28 @@ module Applitools::Selenium
         max_document_element_height = [page_metrics[:client_height], page_metrics[:scroll_height]].max
         max_body_height = [page_metrics[:body_client_height], page_metrics[:body_scroll_height]].max
 
-        total_width =  [page_metrics[:scroll_width], page_metrics[:body_scroll_width]].max
+        total_width = [page_metrics[:scroll_width], page_metrics[:body_scroll_width]].max
         total_height = [max_document_element_height, max_body_height].max
 
         Applitools::Base::Dimension.new(total_width, total_height)
-      end
+      end.freeze
     end
 
     def current_scroll_position
-      position = @driver.execute_script(JS_GET_CURRENT_SCROLL_POSITION)
-      Applitools::Base::Point.new(position[:x], position[:y])
+      position = Applitools::Utils.underscore_hash_keys(execute_script(JS_GET_CURRENT_SCROLL_POSITION))
+      Applitools::Base::Point.new(position[:left], position[:top])
     end
 
     def scroll_to(point)
-      @driver.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top })
+      execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }, 0.25)
     end
 
     def current_transform
-      @driver.execute_script(JS_GET_CURRENT_TRANSFORM)
+      execute_script(JS_GET_CURRENT_TRANSFORM)
     end
 
     def set_transform(transform)
-       @driver.execute_script(JS_SET_TRANSFORM % { transform: transform })
+      execute_script(JS_SET_TRANSFORM % { transform: transform }, 0.25)
     end
 
     def translate_to(point)
@@ -113,13 +115,13 @@ module Applitools::Selenium
     end
 
     def set_overflow(overflow)
-      driver.execute_script(JS_SET_OVERFLOW % { overflow: overflow })
+      execute_script(JS_SET_OVERFLOW % { overflow: overflow }, 0.1)
     end
 
     def screenshot
       # Scroll to the top/left corner of the screen.
       original_scroll_position = current_scroll_position
-      scrollTo(Applitools::Base::Point::TOP_LEFT)
+      scroll_to(Applitools::Base::Point::TOP_LEFT)
       if current_scroll_position != Applitools::Base::Point::TOP_LEFT
         raise 'Could not scroll to the top/left corner of the screen!'
       end
@@ -136,14 +138,14 @@ module Applitools::Selenium
       end
 
       # Take screenshot of the (0,0) tile.
-      screenshot = take_screenshot
+      screenshot = @driver.visible_screenshot
 
       # Normalize screenshot width/height.
       size_factor = 1
-      page_size = entire_page_size
+      page_size = entire_page_size.dup
       factor = image_normalization_factor(screenshot)
       if factor == 0.5
-        size_factor = 0.5
+        size_factor = 2
         page_size.width *= size_factor
         page_size.height *= size_factor
         page_size.width = [page_size.width, screenshot.width].max
@@ -151,19 +153,24 @@ module Applitools::Selenium
 
       # NOTE: this is required! Since when calculating the screenshot parts for full size, we use a screenshot size
       # which is a bit smaller (see comment below).
-      if screenshot.width < entire_page_size.width || screenshot.height < entire_page_size.height)
+      if screenshot.width < page_size.width || screenshot.height < page_size.height
         # We use a smaller size than the actual screenshot size in order to eliminate duplication of bottom scroll bars,
         # as well as footer-like elements with fixed position.
         max_scrollbar_size = @eyes.use_css_transition ? 0 : MAX_SCROLLBAR_SIZE
-        height = [screenshot.height - (max_scrollbar_size * size_factor), MIN_SCREENSHOT_PART_HEIGHT * size_factor]
-        screenshot_part_size = Applitools::Base::Dimension.new(image.width, height)
+        height = [screenshot.height - (max_scrollbar_size * size_factor), MIN_SCREENSHOT_PART_HEIGHT * size_factor].max
+        screenshot_part_size = Applitools::Base::Dimension.new(screenshot.width, height)
 
-        parts = Applitools::Base::Region.new(0, 0, entire_page_size.width, entire_page_size.height).
+        parts = Applitools::Base::Region.new(0, 0, page_size.width, page_size.height).
           subregions(screenshot_part_size).map do |screenshot_part|
-            process_screenshot_part(screenshot_part, screenshot, size_factor)
+            # Skip (0,0), as we already got the screenshot.
+            if screenshot_part.left == 0 && screenshot_part.top == 0
+              next Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT)
+            end
+
+            process_screenshot_part(screenshot_part, size_factor)
         end
 
-        screenshot = Applitools::Utils::ImageUtils.stitch_images(entire_page_size, parts)
+        screenshot = Applitools::Utils::ImageUtils.stitch_images(page_size, parts)
       end
 
       if @eyes.hide_scrollbars
@@ -181,31 +188,35 @@ module Applitools::Selenium
 
     private
 
+    def execute_script(script, stabilization_time = nil)
+      @driver.execute_script(script).tap do |result|
+        sleep(stabilization_time) if stabilization_time
+      end
+    end
+
     def device_pixel_ratio
-      @device_pixel_ratio ||= @driver.execute_script(JS_GET_DEVICE_PIXEL_RATIO)
+      @device_pixel_ratio ||= execute_script(JS_GET_DEVICE_PIXEL_RATIO).freeze
     end
 
     def page_metrics
-      @page_metrics ||= Applitools::Utils.underscore_hash_keys(@driver.execute_script(JS_GET_PAGE_METRICS))
+      @page_metrics ||= Applitools::Utils.underscore_hash_keys(execute_script(JS_GET_PAGE_METRICS)).freeze
     end
 
-    def process_screenshot_part(part, screenshot, size_factor)
-      # Skip (0,0), as we already got the screenshot.
-      if part.left == 0 && part.top == 0
-        return Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT .new(0, 0))
-      end
-
-      part_coors = Applitools::Base::Point.new(part.left, part.top)
+    def process_screenshot_part(part, size_factor)
+      part_coords = Applitools::Base::Point.new(part.left, part.top)
       part_coords_normalized = Applitools::Base::Point.new(part.left.to_f / size_factor, part.top.to_f / size_factor)
 
       if @eyes.use_css_transition
-        current_position = translate_to(part_coords_normalized)
+        translate_to(part_coords_normalized)
+        current_position = part_coords
       else
-        position = scroll_to(part_coords_normalized)
-        current_position = Applitools::Base::Point.new(position.left.to_f * size_factor, position.top * size_factor)
+        scroll_to(part_coords_normalized)
+        position = current_scroll_position
+        current_position = Applitools::Base::Point.new(position.left * size_factor, position.top * size_factor)
       end
 
-      Applitools::Base::ImagePosition.new(@driver.take_screenshot, current_position)
+      Applitools::Base::ImagePosition.new(@driver.visible_screenshot.crop!(0, 0, part_coords_normalized.left,
+        part_coords_normalized.top), current_position)
     end
   end
 end

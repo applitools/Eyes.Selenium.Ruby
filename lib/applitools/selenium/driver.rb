@@ -78,7 +78,7 @@ module Applitools::Selenium
     #
     # Returns: +String+ A screenshot in the requested format.
     def screenshot_as(output_type, rotation = nil)
-      screenshot = take_screenshot
+      screenshot = @browser.screenshot
 
       Applitools::Selenium::Driver.normalize_image(self, screenshot, rotation)
 
@@ -94,8 +94,8 @@ module Applitools::Selenium
       screenshot.force_encoding('BINARY')
     end
 
-    def take_screenshot
-      Applitools::Utils::ImageUtils.png_image_from_base64(@driver.screenshot_as(:base64))
+    def visible_screenshot
+      Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
     end
 
     def mouse
