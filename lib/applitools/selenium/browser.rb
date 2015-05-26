@@ -2,7 +2,7 @@ module Applitools::Selenium
   class Browser
     JS_GET_USER_AGENT = 'return navigator.userAgent;'.freeze
     JS_GET_DEVICE_PIXEL_RATIO = 'return window.devicePixelRatio;'.freeze
-    JS_GET_PAGE_METRICS = (<<-EOF).freeze
+    JS_GET_PAGE_METRICS = (<<-JS).freeze
       return {
         scrollWidth: document.documentElement.scrollWidth,
         bodyScrollWidth: document.body.scrollWidth,
@@ -11,7 +11,7 @@ module Applitools::Selenium
         scrollHeight: document.documentElement.scrollHeight,
         bodyScrollHeight: document.body.scrollHeight
       };
-    EOF
+    JS
 
     EPSILON_WIDTH = 12.freeze
 

@@ -1,6 +1,6 @@
 module Applitools::Selenium
   class ViewportSize
-    JS_GET_VIEWPORT_HEIGHT = (<<-EOF).freeze
+    JS_GET_VIEWPORT_HEIGHT = (<<-JS).freeze
       return (function() {
         var height = undefined;
         if (window.innerHeight) {
@@ -17,9 +17,9 @@ module Applitools::Selenium
 
         return height;
       }());
-    EOF
+    JS
 
-    JS_GET_VIEWPORT_WIDTH = (<<-EOF).freeze
+    JS_GET_VIEWPORT_WIDTH = (<<-JS).freeze
       return (function() {
         var width = undefined;
         if (window.innerWidth) {
@@ -35,7 +35,7 @@ module Applitools::Selenium
 
         return width;
       }());
-    EOF
+    JS
 
     VERIFY_SLEEP_PERIOD = 1.freeze
     VERIFY_RETRIES = 3.freeze
