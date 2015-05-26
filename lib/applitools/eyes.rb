@@ -23,7 +23,9 @@ class Applitools::Eyes
   DEFAULT_MATCH_TIMEOUT = 2.0.freeze # Seconds
   BASE_AGENT_ID = ('eyes.selenium.ruby/' + Applitools::VERSION).freeze
 
-  #
+  ANDROID = 'Android'.freeze
+  IOS = 'iOS'.freeze
+
   # Attributes:
   #
   # +app_name+:: +String+ The application name which was provided as an argument to +open+.
@@ -307,10 +309,10 @@ class Applitools::Eyes
         Applitools::EyesLogger.info 'Mobile device detected! Checking device type..'
         if driver.android?
           Applitools::EyesLogger.info 'Android detected.'
-          platform_name = 'Android'
+          platform_name = ANDROID
         elsif driver.ios?
           Applitools::EyesLogger.info 'iOS detected.'
-          platform_name = 'iOS'
+          platform_name = IOS
         else
           Applitools::EyesLogger.warn 'Unknown device type.'
         end
