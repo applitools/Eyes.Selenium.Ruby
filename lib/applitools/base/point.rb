@@ -5,6 +5,8 @@ module Applitools::Base
     alias_attribute :left, :x
     alias_attribute :top, :y
 
+    TOP_LEFT = Point.new(0, 0)
+
     def initialize(x, y)
       @x = x
       @y = y

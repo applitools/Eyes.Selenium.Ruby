@@ -54,6 +54,8 @@ module Applitools::Selenium
     JS
 
     EPSILON_WIDTH = 12.freeze
+    MIN_SCREENSHOT_PART_HEIGHT = 10.0.freeze
+    MAX_SCROLLBAR_SIZE = 50.0.freeze
 
     def initialize(driver, eyes)
       @driver = driver
@@ -91,7 +93,7 @@ module Applitools::Selenium
 
     def current_scroll_position
       position = @driver.execute_script(JS_GET_CURRENT_SCROLL_POSITION)
-      Point.new(position[:x], position[:y])
+      Applitools::Base::Point.new(position[:x], position[:y])
     end
 
     def scroll_to(point)
@@ -102,12 +104,79 @@ module Applitools::Selenium
       @driver.execute_script(JS_GET_CURRENT_TRANSFORM)
     end
 
+    def set_transform(transform)
+       @driver.execute_script(JS_SET_TRANSFORM % { transform: transform })
+    end
+
     def translate_to(point)
-      @driver.execute_script(JS_SET_TRANSFORM % { transform: "translate(-#{point.left}px, -#{point.top}px)" })
+      set_transform("translate(-#{point.left}px, -#{point.top}px)")
     end
 
     def set_overflow(overflow)
       driver.execute_script(JS_SET_OVERFLOW % { overflow: overflow })
+    end
+
+    def screenshot
+      # Scroll to the top/left corner of the screen.
+      original_scroll_position = current_scroll_position
+      scrollTo(Applitools::Base::Point::TOP_LEFT)
+      if current_scroll_position != Applitools::Base::Point::TOP_LEFT
+        raise 'Could not scroll to the top/left corner of the screen!'
+      end
+
+      # Translate to top/left of the page (notice this is different from JavaScript scrolling).
+      if @eyes.use_css_transition
+        original_transform = current_transform
+        translate_to(Applitools::Base::Point::TOP_LEFT)
+      end
+
+      # Hide scrollbars.
+      if @eyes.hide_scrollbars
+        original_overflow = set_overflow('hidden')
+      end
+
+      # Take screenshot of the (0,0) tile.
+      screenshot = take_screenshot
+
+      # Normalize screenshot width/height.
+      size_factor = 1
+      page_size = entire_page_size
+      factor = image_normalization_factor(screenshot)
+      if factor == 0.5
+        size_factor = 0.5
+        page_size.width *= size_factor
+        page_size.height *= size_factor
+        page_size.width = [page_size.width, screenshot.width].max
+      end
+
+      # NOTE: this is required! Since when calculating the screenshot parts for full size, we use a screenshot size
+      # which is a bit smaller (see comment below).
+      if screenshot.width < entire_page_size.width || screenshot.height < entire_page_size.height)
+        # We use a smaller size than the actual screenshot size in order to eliminate duplication of bottom scroll bars,
+        # as well as footer-like elements with fixed position.
+        max_scrollbar_size = @eyes.use_css_transition ? 0 : MAX_SCROLLBAR_SIZE
+        height = [screenshot.height - (max_scrollbar_size * size_factor), MIN_SCREENSHOT_PART_HEIGHT * size_factor]
+        screenshot_part_size = Applitools::Base::Dimension.new(image.width, height)
+
+        parts = Applitools::Base::Region.new(0, 0, entire_page_size.width, entire_page_size.height).
+          subregions(screenshot_part_size).map do |screenshot_part|
+            process_screenshot_part(screenshot_part, screenshot, size_factor)
+        end
+
+        screenshot = Applitools::Utils::ImageUtils.stitch_images(entire_page_size, parts)
+      end
+
+      if @eyes.hide_scrollbars
+        set_overflow(original_overflow)
+      end
+
+      if @eyes.use_css_transition
+        set_transform(original_transform)
+      end
+
+      scroll_to(original_scroll_position)
+
+      screenshot
     end
 
     private
@@ -118,6 +187,25 @@ module Applitools::Selenium
 
     def page_metrics
       @page_metrics ||= Applitools::Utils.underscore_hash_keys(@driver.execute_script(JS_GET_PAGE_METRICS))
+    end
+
+    def process_screenshot_part(part, screenshot, size_factor)
+      # Skip (0,0), as we already got the screenshot.
+      if part.left == 0 && part.top == 0
+        return Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT .new(0, 0))
+      end
+
+      part_coors = Applitools::Base::Point.new(part.left, part.top)
+      part_coords_normalized = Applitools::Base::Point.new(part.left.to_f / size_factor, part.top.to_f / size_factor)
+
+      if @eyes.use_css_transition
+        current_position = translate_to(part_coords_normalized)
+      else
+        position = scroll_to(part_coords_normalized)
+        current_position = Applitools::Base::Point.new(position.left.to_f * size_factor, position.top * size_factor)
+      end
+
+      Applitools::Base::ImagePosition.new(@driver.take_screenshot, current_position)
     end
   end
 end
