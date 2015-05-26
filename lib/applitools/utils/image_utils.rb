@@ -58,6 +58,10 @@ module Applitools::Utils
       end
     end
 
+    def scale!(image, factor)
+      image.resample_nearest_neighbor!(image.width.to_f * factor, image.height.to_f * factor)
+    end
+
     def stitch_images(size, images_data)
       ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
         images_data.each do |image_data|
