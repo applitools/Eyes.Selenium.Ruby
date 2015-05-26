@@ -9,7 +9,7 @@ module Applitools::Base
       @height = height.round
     end
 
-    EMPTY = Applitools::Base::Region.new(0, 0, 0, 0)
+    EMPTY = Region.new(0, 0, 0, 0)
 
     def make_empty
       @left = EMPTY.left
@@ -60,7 +60,7 @@ module Applitools::Base
     def middle_offset
       mid_x = width / 2
       mid_y = height / 2
-      Applitools::Base::Point.new(mid_x.round, mid_y.round)
+      Point.new(mid_x.round, mid_y.round)
     end
 
     def subregions(subregion_size)
