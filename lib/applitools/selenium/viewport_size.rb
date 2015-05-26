@@ -120,6 +120,9 @@ module Applitools::Selenium
     end
 
     def resize_browser(other)
+      # Before resizing the window, set its position to the upper left corner (otherwise, there might not be enough
+      # "space" below/next to it and the operation won't be successful).
+      @driver.manage.window.position = Selenium::WebDriver::Point.new(0, 0)
       @driver.manage.window.size = other
     end
 
