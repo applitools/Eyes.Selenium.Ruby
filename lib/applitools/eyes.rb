@@ -64,7 +64,7 @@ class Applitools::Eyes
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
     :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports, :match_level,
-    :baseline_name, :rotation
+    :baseline_name, :rotation, :hide_scrollbars, :use_css_transition
 
   def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
   def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=
@@ -101,6 +101,8 @@ class Applitools::Eyes
     @save_new_tests = true
     @save_failed_tests = false
     @dont_get_title = false
+    @hide_scrollbars = false
+    @use_css_transition = false
   end
 
   def open(options = {})
