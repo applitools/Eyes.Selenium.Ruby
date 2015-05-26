@@ -82,7 +82,7 @@ module Applitools::Base
           while current_left < right
             current_right = current_left + subregion_width
             if current_right > right
-              current_right = reight
+              current_right = right
               current_left = current_right - subregion_width
             end
 
