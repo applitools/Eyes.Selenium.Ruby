@@ -63,6 +63,39 @@ module Applitools::Base
       Applitools::Base::Point.new(mid_x.round, mid_y.round)
     end
 
+    def subregions(subregion_size)
+      [].tap do |subregions|
+        current_top = @top
+        bottom = @top + @height
+        right = @left + @width
+        subregion_width = [@width, subregion_size.width].min
+        subregion_height = [@height, subregion_size.height].min
+
+        while current_top < bottom do
+          current_bottom = current_top + subregion_height
+          if current_bottom > bottom
+            current_bottom = bottom
+            current_top = current_bottom - subregion_height
+          end
+
+          current_left = @left
+          while current_left < right
+            current_right = current_left + subregion_width
+            if current_right > right
+              current_right = reight
+              current_left = current_right - subregion_width
+            end
+
+            subregions << Region.new(current_left, current_top, subregion_width, subregion_height)
+
+            current_left += subregion_width
+          end
+
+          current_top += subregion_height
+        end
+      end
+    end
+
     def to_hash
       {
         left: left,
