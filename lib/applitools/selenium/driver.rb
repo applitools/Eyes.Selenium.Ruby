@@ -12,10 +12,6 @@ module Applitools::Selenium
     ANDROID = 'ANDROID'.freeze
     IOS = 'IOS'.freeze
     LANDSCAPE = 'LANDSCAPE'.freeze
-
-    IE = 'ie'.freeze
-    FIREFOX = 'firefox'.freeze
-
     FINDERS = {
       class: 'class name',
       class_name: 'class name',
