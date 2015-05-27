@@ -96,24 +96,24 @@ module Applitools::Selenium
       resize_browser(@dimension)
       verify_size(:browser_size)
 
-      cur_viewport_size = extract_viewport_from_browser
+      current_viewport_size = extract_viewport_from_browser
 
-      resize_browser(Applitools::Base::Dimension.new((2 * browser_size.width) - cur_viewport_size.width,
-        (2 * browser_size.height) - cur_viewport_size.height))
+      resize_browser(Applitools::Base::Dimension.new((2 * browser_size.width) - current_viewport_size.width,
+        (2 * browser_size.height) - current_viewport_size.height))
       verify_size(:viewport_size)
     end
 
-    def verify_size(to_verify, sleep_time = VERIFY_SLEEP_PERIOD, retries = VERIFY_RETRIES)
-      cur_size = nil
+    def verify_size(to_verify)
+      current_size = nil
 
-      retries.times do
-        sleep(sleep_time)
-        cur_size = send(to_verify)
+      VERIFY_RETRIES.times do
+        sleep(VERIFY_SLEEP_PERIOD)
+        current_size = send(to_verify)
 
-        return if cur_size.values == @dimension.values
+        return if current_size.values == @dimension.values
       end
 
-      err_msg = "Failed setting #{to_verify} to #{@dimension.values} (current size: #{cur_size.values})"
+      err_msg = "Failed setting #{to_verify} to #{@dimension.values} (current size: #{current_size.values})"
 
       Applitools::EyesLogger.error(err_msg)
       raise Applitools::TestFailedError.new(err_msg)
