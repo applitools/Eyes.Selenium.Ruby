@@ -215,8 +215,7 @@ module Applitools::Selenium
         current_position = Applitools::Base::Point.new(position.left * size_factor, position.top * size_factor)
       end
 
-      Applitools::Base::ImagePosition.new(@driver.visible_screenshot.crop!(0, 0, part_coords_normalized.left,
-        part_coords_normalized.top), current_position)
+      Applitools::Base::ImagePosition.new(@driver.visible_screenshot, current_position)
     end
   end
 end
