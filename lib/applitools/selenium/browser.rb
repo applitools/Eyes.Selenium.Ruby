@@ -83,15 +83,13 @@ module Applitools::Selenium
     end
 
     def entire_page_size
-      @entire_page_size ||= begin
-        max_document_element_height = [page_metrics[:client_height], page_metrics[:scroll_height]].max
-        max_body_height = [page_metrics[:body_client_height], page_metrics[:body_scroll_height]].max
+      max_document_element_height = [page_metrics[:client_height], page_metrics[:scroll_height]].max
+      max_body_height = [page_metrics[:body_client_height], page_metrics[:body_scroll_height]].max
 
-        total_width = [page_metrics[:scroll_width], page_metrics[:body_scroll_width]].max
-        total_height = [max_document_element_height, max_body_height].max
+      total_width = [page_metrics[:scroll_width], page_metrics[:body_scroll_width]].max
+      total_height = [max_document_element_height, max_body_height].max
 
-        Applitools::Base::Dimension.new(total_width, total_height)
-      end.freeze
+      Applitools::Base::Dimension.new(total_width, total_height)
     end
 
     def current_scroll_position
@@ -141,7 +139,7 @@ module Applitools::Selenium
 
       # Normalize screenshot width/height.
       size_factor = 1
-      page_size = entire_page_size.dup
+      page_size = entire_page_size
       factor = image_normalization_factor(screenshot)
       if factor == 0.5
         size_factor = 2
@@ -192,7 +190,7 @@ module Applitools::Selenium
     end
 
     def page_metrics
-      @page_metrics ||= Applitools::Utils.underscore_hash_keys(execute_script(JS_GET_PAGE_METRICS)).freeze
+      Applitools::Utils.underscore_hash_keys(execute_script(JS_GET_PAGE_METRICS))
     end
 
     def process_screenshot_part(part, size_factor)
