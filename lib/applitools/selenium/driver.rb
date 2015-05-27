@@ -9,6 +9,7 @@ module Applitools::Selenium
     include Selenium::WebDriver::DriverExtensions::HasInputDevices
 
     RIGHT_ANGLE = 90.freeze
+    IOS = 'IOS'.freeze
     ANDROID = 'ANDROID'.freeze
     LANDSCAPE = 'LANDSCAPE'.freeze
 
@@ -123,10 +124,12 @@ module Applitools::Selenium
       driver.find_elements(how, what).map { |el| Applitools::Selenium::Element.new(self, el) }
     end
 
-    # Returns:
-    # +true+ if the driver is an Android driver.
     def android?
       platform_name.to_s.upcase == ANDROID
+    end
+
+    def ios?
+      platform_name.to_s.upcase == IOS
     end
 
     private
