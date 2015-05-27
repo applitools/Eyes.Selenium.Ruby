@@ -58,6 +58,7 @@ module Applitools::Selenium
     EPSILON_WIDTH = 12.freeze
     MIN_SCREENSHOT_PART_HEIGHT = 10.freeze
     MAX_SCROLLBAR_SIZE = 50.freeze
+    OVERFLOW_HIDDEN = 'hidden'.freeze
 
     def initialize(driver, eyes)
       @driver = driver
@@ -106,15 +107,15 @@ module Applitools::Selenium
       execute_script(JS_GET_CURRENT_TRANSFORM)
     end
 
-    def set_transform(transform)
+    def transform(transform)
       execute_script(JS_SET_TRANSFORM % { transform: transform }, 0.25)
     end
 
     def translate_to(point)
-      set_transform("translate(-#{point.left}px, -#{point.top}px)")
+      transform("translate(-#{point.left}px, -#{point.top}px)")
     end
 
-    def set_overflow(overflow)
+    def overflow(overflow)
       execute_script(JS_SET_OVERFLOW % { overflow: overflow }, 0.1)
     end
 
@@ -133,9 +134,7 @@ module Applitools::Selenium
       end
 
       # Hide scrollbars.
-      if @eyes.hide_scrollbars
-        original_overflow = set_overflow('hidden')
-      end
+      original_overflow = overflow(OVERFLOW_HIDDEN) if @eyes.hide_scrollbars
 
       # Take screenshot of the (0,0) tile.
       screenshot = @driver.visible_screenshot
@@ -160,26 +159,22 @@ module Applitools::Selenium
         height = [screenshot.height - (max_scrollbar_size * size_factor), MIN_SCREENSHOT_PART_HEIGHT * size_factor].max
         screenshot_part_size = Applitools::Base::Dimension.new(screenshot.width, height)
 
-        parts = Applitools::Base::Region.new(0, 0, page_size.width, page_size.height).
-          subregions(screenshot_part_size).map do |screenshot_part|
-            # Skip (0,0), as we already got the screenshot.
-            if screenshot_part.left == 0 && screenshot_part.top == 0
-              next Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT)
-            end
+        subregios = Applitools::Base::Region.new(0, 0, page_size.width,
+          page_size.height).subregions(screenshot_part_size)
+        parts = subregios.map do |screenshot_part|
+          # Skip (0,0), as we already got the screenshot.
+          if screenshot_part.left == 0 && screenshot_part.top == 0
+            next Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT)
+          end
 
-            process_screenshot_part(screenshot_part, size_factor)
+          process_screenshot_part(screenshot_part, size_factor)
         end
 
         screenshot = Applitools::Utils::ImageUtils.stitch_images(page_size, parts)
       end
 
-      if @eyes.hide_scrollbars
-        set_overflow(original_overflow)
-      end
-
-      if @eyes.use_css_transition
-        set_transform(original_transform)
-      end
+      overflow(original_overflow) if @eyes.hide_scrollbars
+      transform(original_transform) if @eyes.use_css_transition
 
       scroll_to(original_scroll_position)
 
@@ -189,9 +184,7 @@ module Applitools::Selenium
     private
 
     def execute_script(script, stabilization_time = nil)
-      @driver.execute_script(script).tap do |result|
-        sleep(stabilization_time) if stabilization_time
-      end
+      @driver.execute_script(script).tap { sleep(stabilization_time) if stabilization_time }
     end
 
     def device_pixel_ratio

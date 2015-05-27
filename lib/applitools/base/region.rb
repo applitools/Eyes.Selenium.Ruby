@@ -71,7 +71,7 @@ module Applitools::Base
         subregion_width = [@width, subregion_size.width].min
         subregion_height = [@height, subregion_size.height].min
 
-        while current_top < bottom do
+        while current_top < bottom
           current_bottom = current_top + subregion_height
           if current_bottom > bottom
             current_bottom = bottom
