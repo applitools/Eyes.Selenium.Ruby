@@ -125,7 +125,7 @@ module Applitools::Selenium
       execute_script(JS_SET_OVERFLOW % { overflow: overflow }, 0.1)
     end
 
-    def screenshot
+    def fullpage_screenshot
       # Scroll to the top/left corner of the screen.
       original_scroll_position = current_scroll_position
       scroll_to(Applitools::Base::Point::TOP_LEFT)
@@ -158,7 +158,7 @@ module Applitools::Selenium
 
       # NOTE: this is required! Since when calculating the screenshot parts for full size, we use a screenshot size
       # which is a bit smaller (see comment below).
-      if screenshot.width < page_size.width || screenshot.height < page_size.height
+      if @eyes.force_fullpage_screenshot && (screenshot.width < page_size.width || screenshot.height < page_size.height)
         # We use a smaller size than the actual screenshot size in order to eliminate duplication of bottom scroll bars,
         # as well as footer-like elements with fixed position.
         max_scrollbar_size = @eyes.use_css_transition ? 0 : MAX_SCROLLBAR_SIZE

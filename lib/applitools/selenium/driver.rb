@@ -79,20 +79,20 @@ module Applitools::Selenium
     #
     # Returns: +String+ A screenshot in the requested format.
     def screenshot_as(output_type, rotation = nil)
-      screenshot = mobile_device? ? visible_screenshot : @browser.screenshot
+      image = mobile_device? ? visible_screenshot : @browser.fullpage_screenshot
 
-      Applitools::Selenium::Driver.normalize_image(self, screenshot, rotation)
+      Applitools::Selenium::Driver.normalize_image(self, image, rotation)
 
       case output_type
       when :base64
-        screenshot = Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
+        image = Applitools::Utils::ImageUtils.base64_from_png_image(image)
       when :png
-        screenshot = Applitools::Utils::ImageUtils.bytes_from_png_image(screenshot)
+        image = Applitools::Utils::ImageUtils.bytes_from_png_image(image)
       else
         raise Applitools::EyesError.new("Unsupported screenshot output type: #{output_type}")
       end
 
-      screenshot.force_encoding('BINARY')
+      image.force_encoding('BINARY')
     end
 
     def visible_screenshot
