@@ -70,7 +70,15 @@ module Applitools::Selenium
     end
 
     def user_agent
-      @user_agent ||= execute_script(JS_GET_USER_AGENT).freeze
+      return @user_agent if defined?(@user_agent)
+
+      @user_agent = begin
+        execute_script(JS_GET_USER_AGENT).freeze
+      rescue => e
+        Applitools::EyesLogger.error "Failed to obtain user-agent: (#{e.message})"
+
+        nil
+      end
     end
 
     def image_normalization_factor(image)
