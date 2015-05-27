@@ -79,7 +79,7 @@ module Applitools::Selenium
     #
     # Returns: +String+ A screenshot in the requested format.
     def screenshot_as(output_type, rotation = nil)
-      screenshot = @browser.screenshot
+      screenshot = mobile_device? ? visible_screenshot : @browser.screenshot
 
       Applitools::Selenium::Driver.normalize_image(self, screenshot, rotation)
 
@@ -187,6 +187,8 @@ module Applitools::Selenium
     end
 
     def self.normalize_width(driver, image)
+      return if driver.mobile_device?
+
       normalization_factor = driver.browser.image_normalization_factor(image)
       Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
     end
