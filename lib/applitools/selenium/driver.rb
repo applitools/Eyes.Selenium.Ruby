@@ -9,6 +9,7 @@ module Applitools::Selenium
     include Selenium::WebDriver::DriverExtensions::HasInputDevices
 
     RIGHT_ANGLE = 90.freeze
+    IOS = 'IOS'.freeze
     ANDROID = 'ANDROID'.freeze
     LANDSCAPE = 'LANDSCAPE'.freeze
 
@@ -26,6 +27,7 @@ module Applitools::Selenium
     }.freeze
 
     attr_reader :browser
+
     def_delegators :@eyes, :user_inputs, :clear_user_inputs
     def_delegators :@browser, :user_agent
 
@@ -77,20 +79,24 @@ module Applitools::Selenium
     #
     # Returns: +String+ A screenshot in the requested format.
     def screenshot_as(output_type, rotation = nil)
-      screenshot = Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
+      image = mobile_device? ? visible_screenshot : @browser.fullpage_screenshot
 
-      Applitools::Selenium::Driver.normalize_image(self, screenshot, rotation)
+      Applitools::Selenium::Driver.normalize_image(self, image, rotation)
 
       case output_type
       when :base64
-        screenshot = Applitools::Utils::ImageUtils.base64_from_png_image(screenshot)
+        image = Applitools::Utils::ImageUtils.base64_from_png_image(image)
       when :png
-        screenshot = Applitools::Utils::ImageUtils.bytes_from_png_image(screenshot)
+        image = Applitools::Utils::ImageUtils.bytes_from_png_image(image)
       else
         raise Applitools::EyesError.new("Unsupported screenshot output type: #{output_type}")
       end
 
-      screenshot.force_encoding('BINARY')
+      image.force_encoding('BINARY')
+    end
+
+    def visible_screenshot
+      Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
     end
 
     def mouse
@@ -118,10 +124,12 @@ module Applitools::Selenium
       driver.find_elements(how, what).map { |el| Applitools::Selenium::Element.new(self, el) }
     end
 
-    # Returns:
-    # +true+ if the driver is an Android driver.
     def android?
       platform_name.to_s.upcase == ANDROID
+    end
+
+    def ios?
+      platform_name.to_s.upcase == IOS
     end
 
     private
@@ -179,6 +187,8 @@ module Applitools::Selenium
     end
 
     def self.normalize_width(driver, image)
+      return if driver.mobile_device?
+
       normalization_factor = driver.browser.image_normalization_factor(image)
       Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
     end

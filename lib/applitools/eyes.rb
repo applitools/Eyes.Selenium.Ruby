@@ -61,10 +61,14 @@ class Applitools::Eyes
   # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the screenshots received from the driver. Set this to
   #   override Eyes' automatic rotation inference. Positive values = clockwise rotation, negative
   #   values = counter-clockwise, 0 = force no rotation, +nil+ = use Eyes' automatic rotation inference.
+  # +force_fullpage_screenshot+:: +boolean+ Whether or not to force fullpage screenshot taking, if the browser doesn't
+  #   support it explicitly.
+  # +hide_scrollbars+:: +boolean+ Whether or not hide scrollbars.
+  # +use_css_transition+:: +boolean+ Whether or not to perform CSS transition.
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
     :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports, :match_level,
-    :baseline_name, :rotation
+    :baseline_name, :rotation, :force_fullpage_screenshot, :hide_scrollbars, :use_css_transition
 
   def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
   def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=
@@ -101,6 +105,9 @@ class Applitools::Eyes
     @save_new_tests = true
     @save_failed_tests = false
     @dont_get_title = false
+    @force_fullpage_screenshot = false
+    @hide_scrollbars = false
+    @use_css_transition = false
   end
 
   def open(options = {})

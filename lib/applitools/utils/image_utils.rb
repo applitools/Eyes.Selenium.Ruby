@@ -62,6 +62,25 @@ module Applitools::Utils
       image.resample_nearest_neighbor!(image.width.to_f * factor, image.height.to_f * factor)
     end
 
+    def stitch_images(size, images_data)
+      ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
+        images_data.each do |image_data|
+          # Crop out of bounds images.
+          image = image_data.image
+          position = image_data.position
+
+          new_width = position.left + image.width > size.width ? size.width - position.left : image.width
+          new_height = position.top + image.height > size.height ? size.height - position.top : image.height
+
+          if new_width != image.width || new_height != image.height
+            image = image.crop(0, 0, new_width, new_height)
+          end
+
+          res.compose!(image, position.left, position.top)
+        end
+      end
+    end
+
     include Applitools::MethodTracer
   end
 end

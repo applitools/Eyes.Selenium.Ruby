@@ -9,7 +9,7 @@ module Applitools::Base
       @height = height.round
     end
 
-    EMPTY = Applitools::Base::Region.new(0, 0, 0, 0)
+    EMPTY = Region.new(0, 0, 0, 0)
 
     def make_empty
       @left = EMPTY.left
@@ -60,7 +60,40 @@ module Applitools::Base
     def middle_offset
       mid_x = width / 2
       mid_y = height / 2
-      Applitools::Base::Point.new(mid_x.round, mid_y.round)
+      Point.new(mid_x.round, mid_y.round)
+    end
+
+    def subregions(subregion_size)
+      [].tap do |subregions|
+        current_top = @top
+        bottom = @top + @height
+        right = @left + @width
+        subregion_width = [@width, subregion_size.width].min
+        subregion_height = [@height, subregion_size.height].min
+
+        while current_top < bottom
+          current_bottom = current_top + subregion_height
+          if current_bottom > bottom
+            current_bottom = bottom
+            current_top = current_bottom - subregion_height
+          end
+
+          current_left = @left
+          while current_left < right
+            current_right = current_left + subregion_width
+            if current_right > right
+              current_right = right
+              current_left = current_right - subregion_width
+            end
+
+            subregions << Region.new(current_left, current_top, subregion_width, subregion_height)
+
+            current_left += subregion_width
+          end
+
+          current_top += subregion_height
+        end
+      end
     end
 
     def to_hash
