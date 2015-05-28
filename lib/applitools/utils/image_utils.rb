@@ -2,6 +2,8 @@ require 'oily_png'
 require 'base64'
 
 module Applitools::Utils
+  QUADRANTS_COUNT = 4.freeze
+
   module ImageUtils
     extend self
 
@@ -52,9 +54,17 @@ module Applitools::Utils
     #   and negative values are used for counter-clockwise rotation.
     #
     def quadrant_rotate!(image, num_quadrants)
-      image.tap do |img|
-        rotate_method = num_quadrants > 0 ? img.method(:rotate_right!) : img.method(:rotate_left!)
-        (0..(num_quadrants.abs - 1)).each { rotate_method.call }
+      num_quadrants %= QUADRANTS_COUNT
+
+      case num_quadrants
+      when 0
+        image
+      when 1
+        image.rotate_right!
+      when 2
+        image.rotate_180!
+      when 3
+        image.rotate_left!
       end
     end
 
