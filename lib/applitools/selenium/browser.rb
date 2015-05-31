@@ -1,5 +1,3 @@
-require 'pry'
-
 module Applitools::Selenium
   class Browser
     JS_GET_USER_AGENT = (<<-JS).freeze
