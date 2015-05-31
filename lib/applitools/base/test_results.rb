@@ -22,6 +22,7 @@ module Applitools::Base
     def passed?
       !is_new && mismatches == 0 && missing == 0
     end
+    alias_method :is_passed, :passed?
 
     def to_s
       is_new_str = ''
