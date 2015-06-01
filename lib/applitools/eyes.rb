@@ -363,9 +363,10 @@ class Applitools::Eyes
   def assign_viewport_size
     if viewport_size?
       @viewport_size = Applitools::Selenium::ViewportSize.new(driver, viewport_size)
-      viewport_size.set
+      @viewport_size.set
     else
-      @viewport_size = Applitools::Selenium::ViewportSize.new(driver).extract_viewport_from_browser!
+      @viewport_size = Applitools::Selenium::ViewportSize.new(driver)
+      @viewport_size.extract_viewport_from_browser!
     end
   end
 

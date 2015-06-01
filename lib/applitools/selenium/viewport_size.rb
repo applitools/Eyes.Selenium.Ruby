@@ -82,8 +82,6 @@ module Applitools::Selenium
       Applitools::Base::Dimension.new(width, height)
     end
 
-    alias_method :viewport_size, :extract_viewport_from_browser
-
     def set
       if @dimension.is_a?(Hash) && @dimension.key?(:width) && @dimension.key?(:height)
         # If @dimension is hash of width/height, we convert it to a struct with width/height properties.
@@ -131,7 +129,7 @@ module Applitools::Selenium
     end
 
     def to_hash
-      Hash[@dimension.each_pair.to_a]
+      @dimension.to_hash
     end
   end
 end
