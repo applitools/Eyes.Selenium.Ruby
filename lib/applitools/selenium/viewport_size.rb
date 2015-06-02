@@ -87,7 +87,7 @@ module Applitools::Selenium
     def set
       if @dimension.is_a?(Hash) && @dimension.key?(:width) && @dimension.key?(:height)
         # If @dimension is hash of width/height, we convert it to a struct with width/height properties.
-        @dimension = Struct.new(:width, :height).new(@dimension[:width], @dimension[:height])
+        @dimension = Applitools::Base::Dimension.new(@dimension[:width], @dimension[:height])
       elsif !@dimension.respond_to?(:width) || !@dimension.respond_to?(:height)
         raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or "\
           'be  a hash with these keys.'
@@ -131,7 +131,7 @@ module Applitools::Selenium
     end
 
     def to_hash
-      Hash[@dimension.each_pair.to_a]
+      @dimension.to_hash
     end
   end
 end
