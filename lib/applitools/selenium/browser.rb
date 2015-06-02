@@ -80,6 +80,9 @@ module Applitools::Selenium
     end
 
     def image_normalization_factor(image)
+      # If the user manually set the scale ratio, we use that.
+      return @eyes.scale_ratio unless @eyes.scale_ratio.nil?
+
       if image.width == @eyes.viewport_size.extract_viewport_from_browser.width ||
           (image.width - entire_page_size.width).abs <= EPSILON_WIDTH
         return 1
