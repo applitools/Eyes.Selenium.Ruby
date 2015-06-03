@@ -79,7 +79,7 @@ module Applitools::Selenium
     #
     # Returns: +String+ A screenshot in the requested format.
     def screenshot_as(output_type, rotation = nil)
-      image = mobile_device? ? visible_screenshot : @browser.fullpage_screenshot
+      image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
 
       Applitools::Selenium::Driver.normalize_image(self, image, rotation)
 
@@ -145,7 +145,7 @@ module Applitools::Selenium
       when 1
         arg = args.first
 
-        raise Argu mentError, "expected #{arg.inspect}:#{arg.class} to respond to #shift" unless arg.respond_to?(:shift)
+        raise ArgumentError, "expected #{arg.inspect}:#{arg.class} to respond to #shift" unless arg.respond_to?(:shift)
 
         # This will be a single-entry hash, so use #shift over #first or #[].
         arg.dup.shift.tap do |arr|

@@ -161,16 +161,16 @@ module Applitools::Selenium
 
       # NOTE: this is required! Since when calculating the screenshot parts for full size, we use a screenshot size
       # which is a bit smaller (see comment below).
-      if @eyes.force_fullpage_screenshot && (screenshot.width < page_size.width || screenshot.height < page_size.height)
+      if screenshot.width < page_size.width || screenshot.height < page_size.height
         # We use a smaller size than the actual screenshot size in order to eliminate duplication of bottom scroll bars,
         # as well as footer-like elements with fixed position.
         max_scrollbar_size = @eyes.use_css_transition ? 0 : MAX_SCROLLBAR_SIZE
         height = [screenshot.height - (max_scrollbar_size * size_factor), MIN_SCREENSHOT_PART_HEIGHT * size_factor].max
         screenshot_part_size = Applitools::Base::Dimension.new(screenshot.width, height)
 
-        subregios = Applitools::Base::Region.new(0, 0, page_size.width,
+        sub_regions = Applitools::Base::Region.new(0, 0, page_size.width,
           page_size.height).subregions(screenshot_part_size)
-        parts = subregios.map do |screenshot_part|
+        parts = sub_regions.map do |screenshot_part|
           # Skip (0,0), as we already got the screenshot.
           if screenshot_part.left == 0 && screenshot_part.top == 0
             next Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT)
