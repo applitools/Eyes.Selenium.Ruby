@@ -33,7 +33,7 @@ module Applitools::Utils
     # Returns:
     # +String+ The PNG bytes of the image.
     def bytes_from_png_image(image)
-      image.to_blob
+      image.to_blob(:fast_rgb)
     end
 
     # Get the Base64 representation of the raw PNG bytes of an image.

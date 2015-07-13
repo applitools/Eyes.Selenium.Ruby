@@ -396,7 +396,7 @@ class Applitools::Eyes
     @should_match_window_run_once_on_timeout = true
     return if @session.new_session?
 
-    Applitools::EyesLogger.info %( mismatch #{ tag ? '' : "(#{tag})" } )
+    Applitools::EyesLogger.info %(mismatch #{tag ? '' : "(#{tag})"})
     return unless failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
 
     raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
