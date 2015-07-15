@@ -22,7 +22,7 @@ def ios_caps
   {
     deviceName: 'iPhone 6',
     platformName: 'ios',
-    platformVersion: 8.3,
+    platformVersion: 8.4,
     app: ENV['IOS_DEMO_APP'],
     orientation: 'landscape',
     newCommandTimeout: 300
