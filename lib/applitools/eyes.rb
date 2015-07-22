@@ -74,7 +74,7 @@ class Applitools::Eyes
     :baseline_name, :rotation, :force_fullpage_screenshot, :hide_scrollbars, :use_css_transition, :scale_ratio
 
   def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
-  def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=
+  def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=, :set_proxy
 
   def full_agent_id
     @full_agent_id ||= agent_id.nil? ? BASE_AGENT_ID : "#{agent_id} [#{BASE_AGENT_ID}]"
