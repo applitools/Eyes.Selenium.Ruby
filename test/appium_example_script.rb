@@ -40,6 +40,7 @@ eyes.log_handler = Logger.new(STDOUT)
 eyes.api_key = ENV['APPLITOOLS_API_KEY']
 
 begin
+  # driver = Selenium::WebDriver.for(:remote, :url => 'http://localhost:4723/wd/hub', :desired_capabilities => ios_caps)
   # driver = Appium::Driver.new({caps: android_caps, appium_lib: appium_opts})
   driver = Appium::Driver.new(caps: ios_caps, appium_lib: appium_opts)
   driver.start_driver
@@ -54,4 +55,5 @@ begin
 ensure
   eyes.abort_if_not_closed
   driver.driver_quit
+  # driver.quit
 end

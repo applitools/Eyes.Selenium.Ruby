@@ -55,7 +55,7 @@ module Applitools::Selenium
       if wait_before_run
         Applitools::EyesLogger.debug 'Waiting before run...'
         sleep(wait_before_run)
-        Applitools::EyesLogger.debug 'Wwaiting done!'
+        Applitools::EyesLogger.debug 'Waiting done!'
       end
 
       match(region, tag, rotation)
