@@ -7,6 +7,7 @@ module Applitools::EyesLogger
     end
 
     def add(*_args, &_block)
+      self
     end
   end
 

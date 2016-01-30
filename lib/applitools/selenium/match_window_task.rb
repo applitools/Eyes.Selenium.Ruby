@@ -2,7 +2,7 @@ require 'base64'
 
 module Applitools::Selenium
   class MatchWindowTask
-    MATCH_INTERVAL = 0.5.freeze
+    MATCH_INTERVAL = 0.5
     AppOuptut = Struct.new(:title, :screenshot64)
 
     attr_reader :eyes, :session, :driver, :default_retry_timeout, :last_checked_window,

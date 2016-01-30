@@ -21,7 +21,7 @@ module Applitools::Base
       @x.hash & @y.hash
     end
 
-    alias_method :eql?, :==
+    alias eql? ==
 
     def to_hash(options = {})
       options[:region] ? { left: left, top: top } : { x: x, y: y }

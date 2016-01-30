@@ -1,6 +1,6 @@
 module Applitools::Selenium
   class ViewportSize
-    JS_GET_VIEWPORT_HEIGHT = (<<-JS).freeze
+    JS_GET_VIEWPORT_HEIGHT = <<-JS.freeze
       return (function() {
         var height = undefined;
         if (window.innerHeight) {
@@ -19,7 +19,7 @@ module Applitools::Selenium
       }());
     JS
 
-    JS_GET_VIEWPORT_WIDTH = (<<-JS).freeze
+    JS_GET_VIEWPORT_WIDTH = <<-JS.freeze
       return (function() {
         var width = undefined;
         if (window.innerWidth) {
@@ -37,8 +37,8 @@ module Applitools::Selenium
       }());
     JS
 
-    VERIFY_SLEEP_PERIOD = 1.freeze
-    VERIFY_RETRIES = 3.freeze
+    VERIFY_SLEEP_PERIOD = 1
+    VERIFY_RETRIES = 3
 
     def initialize(driver, dimension = nil)
       @driver = driver
@@ -82,7 +82,7 @@ module Applitools::Selenium
       Applitools::Base::Dimension.new(width, height)
     end
 
-    alias_method :viewport_size, :extract_viewport_from_browser
+    alias viewport_size extract_viewport_from_browser
 
     def set
       if @dimension.is_a?(Hash) && @dimension.key?(:width) && @dimension.key?(:height)
