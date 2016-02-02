@@ -1,26 +1,19 @@
 module Applitools::Base
   class TestResults
     attr_accessor :is_new, :url
-    attr_reader :steps, :matches, :mismatches, :missing, :exact_matches, :strict_matches, :content_matches,
-      :layout_matches, :none_matches
+    attr_reader :steps, :matches, :mismatches, :missing
 
-    def initialize(steps = 0, matches = 0, mismatches = 0, missing = 0, exact_matches = 0, strict_matches = 0,
-      content_matches = 0, layout_matches = 0, none_matches = 0)
-      @steps = steps
-      @matches = matches
-      @mismatches =  mismatches
-      @missing =  missing
-      @exact_matches =  exact_matches
-      @strict_matches = strict_matches
-      @content_matches =  content_matches
-      @layout_matches =  layout_matches
-      @none_matches =  none_matches
+    def initialize(results = {})
+      @steps = results.fetch('steps', 0)
+      @matches = results.fetch('matches', 0)
+      @mismatches =  results.fetch('mismatches', 0)
+      @missing =  results.fetch('missing', 0)
       @is_new = nil
       @url = nil
     end
 
     def passed?
-      !is_new && mismatches == 0 && missing == 0
+      !is_new && !(mismatches > 0) && !(missing > 0)
     end
     alias_method :is_passed, :passed?
 

@@ -65,8 +65,7 @@ module Applitools::Base::ServerConnector
     raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
     response = Oj.load(res.body)
-    response.delete('$id')
-    Applitools::Base::TestResults.new(*response.values)
+    Applitools::Base::TestResults.new(response)
   end
 
   private
