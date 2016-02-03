@@ -145,7 +145,13 @@ class Applitools::Eyes
 
     @user_inputs = []
     @app_name = options.fetch(:app_name)
+    if @app_name.nil? || @app_name.empty?
+      raise Applitools::EyesError.new('App name must be a non empty string.')
+    end
     @test_name = options.fetch(:test_name)
+    if @test_name.nil? || @test_name.empty?
+      raise Applitools::EyesError.new('Test name must be a non empty string.')
+    end
     @viewport_size = options.fetch(:viewport_size, nil)
 
     @is_open = true
