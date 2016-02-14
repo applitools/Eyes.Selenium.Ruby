@@ -27,6 +27,7 @@ module Applitools::Selenium
     }.freeze
 
     attr_reader :browser
+    attr_accessor :wait_before_screenshots
 
     def_delegators :@eyes, :user_inputs, :clear_user_inputs
     def_delegators :@browser, :user_agent
@@ -36,6 +37,7 @@ module Applitools::Selenium
       super(options[:driver])
 
       @is_mobile_device = options.fetch(:is_mobile_device, false)
+      @wait_before_screenshots = 0
       @eyes = eyes
       @browser = Applitools::Selenium::Browser.new(self, @eyes)
 
@@ -96,6 +98,9 @@ module Applitools::Selenium
     end
 
     def visible_screenshot
+      Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
+      sleep(wait_before_screenshots)
+      Applitools::EyesLogger.debug 'Finished waiting.'
       Applitools::Utils::ImageUtils.png_image_from_base64(driver.screenshot_as(:base64))
     end
 
