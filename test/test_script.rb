@@ -1,11 +1,13 @@
 require_relative '../lib/eyes_selenium'
 
 require 'logger'
+require 'openssl'
+OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 eyes = Applitools::Eyes.new
 eyes.api_key = ENV['APPLITOOLS_API_KEY']
 eyes.log_handler = Logger.new(STDOUT)
-
+# eyes.set_proxy('https://localhost:8888')
 begin
   web_driver = Selenium::WebDriver.for :chrome
 
@@ -13,9 +15,8 @@ begin
     driver: web_driver) do |driver|
     driver.get 'http://www.applitools.com'
     eyes.check_window('initial')
-    eyes.check_region(:css, '.pricing', 'Pricing button')
-    driver.find_element(:css, '.pricing a').click
-    eyes.check_window('pricing page')
+    pricing = driver.find_element(:css, '.pricing a')
+    eyes.check_region(:element, pricing, 'pricing element')
   end
 ensure
   web_driver.quit
