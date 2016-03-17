@@ -195,7 +195,7 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Done!'
     end
 
-    if(how == :element)
+    if how == :element
       Applitools::EyesLogger.debug 'Element given as an argument...'
       raise Applitools::EyesError.new('Element does not exist') if what.nil?
       element_to_check = what
