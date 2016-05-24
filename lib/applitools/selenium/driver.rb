@@ -73,6 +73,16 @@ module Applitools::Selenium
       @is_mobile_device
     end
 
+    ## Hide the main document's scrollbars and returns the original overflow value.
+    def hide_scrollbars
+      @browser.hide_scrollbars
+    end
+
+    ## Set the overflow value for document element and return the original overflow value.
+    def set_overflow(overflow)
+      @browser.set_overflow(overflow)
+    end
+
     # Return a PNG screenshot in the given format as a string
     #
     # +output_type+:: +Symbol+ The format of the screenshot. Accepted values are +:base64+ and +:png+.

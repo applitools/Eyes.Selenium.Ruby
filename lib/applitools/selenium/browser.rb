@@ -119,10 +119,16 @@ module Applitools::Selenium
       execute_script(JS_SET_TRANSFORM % { transform: transform }, 0.25)
     end
 
+    ## Set the overflow value for document element and return the original overflow value.
     def set_overflow(overflow)
       execute_script(JS_SET_OVERFLOW % { overflow: overflow }, 0.1)
     end
     # rubocop:enable Style/AccessorMethodName
+
+    ## Hide the main document's scrollbars and returns the original overflow value.
+    def hide_scrollbars
+      set_overflow(OVERFLOW_HIDDEN)
+    end
 
     def translate_to(point)
       set_transform("translate(-#{point.left}px, -#{point.top}px)")
@@ -141,9 +147,6 @@ module Applitools::Selenium
         original_transform = current_transform
         translate_to(Applitools::Base::Point::TOP_LEFT)
       end
-
-      # Hide scrollbars.
-      original_overflow = set_overflow(OVERFLOW_HIDDEN) if @eyes.hide_scrollbars
 
       # Take screenshot of the (0,0) tile.
       screenshot = @driver.visible_screenshot
@@ -182,7 +185,6 @@ module Applitools::Selenium
         screenshot = Applitools::Utils::ImageUtils.stitch_images(page_size, parts)
       end
 
-      set_overflow(original_overflow) if @eyes.hide_scrollbars
       set_transform(original_transform) if @eyes.use_css_transition
 
       scroll_to(original_scroll_position)

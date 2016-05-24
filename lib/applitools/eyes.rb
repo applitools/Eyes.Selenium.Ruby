@@ -195,29 +195,39 @@ class Applitools::Eyes
       Applitools::EyesLogger.debug 'Done!'
     end
 
-    if how == :element
-      Applitools::EyesLogger.debug 'Element given as an argument...'
-      raise Applitools::EyesError.new('Element does not exist') if what.nil?
-      element_to_check = what
-    else
-      Applitools::EyesLogger.debug 'Finding element...'
-      element_to_check = driver.find_element(how, what)
-    end
+    original_overflow = driver.hide_scrollbars if hide_scrollbars
+    begin
+      if how == :element
+        Applitools::EyesLogger.debug 'Element given as an argument...'
+        raise Applitools::EyesError.new('Element does not exist') if what.nil?
+        element_to_check = what
+      else
+        Applitools::EyesLogger.debug 'Finding element...'
+        element_to_check = driver.find_element(how, what)
+      end
 
-    Applitools::EyesLogger.debug 'Done! Getting element location...'
-    location = element_to_check.location
-    Applitools::EyesLogger.debug 'Done! Getting element size...'
-    size = element_to_check.size
-    raise Applitools::EyesError.new("Invalid region size: #{size}") if size.width <= 0 || size.height <= 0
-    Applitools::EyesLogger.debug 'Done! Creating region...'
-    region = Applitools::Base::Region.new(location.x, location.y, size.width, size.height)
-    Applitools::EyesLogger.debug "Done! Checking region... #{region}"
-    check_region_(region, tag, specific_timeout)
-    Applitools::EyesLogger.debug 'Done!'
+      Applitools::EyesLogger.debug 'Done! Getting element location...'
+      location = element_to_check.location
+      Applitools::EyesLogger.debug 'Done! Getting element size...'
+      size = element_to_check.size
+      raise Applitools::EyesError.new("Invalid region size: #{size}") if size.width <= 0 || size.height <= 0
+      Applitools::EyesLogger.debug 'Done! Creating region...'
+      region = Applitools::Base::Region.new(location.x, location.y, size.width, size.height)
+      Applitools::EyesLogger.debug "Done! Checking region... #{region}"
+      check_region_(region, tag, specific_timeout)
+      Applitools::EyesLogger.debug 'Done!'
+    ensure
+      driver.set_overflow(original_overflow) if hide_scrollbars
+    end
   end
 
   def check_window(tag = nil, specific_timeout = -1)
-    check_region_(Applitools::Base::Region::EMPTY, tag, specific_timeout)
+    original_overflow = driver.hide_scrollbars if hide_scrollbars
+    begin
+      check_region_(Applitools::Base::Region::EMPTY, tag, specific_timeout)
+    ensure
+      driver.set_overflow(original_overflow) if hide_scrollbars
+    end
   end
 
   def close(raise_ex = true)
