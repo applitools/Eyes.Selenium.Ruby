@@ -138,10 +138,11 @@ class Applitools::Eyes
     elsif defined?(Appium::Driver) && driver.is_a?(Appium::Driver)
       @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: true)
     elsif defined?(Watir::Browser) && driver.is_a?(Watir::Browser)
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver)
+      is_mobile_device = driver.driver.capabilities['platformName'] ? true : false
+      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: is_mobile_device)
     else
       unless driver.is_a?(Applitools::Selenium::Driver)
-        raise Applitools::EyesError.new("Driver is not a Selenium::WebDriver::Driver (#{driver.class.name})!")
+        Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
       end
     end
 

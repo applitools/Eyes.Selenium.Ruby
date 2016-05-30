@@ -41,7 +41,9 @@ module Applitools::Selenium
       @eyes = eyes
       @browser = Applitools::Selenium::Browser.new(self, @eyes)
 
-      raise 'Incapable of taking screenshots!' unless capabilities.takes_screenshot?
+      unless capabilities.takes_screenshot?
+        Applitools::EyesLogger.warn '"takes_screenshot" capability not found.'
+      end
     end
 
     # Returns:
