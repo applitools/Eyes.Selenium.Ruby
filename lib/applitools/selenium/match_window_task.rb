@@ -119,9 +119,15 @@ module Applitools::Selenium
         current_screenshot_encoded = @current_screenshot.to_blob.force_encoding('BINARY')
         Applitools::EyesLogger.debug 'Done!'
       end
-      Applitools::EyesLogger.debug 'Compressing screenshot...'
-      compressed_screenshot = Applitools::Utils::ImageDeltaCompressor.compress_by_raw_blocks(@current_screenshot,
-        current_screenshot_encoded, last_checked_window)
+
+      # FIXME re-Enable screenshot compression after handling memory leaks.
+      # Applitools::EyesLogger.debug 'Compressing screenshot...'
+      # compressed_screenshot = Applitools::Utils::ImageDeltaCompressor.compress_by_raw_blocks(@current_screenshot,
+      #   current_screenshot_encoded, last_checked_window)
+
+      # FIXME Remove the following line after compression is re-enabled.
+      compressed_screenshot = current_screenshot_encoded
+
       Applitools::EyesLogger.debug 'Done! Creating AppOuptut...'
       app_output = AppOuptut.new(title, nil)
       user_inputs = []
