@@ -1,5 +1,27 @@
+require 'pry'
 module Applitools::Selenium
   class ViewportSize
+    JS_GET_VIEWPORT_SIZE = (<<-JS).freeze
+       return (function() {
+         var height = undefined;
+         var width = undefined;
+         if (window.innerHeight) {height = window.innerHeight;}
+         else if (document.documentElement && document.documentElement.clientHeight)
+         {height = document.documentElement.clientHeight;}
+         else { var b = document.getElementsByTagName('body')[0];
+            if (b.clientHeight) {height = b.clientHeight;}
+         };
+
+         if (window.innerWidth) {width = window.innerWidth;}
+         else if (document.documentElement && document.documentElement.clientWidth)
+         {width = document.documentElement.clientWidth;}
+         else { var b = document.getElementsByTagName('body')[0];
+            if (b.clientWidth) {width = b.clientWidth;}
+         };
+         return [width, height];
+         }());
+    JS
+
     JS_GET_VIEWPORT_HEIGHT = (<<-JS).freeze
       return (function() {
         var height = undefined;
@@ -42,7 +64,7 @@ module Applitools::Selenium
 
     def initialize(driver, dimension = nil)
       @driver = driver
-      @dimension = dimension
+      @dimension = setup_dimension(dimension)
     end
 
     def extract_viewport_width
@@ -61,18 +83,14 @@ module Applitools::Selenium
       width = nil
       height = nil
       begin
-        width  = extract_viewport_width
-        height = extract_viewport_height
+        width, height = @driver.execute_script(JS_GET_VIEWPORT_SIZE)
       rescue => e
         Applitools::EyesLogger.error "Failed extracting viewport size using JavaScript: (#{e.message})"
       end
-
       if width.nil? || height.nil?
         Applitools::EyesLogger.info 'Using window size as viewport size.'
 
-        width, height = *browser_size.values
-        width = width.ceil
-        height = height.ceil
+        width, height = *browser_size.values.map(&:ceil)
 
         if @driver.landscape_orientation? && height > width
           width, height = height, width
@@ -85,21 +103,7 @@ module Applitools::Selenium
     alias_method :viewport_size, :extract_viewport_from_browser
 
     def set
-      if @dimension.is_a?(Hash) && @dimension.key?(:width) && @dimension.key?(:height)
-        # If @dimension is hash of width/height, we convert it to a struct with width/height properties.
-        @dimension = Applitools::Base::Dimension.new(@dimension[:width], @dimension[:height])
-      elsif !@dimension.respond_to?(:width) || !@dimension.respond_to?(:height)
-        raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or "\
-          'be  a hash with these keys.'
-      end
-
-      resize_browser(@dimension)
-      verify_size(:browser_size)
-
-      current_viewport_size = extract_viewport_from_browser
-
-      resize_browser(Applitools::Base::Dimension.new((2 * browser_size.width) - current_viewport_size.width,
-        (2 * browser_size.height) - current_viewport_size.height))
+      resize_browser new_size(browser_size: browser_size, current_viewport: extract_viewport_from_browser, new_viewport: @dimension)
       verify_size(:viewport_size)
     end
 
@@ -132,6 +136,21 @@ module Applitools::Selenium
 
     def to_hash
       @dimension.to_hash
+    end
+
+    private
+
+    def setup_dimension(dimension)
+      return dimension if dimension.respond_to?(:width) & dimension.respond_to?(:height)
+      return Applitools::Base::Dimension.new(dimension[:width], dimension[:height]) if dimension.is_a?(Hash) && (dimension.keys & [:width, :height]).size == 2
+      raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or be  a hash with these keys."
+    end
+
+    def new_size(options)
+      raise ArgumentError, "expected #{options.inspect}:#{options.class} to be a hash with keys :browser_size, :current_viewport, :new_viewport" unless options.is_a?(Hash) && (options.keys & [:browser_size, :current_viewport, :new_viewport]).size == 3
+      new_width = options[:browser_size].width - options[:current_viewport].width + options[:new_viewport].width
+      new_height = options[:browser_size].height - options[:current_viewport].height + options[:new_viewport].height
+      Applitools::Base::Dimension.new(new_width, new_height)
     end
   end
 end
