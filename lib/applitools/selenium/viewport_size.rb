@@ -1,4 +1,3 @@
-require 'pry'
 module Applitools::Selenium
   class ViewportSize
     JS_GET_VIEWPORT_SIZE = (<<-JS).freeze
