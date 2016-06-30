@@ -35,7 +35,7 @@ module Applitools::Selenium
     # If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
     def initialize(eyes, options)
       super(options[:driver])
-      def driver.bridge
+      def driver.get_bridge
         @bridge
       end
       @is_mobile_device = options.fetch(:is_mobile_device, false)
@@ -43,7 +43,7 @@ module Applitools::Selenium
       @eyes = eyes
       @browser = Applitools::Selenium::Browser.new(self, @eyes)
 
-      unless driver.bridge.driver_extensions.include? Selenium::WebDriver::DriverExtensions::TakesScreenshot
+      unless driver.get_bridge.driver_extensions.include? Selenium::WebDriver::DriverExtensions::TakesScreenshot
         Applitools::EyesLogger.warn '"takes_screenshot" capability not found.'
       end
     end
