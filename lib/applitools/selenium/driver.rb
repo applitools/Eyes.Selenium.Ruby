@@ -40,7 +40,6 @@ module Applitools::Selenium
       @wait_before_screenshots = 0
       @eyes = eyes
       @browser = Applitools::Selenium::Browser.new(self, @eyes)
-      binding.pry
       unless driver.respond_to? :save_screenshot
         Applitools::EyesLogger.warn '"takes_screenshot" capability not found.'
       end
