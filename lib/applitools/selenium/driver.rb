@@ -172,41 +172,43 @@ module Applitools::Selenium
       end
     end
 
-    def self.normalize_image(driver, image, rotation)
-      normalize_rotation(driver, image, rotation)
-      normalize_width(driver, image)
-    end
-
-    # Rotates the image as necessary. The rotation is either manually forced by passing a value in
-    # the +rotation+ parameter, or automatically inferred if the +rotation+ parameter is +nil+.
-    #
-    # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
-    # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
-    # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
-    #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
-    def self.normalize_rotation(driver, image, rotation)
-      return if rotation == 0
-
-      num_quadrants = 0
-      if !rotation.nil?
-        if rotation % RIGHT_ANGLE != 0
-          raise Applitools::EyesError.new('Currently only quadrant rotations are supported. Current rotation: '\
-            "#{rotation}")
-        end
-        num_quadrants = (rotation / RIGHT_ANGLE).to_i
-      elsif rotation.nil? && driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
-        # For Android, we need to rotate images to the right, and for iOS to the left.
-        num_quadrants = driver.android? ? 1 : -1
+    class << self
+      def normalize_image(driver, image, rotation)
+        normalize_rotation(driver, image, rotation)
+        normalize_width(driver, image)
       end
 
-      Applitools::Utils::ImageUtils.quadrant_rotate!(image, num_quadrants)
-    end
+      # Rotates the image as necessary. The rotation is either manually forced by passing a value in
+      # the +rotation+ parameter, or automatically inferred if the +rotation+ parameter is +nil+.
+      #
+      # +driver+:: +Applitools::Selenium::Driver+ The driver which produced the screenshot.
+      # +image+:: +ChunkyPNG::Canvas+ The image to normalize.
+      # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
+      #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
+      def normalize_rotation(driver, image, rotation)
+        return if rotation == 0
 
-    def self.normalize_width(driver, image)
-      return if driver.mobile_device?
+        num_quadrants = 0
+        if !rotation.nil?
+          if rotation % RIGHT_ANGLE != 0
+            raise Applitools::EyesError.new('Currently only quadrant rotations are supported. Current rotation: '\
+            "#{rotation}")
+          end
+          num_quadrants = (rotation / RIGHT_ANGLE).to_i
+        elsif rotation.nil? && driver.mobile_device? && driver.landscape_orientation? && image.height > image.width
+          # For Android, we need to rotate images to the right, and for iOS to the left.
+          num_quadrants = driver.android? ? 1 : -1
+        end
 
-      normalization_factor = driver.browser.image_normalization_factor(image)
-      Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
+        Applitools::Utils::ImageUtils.quadrant_rotate!(image, num_quadrants)
+      end
+
+      def normalize_width(driver, image)
+        return if driver.mobile_device?
+
+        normalization_factor = driver.browser.image_normalization_factor(image)
+        Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
+      end
     end
   end
 end

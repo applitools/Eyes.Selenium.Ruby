@@ -1,12 +1,5 @@
 module Applitools::Base
-  class Dimension
-    attr_accessor :width, :height
-
-    def initialize(width, height)
-      @width = width
-      @height = height
-    end
-
+  Dimension = Struct.new(:width, :height) do
     def to_hash
       {
         width: width,
@@ -16,6 +9,24 @@ module Applitools::Base
 
     def values
       [width, height]
+    end
+
+    def -(other)
+      self.width -= other.width
+      self.height -= other.height
+      self
+    end
+
+    def +(other)
+      self.width += other.width
+      self.height += other.height
+      self
+    end
+
+    class << self
+      def for(other)
+        new(other.width, other.height)
+      end
     end
   end
 end
