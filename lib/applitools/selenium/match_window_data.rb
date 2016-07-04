@@ -2,7 +2,7 @@ module Applitools::Selenium
   class MatchWindowData
     attr_reader :user_inputs, :app_output, :tag, :ignore_mismatch, :screenshot
 
-    def initialize(app_output, user_inputs = [], tag, ignore_mismatch, screenshot)
+    def initialize(app_output, tag, ignore_mismatch, screenshot, user_inputs = [])
       @user_inputs = user_inputs
       @app_output = app_output
       @tag = tag

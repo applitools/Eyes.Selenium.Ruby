@@ -27,7 +27,7 @@ module Applitools::Selenium
     def ==(other)
       other.is_a?(web_element.class) && web_element == other
     end
-    alias_method :eql?, :==
+    alias eql? ==
 
     def send_keys(*args)
       current_control = region
@@ -37,7 +37,7 @@ module Applitools::Selenium
 
       web_element.send_keys(*args)
     end
-    alias_method :send_key, :send_keys
+    alias send_key send_keys
 
     def region
       point = location

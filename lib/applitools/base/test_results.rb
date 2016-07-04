@@ -6,8 +6,8 @@ module Applitools::Base
     def initialize(results = {})
       @steps = results.fetch('steps', 0)
       @matches = results.fetch('matches', 0)
-      @mismatches =  results.fetch('mismatches', 0)
-      @missing =  results.fetch('missing', 0)
+      @mismatches = results.fetch('mismatches', 0)
+      @missing = results.fetch('missing', 0)
       @is_new = nil
       @url = nil
     end
@@ -15,7 +15,7 @@ module Applitools::Base
     def passed?
       !is_new && !(mismatches > 0) && !(missing > 0)
     end
-    alias_method :is_passed, :passed?
+    alias is_passed passed?
 
     def to_s
       is_new_str = ''
