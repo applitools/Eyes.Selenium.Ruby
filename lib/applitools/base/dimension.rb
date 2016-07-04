@@ -23,6 +23,10 @@ module Applitools::Base
       self
     end
 
+    def to_s
+      values.to_s
+    end
+
     class << self
       def for(other)
         new(other.width, other.height)
