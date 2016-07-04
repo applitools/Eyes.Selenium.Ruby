@@ -20,9 +20,9 @@ class Applitools::Eyes
     exact: 'Exact'
   }.freeze
 
-  DEFAULT_MATCH_TIMEOUT = 2.0.freeze # Seconds
+  DEFAULT_MATCH_TIMEOUT = 2.0 # Seconds
   # noinspection RubyConstantNamingConvention
-  DEFAULT_WAIT_BEFORE_SCREENSHOTS = 0.1.freeze # Seconds
+  DEFAULT_WAIT_BEFORE_SCREENSHOTS = 0.1 # Seconds
   BASE_AGENT_ID = ('eyes.selenium.ruby/' + Applitools::VERSION).freeze
 
   ANDROID = 'Android'.freeze
@@ -74,9 +74,9 @@ class Applitools::Eyes
   #   the default value.
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
-                :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports,
-                :match_level, :baseline_name, :rotation, :force_fullpage_screenshot, :hide_scrollbars,
-                :use_css_transition, :scale_ratio, :wait_before_screenshots
+    :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports,
+    :match_level, :baseline_name, :rotation, :force_fullpage_screenshot, :hide_scrollbars,
+    :use_css_transition, :scale_ratio, :wait_before_screenshots
 
   def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
   def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=, :set_proxy

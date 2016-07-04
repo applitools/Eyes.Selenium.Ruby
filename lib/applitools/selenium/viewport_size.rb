@@ -1,6 +1,6 @@
 module Applitools::Selenium
   class ViewportSize
-    JS_GET_VIEWPORT_SIZE = (<<-JS).freeze
+    JS_GET_VIEWPORT_SIZE = <<-JS.freeze
        return (function() {
          var height = undefined;
          var width = undefined;
@@ -21,7 +21,7 @@ module Applitools::Selenium
          }());
     JS
 
-    JS_GET_VIEWPORT_HEIGHT = (<<-JS).freeze
+    JS_GET_VIEWPORT_HEIGHT = <<-JS.freeze
       return (function() {
         var height = undefined;
         if (window.innerHeight) {
@@ -40,7 +40,7 @@ module Applitools::Selenium
       }());
     JS
 
-    JS_GET_VIEWPORT_WIDTH = (<<-JS).freeze
+    JS_GET_VIEWPORT_WIDTH = <<-JS.freeze
       return (function() {
         var width = undefined;
         if (window.innerWidth) {
@@ -58,8 +58,8 @@ module Applitools::Selenium
       }());
     JS
 
-    VERIFY_SLEEP_PERIOD = 1.freeze
-    VERIFY_RETRIES = 3.freeze
+    VERIFY_SLEEP_PERIOD = 1
+    VERIFY_RETRIES = 3
 
     def initialize(driver, dimension = nil)
       @driver = driver
@@ -99,10 +99,11 @@ module Applitools::Selenium
       Applitools::Base::Dimension.new(width, height)
     end
 
-    alias_method :viewport_size, :extract_viewport_from_browser
+    alias viewport_size extract_viewport_from_browser
 
     def set
-      resize_browser new_size(browser_size: browser_size, current_viewport: extract_viewport_from_browser, new_viewport: @dimension)
+      resize_browser new_size(browser_size: browser_size, current_viewport: extract_viewport_from_browser,
+        new_viewport: @dimension)
       verify_size(:viewport_size)
     end
 
@@ -141,12 +142,16 @@ module Applitools::Selenium
 
     def setup_dimension(dimension)
       return dimension if dimension.respond_to?(:width) & dimension.respond_to?(:height)
-      return Applitools::Base::Dimension.new(dimension[:width], dimension[:height]) if dimension.is_a?(Hash) && (dimension.keys & [:width, :height]).size == 2
-      raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or be  a hash with these keys."
+      return Applitools::Base::Dimension.new(dimension[:width], dimension[:height]) if dimension.is_a?(Hash) &&
+          (dimension.keys & [:width, :height]).size == 2
+      raise ArgumentError, "expected #{@dimension.inspect}:#{@dimension.class} to respond" \
+        ' to #width and #height, or be  a hash with these keys.'
     end
 
     def new_size(options)
-      raise ArgumentError, "expected #{options.inspect}:#{options.class} to be a hash with keys :browser_size, :current_viewport, :new_viewport" unless options.is_a?(Hash) && (options.keys & [:browser_size, :current_viewport, :new_viewport]).size == 3
+      raise ArgumentError, "expected #{options.inspect}:#{options.class} to be a hash with keys"\
+      ' :browser_size, :current_viewport, :new_viewport' unless options.is_a?(Hash) &&
+          (options.keys & [:browser_size, :current_viewport, :new_viewport]).size == 3
       new_width = options[:browser_size].width - options[:current_viewport].width + options[:new_viewport].width
       new_height = options[:browser_size].height - options[:current_viewport].height + options[:new_viewport].height
       Applitools::Base::Dimension.new(new_width, new_height)
