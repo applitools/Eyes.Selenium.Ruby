@@ -20,5 +20,9 @@ module Applitools::Selenium
         ignore_mismatch: @ignore_mismatch
       }
     end
+
+    def screenshot
+      @screenshot.to_blob.force_encoding('BINARY')
+    end
   end
 end

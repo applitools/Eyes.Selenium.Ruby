@@ -91,22 +91,13 @@ module Applitools::Selenium
     #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
     #
     # Returns: +String+ A screenshot in the requested format.
-    def screenshot_as(output_type, rotation = nil)
+    def get_screenshot(rotation = nil)
       image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
-
       Applitools::Selenium::Driver.normalize_image(self, image, rotation)
-
-      case output_type
-      when :base64
-        image = Applitools::Utils::ImageUtils.base64_from_png_image(image)
-      when :png
-        image = Applitools::Utils::ImageUtils.bytes_from_png_image(image)
-      else
-        raise Applitools::EyesError.new("Unsupported screenshot output type: #{output_type}")
-      end
-
-      image.force_encoding('BINARY')
+      image
     end
+
+
 
     def visible_screenshot
       Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."

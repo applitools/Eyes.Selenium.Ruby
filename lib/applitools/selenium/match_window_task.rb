@@ -45,7 +45,7 @@ module Applitools::Selenium
           region
         end
       driver.clear_user_inputs
-
+      GC.start
       res
     end
 
@@ -65,9 +65,8 @@ module Applitools::Selenium
       # We intentionally take the first screenshot before starting the timer, to allow the page just a tad more time to
       # stabilize.
       Applitools::EyesLogger.debug 'Matching with intervals...'
-      data = prep_match_data(region, tag, rotation, true)
       start = Time.now
-      as_expected = Applitools::Base::ServerConnector.match_window(session, data)
+      as_expected = match(region, tag, rotation, true)
       Applitools::EyesLogger.debug "First call result: #{as_expected}"
       return true if as_expected
       Applitools::EyesLogger.debug "Not as expected, performing retry (total timeout #{retry_timeout})"
@@ -103,10 +102,8 @@ module Applitools::Selenium
       Applitools::EyesLogger.debug 'Preparing match data...'
       title = eyes.title
       Applitools::EyesLogger.debug 'Getting screenshot...'
-      current_screenshot_encoded = driver.screenshot_as(:png, rotation)
+      @current_screenshot = driver.get_screenshot(rotation)
       Applitools::EyesLogger.debug 'Done! Creating image object from PNG...'
-      @current_screenshot = ChunkyPNG::Image.from_blob(current_screenshot_encoded)
-      Applitools::EyesLogger.debug 'Done!'
       # If a region was defined, we refer to the sub-image defined by the region.
       unless region.empty?
         Applitools::EyesLogger.debug 'Calculating clipped region...'
@@ -116,7 +113,7 @@ module Applitools::Selenium
         Applitools::EyesLogger.debug 'Done! Cropping region...'
         @current_screenshot.crop!(clipped_region.left, clipped_region.top, clipped_region.width, clipped_region.height)
         Applitools::EyesLogger.debug 'Done! Creating cropped image object...'
-        current_screenshot_encoded = @current_screenshot.to_blob.force_encoding('BINARY')
+        # current_screenshot_encoded = @current_screenshot.to_blob.force_encoding('BINARY')
         Applitools::EyesLogger.debug 'Done!'
       end
 
@@ -126,7 +123,7 @@ module Applitools::Selenium
       #   current_screenshot_encoded, last_checked_window)
 
       # FIXME: Remove the following line after compression is re-enabled.
-      compressed_screenshot = current_screenshot_encoded
+      # compressed_screenshot = current_screenshot_encoded
 
       Applitools::EyesLogger.debug 'Done! Creating AppOuptut...'
       app_output = AppOuptut.new(title, nil)
@@ -186,8 +183,8 @@ module Applitools::Selenium
         Applitools::EyesLogger.info 'Triggers ignored: no previous window checked'
       end
       Applitools::EyesLogger.debug 'Creating MatchWindowData object..'
-      match_window_data_obj = Applitools::Selenium::MatchWindowData.new(app_output, tag, ignore_mismatch,
-        compressed_screenshot, user_inputs)
+      match_window_data_obj = Applitools::Selenium::MatchWindowData.new(app_output, user_inputs, tag, ignore_mismatch,
+        @current_screenshot)
       Applitools::EyesLogger.debug 'Done creating MatchWindowData object!'
       match_window_data_obj
     end
