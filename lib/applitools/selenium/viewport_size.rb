@@ -1,4 +1,3 @@
-require 'pry'
 module Applitools::Selenium
   class ViewportSize
     JS_GET_VIEWPORT_SIZE = <<-JS.freeze
@@ -22,8 +21,8 @@ module Applitools::Selenium
          }());
     JS
 
-    VERIFY_SLEEP_PERIOD = 1.freeze
-    VERIFY_RETRIES = 3.freeze
+    VERIFY_SLEEP_PERIOD = 1
+    VERIFY_RETRIES = 3
 
     def initialize(driver, dimension = nil)
       @driver = driver
@@ -38,7 +37,7 @@ module Applitools::Selenium
       @dimension = extract_viewport_from_browser
     end
 
-    alias_method :extract_viewport_from_browser!, :extract_viewport_size!
+    alias extract_viewport_from_browser! extract_viewport_size!
 
     def extract_viewport_size
       width = nil
@@ -61,10 +60,8 @@ module Applitools::Selenium
       Applitools::Base::Dimension.new(width, height)
     end
 
-    alias_method :viewport_size, :extract_viewport_size
-    alias_method :extract_viewport_from_browser, :extract_viewport_size
-
-
+    alias viewport_size extract_viewport_size
+    alias extract_viewport_from_browser extract_viewport_size
 
     def set
       Applitools::EyesLogger.debug "Set viewport size #{@dimension}"
@@ -74,17 +71,14 @@ module Applitools::Selenium
 
       actual_viewport_size = extract_viewport_size
       Applitools::EyesLogger.debug "Initial viewport size #{actual_viewport_size}"
-      required_browser_size = ViewportSize.required_browser_size(
-          actual_browser_size: browser_size,
-          actual_viewport_size: actual_viewport_size,
-          required_viewport_size: size
-      )
+      required_browser_size = ViewportSize.required_browser_size actual_browser_size: browser_size,
+        actual_viewport_size: actual_viewport_size, required_viewport_size: size
 
       retries_left = VERIFY_RETRIES
 
       Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
 
-      until retries_left == 0 || browser_size == required_browser_size do
+      until retries_left == 0 || browser_size == required_browser_size
         resize_browser required_browser_size
         sleep VERIFY_SLEEP_PERIOD
         Applitools::EyesLogger.debug "Current browser size #{browser_size}"
@@ -96,24 +90,20 @@ module Applitools::Selenium
       end
 
       actual_viewport_size = extract_viewport_size
-      Applitools::EyesLogger.debug ("Current viewport size: #{actual_viewport_size}")
+      Applitools::EyesLogger.debug "Current viewport size: #{actual_viewport_size}"
 
       unless actual_viewport_size == size
-        Applitools::EyesLogger.debug ("One more attempt...")
+        Applitools::EyesLogger.debug 'One more attempt...'
 
-        required_browser_size = ViewportSize.required_browser_size(
-            actual_browser_size: browser_size,
-            actual_viewport_size: actual_viewport_size,
-            required_viewport_size: size
-        )
+        required_browser_size = ViewportSize.required_browser_size actual_browser_size: browser_size,
+          actual_viewport_size: actual_viewport_size, required_viewport_size: size
 
         retries_left = VERIFY_RETRIES
 
         Applitools::EyesLogger.debug "Current browser size #{browser_size}"
         Applitools::EyesLogger.debug "Required browser size to #{required_browser_size}"
 
-
-        until retries_left == 0 || actual_viewport_size == size do
+        until retries_left == 0 || actual_viewport_size == size
           resize_browser required_browser_size
           sleep VERIFY_SLEEP_PERIOD
           actual_viewport_size = extract_viewport_size
@@ -123,12 +113,10 @@ module Applitools::Selenium
         end
 
         unless actual_viewport_size == size
-          raise Applitools::TestFailedError.new("Failed to set viewport size")
+          raise Applitools::TestFailedError.new 'Failed to set viewport size'
         end
 
       end
-
-
     end
 
     def browser_size
@@ -153,25 +141,27 @@ module Applitools::Selenium
 
     def setup_dimension(dimension)
       return dimension if dimension.is_a? ::Selenium::WebDriver::Dimension
-      return Applitools::Base::Dimension.for(dimension) if dimension.respond_to?(:width) & dimension.respond_to?(:height)
+      return Applitools::Base::Dimension.for(dimension) if dimension.respond_to?(:width) &
+          dimension.respond_to?(:height)
       return Applitools::Base::Dimension.new(
-          dimension[:width],
-          dimension[:height]
+        dimension[:width],
+        dimension[:height]
       ) if dimension.is_a?(Hash) && (dimension.keys & [:width, :height]).size == 2
 
       raise ArgumentError,
-            "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height, or be  a hash with these keys."
+        "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height," \
+        ' or be  a hash with these keys.'
     end
 
     class << self
       def required_browser_size(options)
         unless options[:actual_browser_size].is_a?(Applitools::Base::Dimension) &&
-               options[:actual_viewport_size].is_a?(Applitools::Base::Dimension) &&
-               options[:required_viewport_size].is_a?(Applitools::Base::Dimension)
+            options[:actual_viewport_size].is_a?(Applitools::Base::Dimension) &&
+            options[:required_viewport_size].is_a?(Applitools::Base::Dimension)
 
           raise ArgumentError,
-                "expected #{options.inspect}:#{options.class} to be a hash with keys"\
-                " :actual_browser_size, :actual_viewport_size, :required_viewport_size"
+            "expected #{options.inspect}:#{options.class} to be a hash with keys" \
+            ' :actual_browser_size, :actual_viewport_size, :required_viewport_size'
         end
         options[:actual_browser_size] - options[:actual_viewport_size] + options[:required_viewport_size]
       end
