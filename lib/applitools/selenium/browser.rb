@@ -1,14 +1,14 @@
 module Applitools::Selenium
   class Browser
-    JS_GET_USER_AGENT = (<<-JS).freeze
+    JS_GET_USER_AGENT = <<-JS.freeze
       return navigator.userAgent;
     JS
 
-    JS_GET_DEVICE_PIXEL_RATIO = (<<-JS).freeze
+    JS_GET_DEVICE_PIXEL_RATIO = <<-JS.freeze
       return window.devicePixelRatio;
     JS
 
-    JS_GET_PAGE_METRICS = (<<-JS).freeze
+    JS_GET_PAGE_METRICS = <<-JS.freeze
       return {
         scrollWidth: document.documentElement.scrollWidth,
         bodyScrollWidth: document.body.scrollWidth,
@@ -19,7 +19,7 @@ module Applitools::Selenium
       };
     JS
 
-    JS_GET_CURRENT_SCROLL_POSITION = (<<-JS).freeze
+    JS_GET_CURRENT_SCROLL_POSITION = <<-JS.freeze
       return (function() {
         var doc = document.documentElement;
         var x = (window.scrollX || window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
@@ -29,15 +29,15 @@ module Applitools::Selenium
       }());
     JS
 
-    JS_SCROLL_TO = (<<-JS).freeze
+    JS_SCROLL_TO = <<-JS.freeze
       window.scrollTo(%{left}, %{top});
     JS
 
-    JS_GET_CURRENT_TRANSFORM = (<<-JS).freeze
+    JS_GET_CURRENT_TRANSFORM = <<-JS.freeze
       return document.body.style.transform;
     JS
 
-    JS_SET_TRANSFORM = (<<-JS).freeze
+    JS_SET_TRANSFORM = <<-JS.freeze
       return (function() {
         var originalTransform = document.body.style.transform;
         document.body.style.transform = '%{transform}';
@@ -45,7 +45,7 @@ module Applitools::Selenium
       }());
     JS
 
-    JS_SET_OVERFLOW = (<<-JS).freeze
+    JS_SET_OVERFLOW = <<-JS.freeze
       return (function() {
         var origOF = document.documentElement.style.overflow;
         document.documentElement.style.overflow = '%{overflow}';
@@ -53,9 +53,9 @@ module Applitools::Selenium
       }());
     JS
 
-    EPSILON_WIDTH = 12.freeze
-    MIN_SCREENSHOT_PART_HEIGHT = 10.freeze
-    MAX_SCROLLBAR_SIZE = 50.freeze
+    EPSILON_WIDTH = 12
+    MIN_SCREENSHOT_PART_HEIGHT = 10
+    MAX_SCROLLBAR_SIZE = 50
     OVERFLOW_HIDDEN = 'hidden'.freeze
 
     def initialize(driver, eyes)

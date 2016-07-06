@@ -4,7 +4,7 @@ module Applitools::Utils
   module ImageDeltaCompressor
     extend self
 
-    BLOCK_SIZE = 10.freeze
+    BLOCK_SIZE = 10
 
     # Compresses the target image based on the source image.
     #
@@ -84,7 +84,7 @@ module Applitools::Utils
     private
 
     PREAMBLE = 'applitools'.freeze
-    FORMAT_RAW_BLOCKS = 3.freeze
+    FORMAT_RAW_BLOCKS = 3
 
     Dimension = Struct.new(:width, :height)
     CompareAndCopyBlockChannelDataResult = Struct.new(:identical, :channel_bytes)
@@ -115,7 +115,7 @@ module Applitools::Utils
     # Returns +CompareAndCopyBlockChannelDataResult+ object containing a flag saying whether the blocks are identical
     # and a copy of the target block's bytes.
     def compare_and_copy_block_channel_data(source_pixels, target_pixels, image_size, pixel_length, block_size,
-        block_column, block_row, channel)
+      block_column, block_row, channel)
       identical = true
 
       actual_block_size = get_actual_block_size(image_size, block_size, block_column, block_row)

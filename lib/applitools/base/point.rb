@@ -17,11 +17,11 @@ module Applitools::Base
       @x == other.x && @y == other.y
     end
 
+    alias eql? ==
+
     def hash
       @x.hash & @y.hash
     end
-
-    alias_method :eql?, :==
 
     def to_hash(options = {})
       options[:region] ? { left: left, top: top } : { x: x, y: y }

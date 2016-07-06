@@ -8,7 +8,7 @@ module Applitools::Selenium
 
     include Selenium::WebDriver::DriverExtensions::HasInputDevices
 
-    RIGHT_ANGLE = 90.freeze
+    RIGHT_ANGLE = 90
     IOS = 'IOS'.freeze
     ANDROID = 'ANDROID'.freeze
     LANDSCAPE = 'LANDSCAPE'.freeze
@@ -80,9 +80,11 @@ module Applitools::Selenium
     end
 
     ## Set the overflow value for document element and return the original overflow value.
-    def set_overflow(overflow)
+    def overflow=(overflow)
       @browser.set_overflow(overflow)
     end
+
+    alias set_oerflow overflow=
 
     # Return a PNG screenshot in the given format as a string
     #
