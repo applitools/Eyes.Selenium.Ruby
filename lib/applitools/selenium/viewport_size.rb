@@ -69,8 +69,8 @@ module Applitools::Selenium
       # "space" below/next to it and the operation won't be successful).
       browser_to_upper_left_corner
 
-      success_attempt = resize_attempt do |conditional_value|
-        browser_size == conditional_value
+      success_attempt = resize_attempt do |required_browser_size|
+        browser_size == required_browser_size
       end
 
       raise Applitools::TestFailedError.new 'Failed to set browser size!' \
