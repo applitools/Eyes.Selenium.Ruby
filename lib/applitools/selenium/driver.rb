@@ -97,8 +97,6 @@ module Applitools::Selenium
       image
     end
 
-
-
     def visible_screenshot
       Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
       sleep(wait_before_screenshots)
