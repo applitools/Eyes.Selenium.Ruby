@@ -2,7 +2,7 @@ require 'base64'
 
 module Applitools::Selenium
   class MatchWindowTask
-    MATCH_INTERVAL = 0.5.freeze
+    MATCH_INTERVAL = 0.5
     AppOuptut = Struct.new(:title, :screenshot64)
 
     attr_reader :eyes, :session, :driver, :default_retry_timeout, :last_checked_window,
@@ -120,12 +120,12 @@ module Applitools::Selenium
         Applitools::EyesLogger.debug 'Done!'
       end
 
-      # FIXME re-Enable screenshot compression after handling memory leaks.
+      # FIXME: re-Enable screenshot compression after handling memory leaks.
       # Applitools::EyesLogger.debug 'Compressing screenshot...'
       # compressed_screenshot = Applitools::Utils::ImageDeltaCompressor.compress_by_raw_blocks(@current_screenshot,
       #   current_screenshot_encoded, last_checked_window)
 
-      # FIXME Remove the following line after compression is re-enabled.
+      # FIXME: Remove the following line after compression is re-enabled.
       compressed_screenshot = current_screenshot_encoded
 
       Applitools::EyesLogger.debug 'Done! Creating AppOuptut...'
@@ -186,8 +186,8 @@ module Applitools::Selenium
         Applitools::EyesLogger.info 'Triggers ignored: no previous window checked'
       end
       Applitools::EyesLogger.debug 'Creating MatchWindowData object..'
-      match_window_data_obj = Applitools::Selenium::MatchWindowData.new(app_output, user_inputs, tag, ignore_mismatch,
-        compressed_screenshot)
+      match_window_data_obj = Applitools::Selenium::MatchWindowData.new(app_output, tag, ignore_mismatch,
+        compressed_screenshot, user_inputs)
       Applitools::EyesLogger.debug 'Done creating MatchWindowData object!'
       match_window_data_obj
     end

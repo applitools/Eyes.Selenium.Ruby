@@ -11,9 +11,9 @@ module Applitools::Base::ServerConnector
   DEFAULT_SERVER_URL = 'https://eyessdk.applitools.com'.freeze
 
   SSL_CERT = File.join(File.dirname(File.expand_path(__FILE__)), '../../../certs/cacert.pem').to_s.freeze
-  DEFAULT_TIMEOUT = 300.freeze
+  DEFAULT_TIMEOUT = 300
 
-  API_SESSIONS_RUNNING =  '/api/sessions/running/'.freeze
+  API_SESSIONS_RUNNING = '/api/sessions/running/'.freeze
 
   HTTP_STATUS_CODES = {
     created: 201,
@@ -75,9 +75,9 @@ module Applitools::Base::ServerConnector
     'Content-Type' => 'application/json'
   }.freeze
 
-  LONG_REQUEST_DELAY = 2.freeze # seconds
-  MAX_LONG_REQUEST_DELAY = 10.freeze # seconds
-  LONG_REQUEST_DELAY_MULTIPLICATIVE_INCREASE_FACTOR = 1.5.freeze
+  LONG_REQUEST_DELAY = 2 # seconds
+  MAX_LONG_REQUEST_DELAY = 10 # seconds
+  LONG_REQUEST_DELAY_MULTIPLICATIVE_INCREASE_FACTOR = 1.5
 
   [:get, :post, :delete].each do |method|
     define_method method do |url, options = {}|
@@ -91,7 +91,7 @@ module Applitools::Base::ServerConnector
 
   def request(url, method, options = {})
     Faraday::Connection.new(url, ssl: { ca_file: SSL_CERT }, proxy: @proxy || nil).send(method) do |req|
-      req.options.timeout  = DEFAULT_TIMEOUT
+      req.options.timeout = DEFAULT_TIMEOUT
       req.headers = DEFAULT_HEADERS.merge(options[:headers] || {})
       req.headers['Content-Type'] = options[:content_type] if options.key?(:content_type)
       req.params = { apiKey: api_key }.merge(options[:query] || {})

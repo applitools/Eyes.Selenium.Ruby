@@ -2,7 +2,7 @@ require 'oily_png'
 require 'base64'
 
 module Applitools::Utils
-  QUADRANTS_COUNT = 4.freeze
+  QUADRANTS_COUNT = 4
 
   module ImageUtils
     extend self
