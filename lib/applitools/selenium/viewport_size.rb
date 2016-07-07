@@ -141,7 +141,8 @@ module Applitools::Selenium
         false
       end
 
-      until retries_left == 0 || check_precondition.call
+      until retries_left == 0
+        check_precondition.call
         Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
         resize_browser required_browser_size
         sleep VERIFY_SLEEP_PERIOD
