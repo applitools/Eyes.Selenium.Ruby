@@ -3,6 +3,9 @@ require_relative '../lib/eyes_selenium'
 require 'logger'
 require 'watir-webdriver'
 
+require 'openssl'
+OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+
 eyes = Applitools::Eyes.new
 eyes.api_key = ENV['APPLITOOLS_API_KEY']
 eyes.log_handler = Logger.new(STDOUT)
