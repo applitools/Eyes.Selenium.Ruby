@@ -82,7 +82,7 @@ module Applitools::Selenium
       @browser.set_overflow(overflow)
     end
 
-    alias set_oerflow overflow=
+    alias set_overflow overflow=
 
     # Return a PNG screenshot in the given format as a string
     #
