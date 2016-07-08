@@ -74,7 +74,7 @@ module Applitools::Selenium
       while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
         raise Applitools::TestFailedError.new 'Failed to set browser size!' \
         " (current size: #{browser_size})" unless resize_attempt
-        browser_size_calculation_count+=1
+        browser_size_calculation_count += 1
         if viewport_size == size
           Applitools::EyesLogger.debug "Actual viewport size #{viewport_size}"
           return
