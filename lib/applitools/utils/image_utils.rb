@@ -96,7 +96,7 @@ module Applitools::Utils
       attr_accessor :width, :height, :file
 
       def initialize(image)
-        @file = Tempfile.new
+        @file = Tempfile.new('applitools')
         image.save file
         @width = image.width
         @height = image.height
