@@ -1,5 +1,6 @@
 require 'oily_png'
 require 'base64'
+require 'tempfile'
 
 module Applitools::Utils
   QUADRANTS_COUNT = 4
@@ -88,6 +89,39 @@ module Applitools::Utils
 
           res.compose!(image, position.left, position.top)
         end
+      end
+    end
+
+    class Screenshot < Delegator
+      attr_accessor :width, :height, :file
+
+      def initialize(image)
+        @file = Tempfile.new
+        image.save file
+        @width = image.width
+        @height = image.height
+      end
+
+      def __getobj__
+        restore
+      end
+
+      def __setobj__(obj)
+        obj.save file
+      end
+
+      def method_missing(method, *args, &block)
+        if method =~ /^.+!$/
+          __setobj__ super
+        else
+          super
+        end
+      end
+
+      private
+
+      def restore
+        ChunkyPNG::Image.from_file(file)
       end
     end
 
