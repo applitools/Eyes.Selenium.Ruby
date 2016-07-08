@@ -23,6 +23,7 @@ module Applitools::Selenium
 
     VERIFY_SLEEP_PERIOD = 1
     VERIFY_RETRIES = 3
+    BROWSER_SIZE_CALCULATION_RETRIES = 2
 
     def initialize(driver, dimension = nil)
       @driver = driver
@@ -69,54 +70,17 @@ module Applitools::Selenium
       # "space" below/next to it and the operation won't be successful).
       browser_to_upper_left_corner
 
-      actual_viewport_size = extract_viewport_size
-      Applitools::EyesLogger.debug "Initial viewport size #{actual_viewport_size}"
-      required_browser_size = ViewportSize.required_browser_size actual_browser_size: browser_size,
-        actual_viewport_size: actual_viewport_size, required_viewport_size: size
-
-      retries_left = VERIFY_RETRIES
-
-      Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
-
-      until retries_left == 0 || browser_size == required_browser_size
-        resize_browser required_browser_size
-        sleep VERIFY_SLEEP_PERIOD
-        Applitools::EyesLogger.debug "Current browser size #{browser_size}"
-        retries_left -= 1
-      end
-
-      unless browser_size == required_browser_size
-        raise Applitools::TestFailedError.new "Failed to set browser size! (current size: #{browser_size})"
-      end
-
-      actual_viewport_size = extract_viewport_size
-      Applitools::EyesLogger.debug "Current viewport size: #{actual_viewport_size}"
-
-      unless actual_viewport_size == size
-        Applitools::EyesLogger.debug 'One more attempt...'
-
-        required_browser_size = ViewportSize.required_browser_size actual_browser_size: browser_size,
-          actual_viewport_size: actual_viewport_size, required_viewport_size: size
-
-        retries_left = VERIFY_RETRIES
-
-        Applitools::EyesLogger.debug "Current browser size #{browser_size}"
-        Applitools::EyesLogger.debug "Required browser size to #{required_browser_size}"
-
-        until retries_left == 0 || actual_viewport_size == size
-          resize_browser required_browser_size
-          sleep VERIFY_SLEEP_PERIOD
-          actual_viewport_size = extract_viewport_size
-          Applitools::EyesLogger.debug "Current browser size #{browser_size}"
-          Applitools::EyesLogger.debug "Current view port size #{actual_viewport_size}"
-          retries_left -= 1
+      browser_size_calculation_count = 0
+      while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
+        raise Applitools::TestFailedError.new 'Failed to set browser size!' \
+        " (current size: #{browser_size})" unless resize_attempt
+        browser_size_calculation_count += 1
+        if viewport_size == size
+          Applitools::EyesLogger.debug "Actual viewport size #{viewport_size}"
+          return
         end
-
-        unless actual_viewport_size == size
-          raise Applitools::TestFailedError.new 'Failed to set viewport size'
-        end
-
       end
+      raise Applitools::TestFailedError.new 'Failed to set viewport size'
     end
 
     def browser_size
@@ -151,6 +115,31 @@ module Applitools::Selenium
       raise ArgumentError,
         "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height," \
         ' or be  a hash with these keys.'
+    end
+
+    # Calculates a necessary browser size to get a requested viewport size,
+    # tries to resize browser, yields a block (which should check if an attempt was successful) before each iteration.
+    # If the block returns true, stop trying and returns true (resize was successful)
+    # Otherwise, returns false after VERIFY_RETRIES iterations
+
+    def resize_attempt
+      actual_viewport_size = extract_viewport_size
+      Applitools::EyesLogger.debug "Actual viewport size #{actual_viewport_size}"
+      required_browser_size = ViewportSize.required_browser_size actual_browser_size: browser_size,
+        actual_viewport_size: actual_viewport_size, required_viewport_size: size
+
+      retries_left = VERIFY_RETRIES
+
+      until retries_left == 0
+        return true if browser_size == required_browser_size
+        Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
+        resize_browser required_browser_size
+        sleep VERIFY_SLEEP_PERIOD
+        Applitools::EyesLogger.debug "Required browser size #{required_browser_size}, " \
+          "Current browser size #{browser_size}"
+        retries_left -= 1
+      end
+      false
     end
 
     class << self
