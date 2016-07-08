@@ -23,6 +23,7 @@ module Applitools::Selenium
 
     VERIFY_SLEEP_PERIOD = 1
     VERIFY_RETRIES = 3
+    BROWSER_SIZE_CALCULATION_RETRIES = 2
 
     def initialize(driver, dimension = nil)
       @driver = driver
@@ -69,23 +70,17 @@ module Applitools::Selenium
       # "space" below/next to it and the operation won't be successful).
       browser_to_upper_left_corner
 
-      success_attempt = resize_attempt do |required_browser_size|
-        browser_size == required_browser_size
+      browser_size_calculation_count = 0
+      while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
+        raise Applitools::TestFailedError.new 'Failed to set browser size!' \
+        " (current size: #{browser_size})" unless resize_attempt
+        browser_size_calculation_count+=1
+        if viewport_size == size
+          Applitools::EyesLogger.debug "Actual viewport size #{viewport_size}"
+          return
+        end
       end
-
-      raise Applitools::TestFailedError.new 'Failed to set browser size!' \
-        " (current size: #{browser_size})" unless success_attempt
-
-      # Additional attempt. This Solves the "maximized browser" bug
-      # (border size for maximized browser sometimes different than
-      # non-maximized, so the original browser size calculation is
-      # wrong).
-
-      success_attempt = resize_attempt do
-        extract_viewport_size == size
-      end
-
-      raise Applitools::TestFailedError.new 'Failed to set viewport size' unless success_attempt
+      raise Applitools::TestFailedError.new 'Failed to set viewport size'
     end
 
     def browser_size
@@ -135,14 +130,8 @@ module Applitools::Selenium
 
       retries_left = VERIFY_RETRIES
 
-      check_precondition = proc do
-        check = yield required_browser_size if block_given?
-        return true if check
-        false
-      end
-
       until retries_left == 0
-        check_precondition.call
+        return true if browser_size == required_browser_size
         Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
         resize_browser required_browser_size
         sleep VERIFY_SLEEP_PERIOD
