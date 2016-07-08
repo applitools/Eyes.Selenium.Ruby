@@ -84,13 +84,12 @@ module Applitools::Selenium
 
     alias set_overflow overflow=
 
-    # Return a PNG screenshot in the given format as a string
+    # Return a normalized screenshot.
     #
-    # +output_type+:: +Symbol+ The format of the screenshot. Accepted values are +:base64+ and +:png+.
     # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
     #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
     #
-    # Returns: +String+ A screenshot in the requested format.
+    # Returns: +ChunkPng::Image+ A screenshot object, normalized by scale and rotation.
     def get_screenshot(rotation = nil)
       image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
       Applitools::Selenium::Driver.normalize_image(self, image, rotation)
