@@ -111,7 +111,7 @@ module Applitools::Utils
       end
 
       def method_missing(method, *args, &block)
-        if method =~ /^.*!$/
+        if method =~ /^.+!$/
           __setobj__ super
         else
           super
