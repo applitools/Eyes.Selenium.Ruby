@@ -95,10 +95,6 @@ module Applitools::Utils
     class Screenshot < Delegator
       attr_accessor :width, :height, :file
 
-      class << self
-
-      end
-
       def initialize(image)
         @file = Tempfile.new
         image.save file
