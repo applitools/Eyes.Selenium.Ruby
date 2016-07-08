@@ -122,8 +122,6 @@ module Applitools::Selenium
       # compressed_screenshot = Applitools::Utils::ImageDeltaCompressor.compress_by_raw_blocks(@current_screenshot,
       #   current_screenshot_encoded, last_checked_window)
 
-      # FIXME: Remove the following line after compression is re-enabled.
-
       Applitools::EyesLogger.debug 'Done! Creating AppOuptut...'
       app_output = AppOuptut.new(title, nil)
       user_inputs = []
