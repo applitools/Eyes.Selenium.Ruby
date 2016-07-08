@@ -143,6 +143,8 @@ class Applitools::Eyes
     else
       unless driver.is_a?(Applitools::Selenium::Driver)
         Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
+        is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
+        @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
       end
     end
 
