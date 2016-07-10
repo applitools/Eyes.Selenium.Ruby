@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'capybara'
   spec.add_development_dependency 'rspec', '>= 3'
   spec.add_development_dependency 'watir-webdriver'
   spec.add_development_dependency 'appium_lib'
