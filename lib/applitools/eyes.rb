@@ -135,8 +135,6 @@ class Applitools::Eyes
     if driver.is_a?(Selenium::WebDriver::Driver)
       is_mobile_device = driver.capabilities['platformName'] ? true : false
       @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
-    elsif driver.is_a?(Capybara::Selenium::Driver)
-      @driver = Applitools::Selenium::Capybara::Driver.new(self, driver: driver, is_mobile_device: false)
     elsif defined?(Appium::Driver) && driver.is_a?(Appium::Driver)
       @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: true)
     elsif defined?(Watir::Browser) && driver.is_a?(Watir::Browser)
