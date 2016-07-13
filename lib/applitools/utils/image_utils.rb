@@ -96,10 +96,14 @@ module Applitools::Utils
       attr_accessor :width, :height, :file
 
       def initialize(image)
-        @file = Tempfile.new('applitools')
-        image.save file
-        @width = image.width
-        @height = image.height
+        @datastream = ChunkyPNG::Datastream.from_string image
+        @header = @datastream.header_chunk
+        @width = @header.width
+        @height = @header.height
+      end
+
+      def to_blob
+        @datastream.to_blob
       end
 
       def __getobj__
@@ -107,7 +111,7 @@ module Applitools::Utils
       end
 
       def __setobj__(obj)
-        obj.save file
+        @datastream = obj.to_datastream
       end
 
       def method_missing(method, *args, &block)
@@ -121,7 +125,7 @@ module Applitools::Utils
       private
 
       def restore
-        ChunkyPNG::Image.from_file(file)
+        ChunkyPNG::Image.from_datastream @datastream
       end
     end
 

@@ -103,7 +103,7 @@ module Applitools::Selenium
       title = eyes.title
       Applitools::EyesLogger.debug 'Getting screenshot...'
       Applitools::EyesLogger.debug 'Done! Creating image object from PNG...'
-      @current_screenshot = Applitools::Utils::ImageUtils::Screenshot.new(driver.get_screenshot(rotation))
+      @current_screenshot = driver.get_screenshot(rotation)
       Applitools::EyesLogger.debug 'Done!'
       # If a region was defined, we refer to the sub-image defined by the region.
       unless region.empty?
