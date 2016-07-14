@@ -98,9 +98,6 @@ module Applitools::Utils
 
       def initialize(image)
         @datastream = ChunkyPNG::Datastream.from_string image
-        @header = @datastream.header_chunk
-        @width = @header.width
-        @height = @header.height
       end
 
       def to_blob
