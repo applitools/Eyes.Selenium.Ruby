@@ -93,7 +93,8 @@ module Applitools::Utils
     end
 
     class Screenshot < Delegator
-      attr_accessor :width, :height, :file
+      extend Forwardable
+      def_delegators :header, :width, :height
 
       def initialize(image)
         @datastream = ChunkyPNG::Datastream.from_string image
@@ -108,6 +109,10 @@ module Applitools::Utils
 
       def __getobj__
         restore
+      end
+
+      def header
+        @datastream.header_chunk
       end
 
       def __setobj__(obj)
