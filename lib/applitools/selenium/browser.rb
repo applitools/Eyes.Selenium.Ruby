@@ -181,14 +181,10 @@ module Applitools::Selenium
 
           process_screenshot_part(screenshot_part, size_factor)
         end
-
         screenshot = Applitools::Utils::ImageUtils.stitch_images(page_size, parts)
       end
-
       set_transform(original_transform) if @eyes.use_css_transition
-
       scroll_to(original_scroll_position)
-
       screenshot
     end
 
