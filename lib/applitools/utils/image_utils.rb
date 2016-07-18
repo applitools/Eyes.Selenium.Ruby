@@ -74,7 +74,7 @@ module Applitools::Utils
     end
 
     def stitch_images(size, images_data)
-      ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
+      stiched_screenshot = ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
         images_data.each do |image_data|
           # Crop out of bounds images.
           image = image_data.image
@@ -84,30 +84,41 @@ module Applitools::Utils
           new_height = position.top + image.height > size.height ? size.height - position.top : image.height
 
           if new_width != image.width || new_height != image.height
-            image = image.crop(0, 0, new_width, new_height)
+            image = image.crop!(0, 0, new_width, new_height)
           end
 
-          res.compose!(image, position.left, position.top)
+          res.replace!(image.restore, position.left, position.top)
+          GC.start
         end
       end
+      result = Applitools::Utils::ImageUtils::Screenshot.new stiched_screenshot.to_blob.dup
+      GC.start
+      result
     end
 
     class Screenshot < Delegator
-      attr_accessor :width, :height, :file
+      extend Forwardable
+      def_delegators :header, :width, :height
 
       def initialize(image)
-        @file = Tempfile.new('applitools')
-        image.save file
-        @width = image.width
-        @height = image.height
+        @datastream = ChunkyPNG::Datastream.from_string image
+      end
+
+      def to_blob
+        @datastream.to_blob
       end
 
       def __getobj__
         restore
       end
 
+      def header
+        @datastream.header_chunk
+      end
+
       def __setobj__(obj)
-        obj.save file
+        @datastream = obj.to_datastream
+        self
       end
 
       def method_missing(method, *args, &block)
@@ -118,10 +129,8 @@ module Applitools::Utils
         end
       end
 
-      private
-
       def restore
-        ChunkyPNG::Image.from_file(file)
+        ChunkyPNG::Image.from_datastream @datastream
       end
     end
 
