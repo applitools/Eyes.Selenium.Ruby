@@ -74,7 +74,7 @@ module Applitools::Utils
     end
 
     def stitch_images(size, images_data)
-      stiched_screenshot = ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
+      stitched_screenshot = ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
         images_data.each do |image_data|
           # Crop out of bounds images.
           image = image_data.image
@@ -91,7 +91,7 @@ module Applitools::Utils
           GC.start
         end
       end
-      result = Applitools::Utils::ImageUtils::Screenshot.new stiched_screenshot.to_blob.dup
+      result = Applitools::Utils::ImageUtils::Screenshot.new stitched_screenshot.to_blob.dup
       GC.start
       result
     end
