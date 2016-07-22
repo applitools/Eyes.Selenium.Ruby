@@ -34,6 +34,14 @@ module Applitools::Utils
     convert_hash_keys(hash, :camelcase)
   end
 
+  def boolean_value(value)
+    if value
+      true
+    else
+      false
+    end
+  end
+
   private
 
   def convert_hash_keys(value, method)

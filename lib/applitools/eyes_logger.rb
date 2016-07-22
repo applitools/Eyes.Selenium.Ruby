@@ -26,6 +26,14 @@ module Applitools::EyesLogger
     @log_handler = log_handler
   end
 
+  def log_handler
+    @log_handler
+  end
+
+  def logger
+    self
+  end
+
   OPTIONAL_METHODS.each do |method|
     define_singleton_method(method) do |msg|
       @log_handler.respond_to?(method) ? @log_handler.send(method, msg) : @log_handler.info(msg)

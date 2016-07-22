@@ -1,19 +1,4 @@
+require 'applitools/core/app_environment'
 module Applitools::Base
-  class Environment
-    def initialize(os = nil, hosting_app = nil, display_size = nil, inferred = nil)
-      @os = os
-      @hosting_app = hosting_app
-      @display_size = display_size
-      @inferred = inferred
-    end
-
-    def to_hash
-      {
-        os: @os,
-        hosting_app: @hosting_app,
-        display_size: @display_size.to_hash,
-        inferred: @inferred
-      }
-    end
-  end
+  class Environment < Applitools::Core::AppEnvironment;  end
 end

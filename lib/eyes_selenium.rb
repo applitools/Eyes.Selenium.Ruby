@@ -6,6 +6,19 @@ module Applitools
 
   class EyesError < StandardError; end
   class EyesAbort < EyesError; end
+  class EyesIllegalArgument < EyesError; end
+
+  class AbstractMethodCalled < EyesError
+    attr_accessor :method_name, :object
+
+    def initialize(method_name, object)
+      @method = method_name
+      @object = object
+      message = "Abstract method #{method_name} is called for #{object}. "\
+          'You should override it in a descendant class.'
+      super message
+    end
+  end
 
   class TestFailedError < StandardError
     attr_accessor :test_results

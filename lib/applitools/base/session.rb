@@ -1,15 +1,4 @@
+require 'applitools/core/session'
 module Applitools::Base
-  class Session
-    attr_reader :id, :url
-
-    def initialize(session_id, session_url, new_session)
-      @id = session_id
-      @url = session_url
-      @new_session = new_session
-    end
-
-    def new_session?
-      @new_session
-    end
-  end
+  class Session < Applitools::Core::Session; end
 end
