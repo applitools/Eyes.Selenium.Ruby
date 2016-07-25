@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.shared_examples "can be disabled" do |method_name, arguments|
   before do
     expect(subject).to receive(:disabled?).and_return(true).at_least(1)
-    expect(subject.logger).to receive(:info).with('Ignored').at_least(1)
+    expect(subject.logger).to receive(:info).with("#{method_name} Ignored").at_least(1)
   end
   it "checks disabled? flag and logs 'Ignored'" do
     subject.send(method_name, *arguments)
@@ -20,8 +20,6 @@ describe Applitools::Core::EyesBase do
           :app_name, :app_name=,
           :branch_name, :branch_name=,
           :parent_branch_name, :parent_branch_name=,
-          :clear_user_inputs,
-          :get_user_inputs,
           :match_timeout, :match_timeout=,
           :save_new_tests, :save_new_tests=,
           :save_failed_tests, :save_failed_tests=,
@@ -42,6 +40,14 @@ describe Applitools::Core::EyesBase do
           :position_provider, :position_provider=,
           :open_base
   ]
+
+  it_should_behave_like 'has private method', [
+      :clear_user_inputs,
+      :user_inputs,
+      :start_session,
+
+  ]
+
   it_should_behave_like "proxy method", Applitools::Connectivity::ServerConnector, [:api_key, :api_key=,
                                                                                      :server_url, :server_url=,
                                                                                      :proxy, :proxy=, :set_proxy
@@ -51,7 +57,7 @@ describe Applitools::Core::EyesBase do
 
   it "initializes variables" do
     expect(subject.send :disabled?).to eq false
-    expect(subject.send :viewport_size).to be_nil
+    expect(subject.instance_variable_get :@viewport_size).to be_nil
     expect(subject.send :running_session).to be_nil
     expect(subject.send :last_screenshot).to be_nil
     expect(subject.send :agent_id).to be_nil
@@ -103,17 +109,20 @@ describe Applitools::Core::EyesBase do
 
       it 'validates presence of app_name' do
         expect { subject.open_base(test_name: :test_name) }.to raise_error(Applitools::EyesIllegalArgument)
+        expect(subject).to receive(:viewport_size=)
         subject.app_name = :test
         subject.open_base(test_name: :test)
         expect(subject.send :test_name).to eq :test
       end
 
       it 'validates presence of test_name' do
+        expect(subject).to receive(:viewport_size=)
         expect { subject.open_base(app_name: :app_name) }.to raise_error(Applitools::EyesIllegalArgument)
         subject.open_base(app_name: :app_name, test_name: :test)
       end
 
       it 'set open? to true' do
+        expect(subject).to receive(:viewport_size=)
         subject.send(:open=, false)
         subject.open_base app_name: :a, test_name: :b, viewport_size: :c, session_type: :d
         expect(subject.open?).to eq true
@@ -216,7 +225,15 @@ describe Applitools::Core::EyesBase do
 
     context 'throws an exception for failed test if called like close(true)' do
       before do
-        expect(subject).to receive(:session_start_info).and_return( Applitools::Core::SessionStartInfo.new(:a, :b, :c, :d, :e, :f, :g) ).at_least 1
+        expect(subject).to receive(:session_start_info).and_return( Applitools::Core::SessionStartInfo.new(
+            agent_id: :a,
+            app_id_or_name: :b,
+            ver_id: :c,
+            scenario_id_or_name: :d,
+            batch_info: :e,
+            env_name: :f,
+            environment: :g)
+        ).at_least 1
       end
 
       it "failed test close(true)" do
@@ -235,7 +252,15 @@ describe Applitools::Core::EyesBase do
 
     context 'don\'t throw exception when called like close(false)' do
       before do
-        expect(subject).to receive(:session_start_info).and_return( Applitools::Core::SessionStartInfo.new(:a, :b, :c, :d, :e, :f, :g) ).at_least 1
+        expect(subject).to receive(:session_start_info).and_return( Applitools::Core::SessionStartInfo.new(
+            agent_id: :a,
+            app_id_or_name: :b,
+            ver_id: :c,
+            scenario_id_or_name: :d,
+            batch_info: :e,
+            env_name: :f,
+            environment: :g)
+        ).at_least 1
       end
 
       it "failed test close(false)" do
@@ -252,15 +277,17 @@ describe Applitools::Core::EyesBase do
     end
   end
 
-  # context "close"
-  #
-  # context "start session" do
-  #   context "packs appropriate fields to session_start_info" do
-  #     it "creates new batch unless defined"
-  #     it "uses defined batch"
-  #     it ""
-  #   end
-  #   it "calls ServerConnector.start_session"
-  # end
+  context "start session" do
+    it 'a private method' do
+      expect { subject.start_session }.to raise_error NoMethodError
+    end
+    it 'calls ServerConnector.start_session' do
+      expect(Applitools::Connectivity::ServerConnector).to receive(:start_session).and_return Applitools::Core::Session.new(:session_id, :session_url, true)
+      expect(subject).to receive(:viewport_size).and_return nil
+      expect(subject).to receive(:inferred_environment).and_return nil
+      expect(subject).to receive(:base_agent_id).and_return nil
+      subject.send :start_session
+    end
+  end
 
 end

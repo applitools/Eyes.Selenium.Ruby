@@ -16,7 +16,7 @@ module Applitools::Core
     attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings, :scale_ratio, :scale_method,
         :host_os, :host_app, :base_line_name, :position_provider
 
-    abstract_attr_accessor :base_agent_id, :viewport_size
+    abstract_attr_accessor :base_agent_id, :viewport_size, :inferred_environment
 
     def initialize(server_url = nil)
       Applitools::Connectivity::ServerConnector.server_url = server_url
@@ -28,6 +28,8 @@ module Applitools::Core
       self.save_failed_tests = false
       self.agent_id = nil
       self.last_screenshot = nil
+      @user_inputs = UserInputArray.new
+
 
       # scaleProviderHandler = new SimplePropertyHandler<>();
       # scaleProviderHandler.set(new NullScaleProvider());
@@ -65,7 +67,7 @@ module Applitools::Core
 
     def abort_if_not_closed
       if disabled?
-        logger.info "Ignored"
+        logger.info "#{__method__} Ignored"
         return
       end
 
@@ -90,7 +92,7 @@ module Applitools::Core
 
     def open_base(options)
       if disabled?
-        logger.info "Ignored"
+        logger.info "#{__method__} Ignored"
         return
       end
 
@@ -121,8 +123,8 @@ module Applitools::Core
 
 
 
-      self.viewport_size = viewport_size;
-      self.session_type = session_type
+      self.viewport_size = options[:viewport_size]
+      self.session_type = options[:session_type]
 
       # scaleProviderHandler.set(new NullScaleProvider());
       # setScaleMethod(ScaleMethod.getDefault());
@@ -137,7 +139,7 @@ module Applitools::Core
     def close(throw_exception = false)
 
       if disabled?
-        logger.info "Ignored"
+        logger.info "#{__method__} Ignored"
         return
       end
 
@@ -199,12 +201,11 @@ module Applitools::Core
 
     attr_accessor :running_session, :last_screenshot, :current_app_name, :test_name, :session_type,
                   :full_agent_id, :scale_provider_handler, :cut_provider_handler, :default_match_settings,
-                  :session_start_info
+                  :session_start_info, :should_match_window_run_once_on_timeout
 
     def app_environment
-      result = Applitools::AppEnvironment.new
-      result.host_os = host_os if host_os
-      result.
+      Applitools::Core::AppEnvironment.new os: host_os, hosting_app: host_app,
+          display_size: @viewport_size, inferred: inferred_environment
     end
 
     def open=(value)
@@ -212,6 +213,71 @@ module Applitools::Core
     end
 
     def clear_user_inputs
+      @user_inputs.clear
+    end
+
+    def user_inputs
+      Array.new @user_inputs
+    end
+
+    def add_user_input(trigger)
+
+      if disabled?
+        logger.info "#{__method__} Ignored"
+        return
+      end
+
+      Applitools::Core::ArgumentGuard.notNull(trigger, "trigger");
+      @user_inputs.add(trigger);
+    end
+
+    def add_text_trigger_base(control, text)
+      if disabled?
+        logger.info "#{__method__} Ignored"
+        return
+      end
+
+      Applitools::Core::ArgumentGuard.not_null control, 'control'
+      Applitools::Core::ArgumentGuard.not_null text, 'control'
+
+      control = Applitools::Core::Region.new control.left, control.top, control.width, control.height
+
+      if last_screenshot.nil?
+        logger.info "Ignoring '#{text}' (no screenshot)"
+        return
+      end
+
+      # control = lastScreenshot.getIntersectedRegion control,
+      #               CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS
+
+      if control.empty?
+        logger.info "Ignoring '#{text}' out of bounds"
+        return
+      end
+
+      add_user_input Applitools::Core::TextTrigger.new control, text
+      logger.info "Added '#{text}'"
+
+    end
+
+    def add_mouse_trigger_base(action, control, cursor)
+      if disabled?
+        logger.info "#{__method__} Ignored"
+        return
+      end
+
+      Applitools::Core::ArgumentGuard.not_nil action, 'action'
+      Applitools::Core::ArgumentGuard.not_nil control, 'control'
+      Applitools::Core::ArgumentGuard.not_nil cursor, 'cursor'
+
+      if last_screenshot.nil?
+        logger.info "Ignoring '#{action}' (no screenshot)"
+        return
+      end
+
+      cursor_in_screenshot = Applitools::Core::Location.new cursor.x, cursor.y
+      cursor_in_screenshot.offset(control)
+
 
     end
 
@@ -234,28 +300,34 @@ module Applitools::Core
       end
 
       app_env = app_environment
-      # AppEnvironment appEnv = getAppEnvironment();
-      # logger.verbose("Application environment is " + appEnv);
-      #
-      # sessionStartInfo = new SessionStartInfo(getBaseAgentId(), sessionType,
-      #                                         getAppName(), null, testName, testBatch, baselineName, appEnv,
-      #                                         defaultMatchSettings, branchName, parentBranchName);
-      #
-      # logger.verbose("Starting server session...");
-      # runningSession = serverConnector.startSession(sessionStartInfo);
-      #
-      # logger.verbose("Server session ID is " + runningSession.getId());
-      #
-      # String testInfo = "'" + testName + "' of '" + getAppName() + "' " +
-      #     appEnv;
-      # if (runningSession.getIsNewSession()) {
-      #     logger.log("--- New test started - " + testInfo);
-      # shouldMatchWindowRunOnceOnTimeout = true;
-      # } else {
-      #     logger.log("--- Test started - " + testInfo);
-      # shouldMatchWindowRunOnceOnTimeout = false;
-      # }
 
+      logger.info "Application environment is #{app_env}"
+
+      self.session_start_info = SessionStartInfo.new agent_id: base_agent_id, app_id_or_name: app_name,
+                                                scenario_id_or_name: test_name, batch_info: test_batch,
+                                                env_name: baseline_name, environment: app_env,
+                                                default_match_settings: default_match_settings,
+                                                branch_name: branch_name, parent_branch_name: parent_branch_name
+
+      logger.info 'Starting server session...'
+      self.running_session = Applitools::Connectivity::ServerConnector.start_session session_start_info
+
+      logger.info "Server session ID is #{running_session.id}"
+      test_info = "'#{test_name}' of '#{app_name}' #{app_env}"
+       if (running_session.new_session?)
+         logger.info "--- New test started - #{test_info}"
+         self.should_match_window_run_once_on_timeout = true
+       else
+         logger.info "--- Test started - #{test_info}"
+         self.should_match_window_run_once_on_timeout = false
+       end
+    end
+
+    class UserInputArray < Array
+      def add(trigger)
+        raise Applitools::EyesIllegalArgument.new 'trigger must be kind of Trigger!' unless trigger.kind_of? Trigger
+        self << trigger
+      end
     end
 
   end
