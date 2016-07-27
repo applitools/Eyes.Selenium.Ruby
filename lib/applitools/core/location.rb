@@ -1,15 +1,20 @@
 require 'applitools/core/region'
 module Applitools::Core
-  class Location < Region
+  class Location
+    attr_reader :x, :y
+
+    alias left x
+    alias top y
 
     def initialize(x, y)
-      super (x,y,0,0)
+      @x = x
+      @y = y
     end
 
-    TOP_LEFT = Point.new(0, 0)
+    TOP_LEFT = Location.new(0, 0)
 
     def ==(other)
-      return super.==(other) unless other.is_a?(Point)
+      return super.==(other) unless other.is_a?(Location)
       @x == other.x && @y == other.y
     end
 
@@ -28,7 +33,8 @@ module Applitools::Core
     end
 
     def offset(other)
-
+      @x += other.x
+      @y += other.y
     end
   end
 end

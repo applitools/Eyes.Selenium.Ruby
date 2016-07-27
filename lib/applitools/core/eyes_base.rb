@@ -17,6 +17,8 @@ module Applitools::Core
         :host_os, :host_app, :base_line_name, :position_provider
 
     abstract_attr_accessor :base_agent_id, :viewport_size, :inferred_environment
+    abstract_method :capture_screenshot, true
+    abstract_method :title, true
 
     def initialize(server_url = nil)
       Applitools::Connectivity::ServerConnector.server_url = server_url
@@ -29,6 +31,13 @@ module Applitools::Core
       self.agent_id = nil
       self.last_screenshot = nil
       @user_inputs = UserInputArray.new
+      self.app_output_provider = Object.new
+
+      get_app_output_method = ->(r, s) { get_app_output_with_screenshot r, s }
+
+      app_output_provider.instance_eval do
+        define_singleton_method :app_output, get_app_output_method
+      end
 
 
       # scaleProviderHandler = new SimplePropertyHandler<>();
@@ -136,6 +145,62 @@ module Applitools::Core
       raise e
     end
 
+    def check_window_base(region_provider, tag, ignore_mismatch, retry_timeout)
+
+      if disabled?
+        logger.info "#{__method__} Ignored"
+        result = Applitools::Core::MatchResults.new()
+        result.as_expected = true
+        return result
+      end
+
+      raise Applitools::EyesError.new 'Eyes not open' unless open?
+      Applitools::Core::ArgumentGuard.not_nil region_provider, 'region_provider'
+
+      logger.info "check_window_base(region_provider, #{tag}, #{ignore_mismatch}, #{retry_timeout})"
+
+      tag = '' if tag.nil?
+
+      if running_session.nil?
+        logger.info 'No running session, calling start session..'
+        self.start_session
+        logger.info 'Done!'
+        match_window_task = Applitools::Core::MatchWindowTask.new logger, running_session, match_timeout, app_output_provider
+      end
+
+      logger.info 'Calling match_window...'
+      result = match_window_task.match_window user_inputs: user_inputs,
+                                              last_screenshot: last_screenshot,
+                                              region_provider: region_provider,
+                                              tag: tag,
+                                              should_match_window_run_once_on_timeout: should_match_window_run_once_on_timeout,
+                                              ignore_mismatch: ignore_mismatch,
+                                              retry_timeout: retry_timeout
+      logger.info 'match_window done!'
+
+      if result.as_expected?
+        clear_user_inputs
+        self.last_screenshot = result.screenshot
+      else
+        unless ignore_mismatch
+          clear_user_inputs
+          self.last_screenshot = result.screenshot
+        end
+
+        self.should_match_window_run_once_on_timeout = true;
+
+        logger.info "Mistmatch! #{tag}" unless running_session.new_session?
+
+        if failure_reports == :immediate
+          raise Applitools::TestFailedException.new "Mistmatch found in #{session_start_info.scenario_id_or_name}" \
+              " of #{session_start_info.app_id_or_name}"
+        end
+      end
+
+      logger.info 'Done!'
+      result
+    end
+
     def close(throw_exception = false)
 
       if disabled?
@@ -201,7 +266,7 @@ module Applitools::Core
 
     attr_accessor :running_session, :last_screenshot, :current_app_name, :test_name, :session_type,
                   :full_agent_id, :scale_provider_handler, :cut_provider_handler, :default_match_settings,
-                  :session_start_info, :should_match_window_run_once_on_timeout
+                  :session_start_info, :should_match_window_run_once_on_timeout, :app_output_provider
 
     def app_environment
       Applitools::Core::AppEnvironment.new os: host_os, hosting_app: host_app,
@@ -247,8 +312,7 @@ module Applitools::Core
         return
       end
 
-      # control = lastScreenshot.getIntersectedRegion control,
-      #               CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS
+      control = last_screenshot.intersected_region control, CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS
 
       if control.empty?
         logger.info "Ignoring '#{text}' out of bounds"
@@ -278,7 +342,24 @@ module Applitools::Core
       cursor_in_screenshot = Applitools::Core::Location.new cursor.x, cursor.y
       cursor_in_screenshot.offset(control)
 
+      begin
+        cursor_in_screenshot = last_screenshot.location_in_screenshot cursor_in_screenshot, CoordinatesType.CONTEXT_RELATIVE
+      rescue
+        logger.info "Ignoring #{action} (out of bounds)"
+        return
+      end
 
+      control_screenshot_intersect = last_screenshot.intersected_region control, CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS
+
+      unless control_screenshot_intersect.empty?
+        control_screenshot_intersect.location
+        cursor_in_screenshot.offset-- control_screenshot_intersect
+      end
+
+      trigger = Applitools::Core::MouseTrigger.new action, control_screenshot_intersect,  cursor_in_screenshot
+      add_user_input trigger;
+
+      logger.info "Added #{trigger}"
     end
 
     def start_session
@@ -321,6 +402,29 @@ module Applitools::Core
          logger.info "--- Test started - #{test_info}"
          self.should_match_window_run_once_on_timeout = false
        end
+    end
+
+    def get_app_output_with_screenshot(region_provider, last_screenshot)
+      logger.info 'Getting screenshot...'
+      screenshot = capture_screenshot
+      logger.info 'Done getting screenshot!'
+      region = region_provider.region
+
+      unless region.empty?
+        screenshot = screenshot.sub_screenshot region, region_provider.coordinate_type, false
+      end
+
+      logger.info 'Compressing screenshot...'
+      compress_result = compress_screenshot64 screenshot, last_screenshot
+      logger.info 'Done! Getting title...'
+      a_title = self.title
+      logger.info 'Done!'
+      Applitools::Core::AppOutputWithScreenshot.new Applitools::Core::AppOutput.new(title, compress_result),
+          screenshot
+    end
+
+    def compress_screenshot64(screenshot, last_screenshot)
+      return screenshot #it is a stub
     end
 
     class UserInputArray < Array

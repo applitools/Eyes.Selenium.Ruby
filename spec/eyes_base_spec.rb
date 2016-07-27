@@ -38,7 +38,9 @@ describe Applitools::Core::EyesBase do
           :host_app, :host_app=,
           :base_line_name, :base_line_name=,
           :position_provider, :position_provider=,
-          :open_base
+          :open_base,
+          :check_window_base,
+
   ]
 
   it_should_behave_like 'has private method', [
@@ -288,6 +290,10 @@ describe Applitools::Core::EyesBase do
       expect(subject).to receive(:base_agent_id).and_return nil
       subject.send :start_session
     end
+  end
+
+  context 'match_window_base' do
+    it_behaves_like 'can be disabled', :check_window_base, [nil,nil, nil, nil]
   end
 
 end

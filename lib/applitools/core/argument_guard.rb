@@ -13,5 +13,9 @@ module Applitools::Core
         raise Applitools::EyesIllegalArgument.new error_message
       end
     end
+
+    def greater_than_or_equal_to_zero(param, param_name)
+      raise Applitools::EyesIllegalArgument.new "#{param_name} < 0" if 0 > param
+    end
   end
 end
