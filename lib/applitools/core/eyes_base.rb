@@ -419,7 +419,7 @@ module Applitools::Core
       logger.info 'Done! Getting title...'
       a_title = self.title
       logger.info 'Done!'
-      Applitools::Core::AppOutputWithScreenshot.new Applitools::Core::AppOutput.new(title, compress_result),
+      Applitools::Core::AppOutputWithScreenshot.new Applitools::Core::AppOutput.new(a_title, compress_result),
           screenshot
     end
 
