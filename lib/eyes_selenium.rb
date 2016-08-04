@@ -1,8 +1,8 @@
 module Applitools
   ROOT_DIR = File.join(File.dirname(File.expand_path(__FILE__)), 'applitools').freeze
 
-  Dir["#{ROOT_DIR}/*.rb"].sort.each { |f| require f }
-  Dir["#{ROOT_DIR}/**/*.rb"].sort.each { |f| require f }
+  Dir["#{ROOT_DIR}/*.rb"].sort.reject {|f| /.*capybara.*/.match f}.each { |f| require f }
+  Dir["#{ROOT_DIR}/**/*.rb"].sort.reject {|f| /.*capybara.*/.match f}.each { |f| require f }
 
   class EyesError < StandardError; end
   class EyesAbort < EyesError; end

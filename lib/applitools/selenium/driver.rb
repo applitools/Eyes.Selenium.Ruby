@@ -35,7 +35,6 @@ module Applitools::Selenium
     # If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
     def initialize(eyes, options)
       super(options[:driver])
-
       @is_mobile_device = options.fetch(:is_mobile_device, false)
       @wait_before_screenshots = 0
       @eyes = eyes
