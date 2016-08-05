@@ -73,7 +73,7 @@ module Applitools::Selenium
     end
 
     def find_elements(*args)
-      super(*args).map { |e| self.class.new driver, e}
+      super(*args).map { |e| self.class.new driver, e }
     end
 
     private

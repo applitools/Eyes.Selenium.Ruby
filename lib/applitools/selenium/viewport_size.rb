@@ -130,7 +130,7 @@ module Applitools::Selenium
 
       retries_left = VERIFY_RETRIES
 
-      until retries_left == 0
+      until retries_left.zero?
         return true if browser_size == required_browser_size
         Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
         resize_browser required_browser_size

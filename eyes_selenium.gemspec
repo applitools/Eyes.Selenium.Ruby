@@ -3,6 +3,30 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'applitools/version'
 
+CURRENT_RYBY_VERSION = Gem::Version.new RUBY_VERSION
+
+RUBY_1_9_3 = Gem::Version.new '1.9.3'
+RUBY_2_0_0 = Gem::Version.new '2.0.0'
+RUBY_2_2_2 = Gem::Version.new '2.2.2'
+
+RUBY_KEY = [RUBY_1_9_3, RUBY_2_0_0, RUBY_2_2_2].select { |v| v <= CURRENT_RYBY_VERSION }.last
+
+EYES_GEM_SPECS = {
+  RUBY_1_9_3 => proc do |spec|
+    spec.add_development_dependency 'mime-types', ['~> 2.99.0']
+    spec.add_development_dependency 'rack', ['~> 1.6.0']
+    spec.add_development_dependency 'tomlrb', ['<= 1.2.2']
+    spec.add_development_dependency 'rubocop', ['~> 0.41.1']
+  end,
+  RUBY_2_0_0 => proc do |spec|
+    spec.add_development_dependency 'rack', ['~> 1.6.0']
+    spec.add_development_dependency 'rubocop'
+  end,
+  RUBY_2_2_2 => proc do |spec|
+    spec.add_development_dependency 'rubocop'
+  end
+}.freeze
+
 Gem::Specification.new do |spec|
   spec.name          = 'eyes_selenium'
   spec.version       = Applitools::VERSION
@@ -29,12 +53,13 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '>= 3'
   spec.add_development_dependency 'watir-webdriver'
   spec.add_development_dependency 'appium_lib'
-  spec.add_development_dependency 'rubocop'
+  EYES_GEM_SPECS[RUBY_KEY].call spec
 
   # Exclude debugging support on Travis CI, due to its incompatibility with jruby and older rubies.
-  unless ENV['TRAVIS']
+  unless ENV['TRAVIS'] || CURRENT_RYBY_VERSION < Gem::Version.new('2.0.0')
     spec.add_development_dependency 'pry'
     spec.add_development_dependency 'pry-byebug'
+    spec.add_development_dependency 'byebug'
     spec.add_development_dependency 'pry-doc'
     spec.add_development_dependency 'pry-stack_explorer'
   end

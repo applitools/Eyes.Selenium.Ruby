@@ -173,11 +173,11 @@ module Applitools::Selenium
       # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
       #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
       def normalize_rotation(driver, image, rotation)
-        return if rotation == 0
+        return if rotation && rotation.zero?
 
         num_quadrants = 0
         if !rotation.nil?
-          if rotation % RIGHT_ANGLE != 0
+          if (rotation % RIGHT_ANGLE).nonzero?
             raise Applitools::EyesError.new('Currently only quadrant rotations are supported. Current rotation: '\
             "#{rotation}")
           end
