@@ -137,6 +137,10 @@ module Applitools::Selenium
 
     private
 
+    def bridge
+      __getobj__.send(:bridge)
+    end
+
     def driver
       @driver ||= __getobj__
     end

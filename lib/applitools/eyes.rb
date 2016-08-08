@@ -132,18 +132,8 @@ class Applitools::Eyes
         "use 'api_key' to set it.")
     end
 
-    if driver.is_a?(Selenium::WebDriver::Driver)
-      is_mobile_device = driver.capabilities['platformName'] ? true : false
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
-    elsif defined?(Applitools::Capybara::Driver) && driver.is_a?(Applitools::Capybara::Driver)
-      @driver = @driver.browser eyes: self, is_mobile_device: false
-    elsif defined?(Sauce::Capybara::Driver) && driver.is_a?(Sauce::Capybara::Driver)
-      @driver = @driver.browser.raw_driver eyes: self, is_mobile_device: false
-    elsif defined?(Appium::Driver) && driver.is_a?(Appium::Driver)
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: true)
-    elsif defined?(Watir::Browser) && driver.is_a?(Watir::Browser)
-      is_mobile_device = driver.driver.capabilities['platformName'] ? true : false
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: is_mobile_device)
+    if driver.respond_to? :driver_for_eyes
+      @driver = driver.driver_for_eyes self
     else
       unless driver.is_a?(Applitools::Selenium::Driver)
         Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
@@ -151,6 +141,26 @@ class Applitools::Eyes
         @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
       end
     end
+
+    # if driver.is_a?(Selenium::WebDriver::Driver)
+    #   is_mobile_device = driver.capabilities['platformName'] ? true : false
+    #   @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+    # elsif defined?(Applitools::Capybara::Driver) && driver.is_a?(Applitools::Capybara::Driver)
+    #   @driver = @driver.browser eyes: self, is_mobile_device: false
+    # elsif defined?(Sauce::Capybara::Driver) && driver.is_a?(Sauce::Capybara::Driver)
+    #   @driver = @driver.browser.raw_driver eyes: self, is_mobile_device: false
+    # elsif defined?(Appium::Driver) && driver.is_a?(Appium::Driver)
+    #   @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: true)
+    # elsif defined?(Watir::Browser) && driver.is_a?(Watir::Browser)
+    #   is_mobile_device = driver.driver.capabilities['platformName'] ? true : false
+    #   @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: is_mobile_device)
+    # else
+    #   unless driver.is_a?(Applitools::Selenium::Driver)
+    #     Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
+    #     is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
+    #     @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+    #   end
+    # end
 
     @driver.wait_before_screenshots = wait_before_screenshots
 
