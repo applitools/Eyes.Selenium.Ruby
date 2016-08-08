@@ -4,11 +4,7 @@ require_relative '../lib/eyes_selenium'
 require 'openssl'
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
-Capybara.register_driver :selenium do |app|
-  Capybara::Selenium::Driver.new(app, :browser => :chrome)
-end
-
-Capybara.javascript_driver = :selenium
+Applitools.register_capybara_driver browser: :chrome
 
 # require 'capybara/poltergeist'
 #
@@ -27,7 +23,7 @@ describe 'Capybara Example', :type => :feature, :js => true do
   end
 
   it 'Simple test' do
-    eyes.open(app_name: 'Ruby SDK', test_name: 'Capybara test', driver: page.driver,
+    eyes.open(app_name: 'Ruby SDK', test_name: 'Capybara test', driver: page,
                viewport_size: { width: 800, height: 600 })
     visit 'http://github.com'
     eyes.check_window('homepage')
