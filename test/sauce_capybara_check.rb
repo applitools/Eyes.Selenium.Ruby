@@ -19,9 +19,6 @@ Capybara.configure do |c|
   c.default_driver = :sauce
 end
 
-
-
-
 describe 'A Saucy Example Group', sauce: true do
   let!(:eyes) do
     Applitools::Eyes.new.tap do |eyes|

@@ -4,7 +4,7 @@ require_relative '../lib/eyes_selenium'
 require 'openssl'
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
-Applitools.register_capybara_driver browser: :chrome
+Applitools.register_capybara_driver :browser => :chrome
 
 # require 'capybara/poltergeist'
 #
