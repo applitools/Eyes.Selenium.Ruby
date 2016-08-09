@@ -338,6 +338,36 @@ class Applitools::Eyes
     end
   end
 
+  def check_region_(region, tag = nil, specific_timeout = -1)
+    return if disabled?
+    Applitools::EyesLogger.info "check_region_('#{tag}', #{specific_timeout})"
+    raise Applitools::EyesError.new('region cannot be nil!') if region.nil?
+    raise Applitools::EyesError.new('Eyes not open') unless open?
+
+    unless @session
+      Applitools::EyesLogger.debug 'Starting session...'
+      start_session
+      Applitools::EyesLogger.debug 'Done! Creating match window task...'
+      @match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
+      Applitools::EyesLogger.debug 'Done!'
+    end
+
+    Applitools::EyesLogger.debug 'Starting match task...'
+    as_expected = @match_window_task.match_window region, specific_timeout, tag, rotation,
+      @should_match_window_run_once_on_timeout
+    Applitools::EyesLogger.debug 'Match window done!'
+    return if as_expected
+
+    @should_match_window_run_once_on_timeout = true
+    return if @session.new_session?
+
+    Applitools::EyesLogger.info %(mismatch #{tag ? '' : "(#{tag})"})
+    return unless failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
+
+    raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
+      "of '#{@session_start_info.app_id_or_name}'")
+  end
+
   private
 
   def disabled?
@@ -425,35 +455,5 @@ class Applitools::Eyes
       @viewport_size = Applitools::Selenium::ViewportSize.new(driver)
       @viewport_size.extract_viewport_from_browser!
     end
-  end
-
-  def check_region_(region, tag = nil, specific_timeout = -1)
-    return if disabled?
-    Applitools::EyesLogger.info "check_region_('#{tag}', #{specific_timeout})"
-    raise Applitools::EyesError.new('region cannot be nil!') if region.nil?
-    raise Applitools::EyesError.new('Eyes not open') unless open?
-
-    unless @session
-      Applitools::EyesLogger.debug 'Starting session...'
-      start_session
-      Applitools::EyesLogger.debug 'Done! Creating match window task...'
-      @match_window_task = Applitools::Selenium::MatchWindowTask.new(self, @session, driver, match_timeout)
-      Applitools::EyesLogger.debug 'Done!'
-    end
-
-    Applitools::EyesLogger.debug 'Starting match task...'
-    as_expected = @match_window_task.match_window(region, specific_timeout, tag, rotation,
-      @should_match_window_run_once_on_timeout)
-    Applitools::EyesLogger.debug 'Match window done!'
-    return if as_expected
-
-    @should_match_window_run_once_on_timeout = true
-    return if @session.new_session?
-
-    Applitools::EyesLogger.info %(mismatch #{tag ? '' : "(#{tag})"})
-    return unless failure_reports.to_i == Applitools::Eyes::FAILURE_REPORTS[:immediate]
-
-    raise Applitools::TestFailedError.new("Mismatch found in '#{@session_start_info.scenario_id_or_name}' "\
-      "of '#{@session_start_info.app_id_or_name}'")
   end
 end
