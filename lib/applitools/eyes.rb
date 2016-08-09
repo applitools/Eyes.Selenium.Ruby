@@ -198,6 +198,8 @@ class Applitools::Eyes
         Applitools::EyesLogger.debug 'Element given as an argument...'
         raise Applitools::EyesError.new('Element does not exist') if what.nil?
         element_to_check = what
+      elsif how == :region && what.is_a?(Applitools::Base::Region)
+        return check_region_(what, tag, specific_timeout)
       else
         Applitools::EyesLogger.debug 'Finding element...'
         element_to_check = driver.find_element(how, what)
