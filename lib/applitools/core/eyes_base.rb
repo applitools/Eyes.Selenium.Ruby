@@ -138,7 +138,7 @@ module Applitools::Core
       # scaleProviderHandler.set(new NullScaleProvider());
       # setScaleMethod(ScaleMethod.getDefault());
 
-      self.open = true;
+      self.open = true
 
     rescue Applitools::EyesError => e
       logger.error e.message

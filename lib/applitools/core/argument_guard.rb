@@ -11,6 +11,10 @@ module Applitools::Core
         end_of_message = required_fields.any? ? " containing keys #{required_fields.join(', ')}." : "."
         error_message << end_of_message
         raise Applitools::EyesIllegalArgument.new error_message
+      else
+        missed_keys = required_fields - param.keys
+        error_message = "Expected #{param_name} to include keys #{missed_keys.join ', '}"
+        raise Applitools::EyesIllegalArgument.new error_message if missed_keys.any?
       end
     end
 

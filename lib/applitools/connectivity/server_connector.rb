@@ -1,5 +1,5 @@
 require 'faraday'
-
+require 'pry'
 require 'oj'
 Oj.default_options = { :mode => :compat }
 
@@ -43,10 +43,10 @@ module Applitools::Connectivity
 
       res = post(URI.join(endpoint_url, session.id.to_s), content_type: 'application/octet-stream', body: body)
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
-
-      Oj.load(res.body)['asExpected'].tap do |as_expected|
-        Applitools::EyesLogger.debug "Got response! #{as_expected}"
-      end
+      return Applitools::Core::MatchResult.new Oj.load(res.body)
+      # Oj.load(res.body)['asExpected'].tap do |as_expected|
+      #   Applitools::EyesLogger.debug "Got response! #{as_expected}"
+      # end
     end
 
     def start_session(session_start_info)
