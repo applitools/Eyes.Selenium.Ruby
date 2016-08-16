@@ -7,13 +7,22 @@ module Applitools::Core
     DEFAULT_MATCH_TIMEOUT = 2 #seconds
     USE_DEFAULT_TIMEOUT = -1
 
+    MATCH_LEVEL  = {
+      none: 'None',
+      layout: 'Layout',
+      layout2: 'Layout2',
+      content: 'Content',
+      strict: 'Strict',
+      exact: 'Exact'
+    }.freeze
+
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
     def_delegators 'Applitools::Connectivity::ServerConnector', :api_key, :api_key=, :server_url, :server_url=, :set_proxy,
                    :proxy, :proxy=
 
-    attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id
-    attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings, :scale_ratio, :scale_method,
+    attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
+        attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings, :scale_ratio, :scale_method,
         :host_os, :host_app, :base_line_name, :position_provider
 
     abstract_attr_accessor :base_agent_id, :viewport_size, :inferred_environment
@@ -36,9 +45,13 @@ module Applitools::Core
       get_app_output_method = ->(r, s) { get_app_output_with_screenshot r, s }
 
       app_output_provider.instance_eval do
-        define_singleton_method :app_output, get_app_output_method
+        define_singleton_method :app_output do |r,s|
+          get_app_output_method.call(r,s)
+        end
       end
 
+      # self.default_match_settings = new Applitools::Core::ImageMatchSettings();
+      self.default_match_settings = MATCH_LEVEL[:exact]
 
       # scaleProviderHandler = new SimplePropertyHandler<>();
       # scaleProviderHandler.set(new NullScaleProvider());
@@ -72,6 +85,10 @@ module Applitools::Core
 
     def open?
       @open
+    end
+
+    def app_name
+      current_app_name.present? ? current_app_name : @app_name
     end
 
     def abort_if_not_closed
@@ -118,7 +135,6 @@ module Applitools::Core
 
       Applitools::Core::ArgumentGuard.not_nil options[:test_name], 'options[:test_name]'
       self.test_name = options[:test_name];
-
       logger.info "Agent = #{full_agent_id}"
       logger.info "openBase(app_name: #{options[:app_name]}, test_name: #{options[:test_name]}," \
           " viewport_size: #{options[:viewport_size]})"
@@ -163,13 +179,13 @@ module Applitools::Core
 
       if running_session.nil?
         logger.info 'No running session, calling start session..'
-        self.start_session
+        start_session
         logger.info 'Done!'
-        match_window_task = Applitools::Core::MatchWindowTask.new logger, running_session, match_timeout, app_output_provider
+        @match_window_task = Applitools::Core::MatchWindowTask.new logger, running_session, match_timeout, app_output_provider
       end
 
       logger.info 'Calling match_window...'
-      result = match_window_task.match_window user_inputs: user_inputs,
+      result = @match_window_task.match_window user_inputs: user_inputs,
                                               last_screenshot: last_screenshot,
                                               region_provider: region_provider,
                                               tag: tag,
@@ -265,8 +281,10 @@ module Applitools::Core
     private
 
     attr_accessor :running_session, :last_screenshot, :current_app_name, :test_name, :session_type,
-                  :full_agent_id, :scale_provider_handler, :cut_provider_handler, :default_match_settings,
+                  :scale_provider_handler, :cut_provider_handler, :default_match_settings,
                   :session_start_info, :should_match_window_run_once_on_timeout, :app_output_provider
+
+    private :full_agent_id, :full_agent_id=
 
     def app_environment
       Applitools::Core::AppEnvironment.new os: host_os, hosting_app: host_app,
@@ -292,7 +310,7 @@ module Applitools::Core
         return
       end
 
-      Applitools::Core::ArgumentGuard.notNull(trigger, "trigger");
+      Applitools::Core::ArgumentGuard.not_nil(trigger, "trigger");
       @user_inputs.add(trigger);
     end
 
@@ -302,8 +320,8 @@ module Applitools::Core
         return
       end
 
-      Applitools::Core::ArgumentGuard.not_null control, 'control'
-      Applitools::Core::ArgumentGuard.not_null text, 'control'
+      Applitools::Core::ArgumentGuard.not_nil control, 'control'
+      Applitools::Core::ArgumentGuard.not_nil text, 'control'
 
       control = Applitools::Core::Region.new control.left, control.top, control.width, control.height
 
@@ -312,14 +330,15 @@ module Applitools::Core
         return
       end
 
-      control = last_screenshot.intersected_region control, CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS
+      control = last_screenshot.intersected_region control, EyesScreenshot::COORDINATE_TYPES[:context_relative],
+        EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
 
       if control.empty?
         logger.info "Ignoring '#{text}' out of bounds"
         return
       end
 
-      add_user_input Applitools::Core::TextTrigger.new control, text
+      add_user_input Applitools::Core::TextTrigger.new text, control
       logger.info "Added '#{text}'"
 
     end
@@ -388,6 +407,7 @@ module Applitools::Core
                                                 scenario_id_or_name: test_name, batch_info: test_batch,
                                                 env_name: baseline_name, environment: app_env,
                                                 default_match_settings: default_match_settings,
+                                                match_level: default_match_settings,
                                                 branch_name: branch_name, parent_branch_name: parent_branch_name
 
       logger.info 'Starting server session...'
@@ -417,7 +437,7 @@ module Applitools::Core
       logger.info 'Compressing screenshot...'
       compress_result = compress_screenshot64 screenshot, last_screenshot
       logger.info 'Done! Getting title...'
-      a_title = self.title
+      a_title = title
       logger.info 'Done!'
       Applitools::Core::AppOutputWithScreenshot.new Applitools::Core::AppOutput.new(a_title, compress_result),
           screenshot

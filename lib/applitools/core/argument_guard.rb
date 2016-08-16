@@ -21,5 +21,10 @@ module Applitools::Core
     def greater_than_or_equal_to_zero(param, param_name)
       raise Applitools::EyesIllegalArgument.new "#{param_name} < 0" if 0 > param
     end
+
+    def is_a?(param, param_name, klass)
+      raise Applitools::EyesIllegalArgument.new "Expected #{param_name} to be" \
+        " instance of #{klass}" unless param.is_a? klass
+    end
   end
 end

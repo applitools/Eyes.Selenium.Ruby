@@ -10,5 +10,15 @@ module Applitools::Core
       self.options = options
     end
 
+    def screenshot
+      app_output.screenshot.image.to_blob
+    end
+
+    def to_hash
+      %i(user_inputs app_output tag ignore_mistmatch options).map do |field|
+        [field, send(field)]
+      end.to_h
+    end
+
   end
 end

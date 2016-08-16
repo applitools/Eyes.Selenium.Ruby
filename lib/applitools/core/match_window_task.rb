@@ -9,14 +9,14 @@ module Applitools::Core
     def initialize(logger, running_session, retry_timeout, app_output_provider)
       @logger = logger
       @running_session = running_session
-      @driver = driver
-      @default_retry_timeout = retry_timeout * 1000
+      # @driver = driver
+      @default_retry_timeout = retry_timeout
       @app_output_provider = app_output_provider
 
-      Appllitools::Core::ArgumentGuard.not_nil logger, 'logger'
-      Appllitools::Core::ArgumentGuard.not_nil running_session, 'running_session'
-      Appllitools::Core::ArgumentGuard.not_nil app_output_provider, 'app_output_provider'
-      Appllitools::Core::ArgumentGuard.greater_than_or_equal_to_zero retry_timeout, 'retry_timeout'
+      ArgumentGuard.not_nil logger, 'logger'
+      ArgumentGuard.not_nil running_session, 'running_session'
+      ArgumentGuard.not_nil app_output_provider, 'app_output_provider'
+      ArgumentGuard.greater_than_or_equal_to_zero retry_timeout, 'retry_timeout'
 
       raise Applitools::EyesIllegalArgument.new "MatchWindowTask.new(): app_output_provider doesn't respond to :app_output" unless app_output_provider.respond_to? :app_output
     end
@@ -75,7 +75,6 @@ module Applitools::Core
       app_output = options[:app_output]
       tag = options[:tag]
       ignore_mistmatch = options[:tag]
-
       data = Applitools::Core::MatchWindowData.new user_inputs, app_output, tag, ignore_mistmatch,
         tag: tag, user_inputs: user_inputs, ignore_mistmatch: ignore_mistmatch, ignore_match: false,
         force_mistmatch: false, force_match: false

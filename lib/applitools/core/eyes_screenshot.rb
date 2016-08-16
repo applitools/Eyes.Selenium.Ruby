@@ -1,5 +1,33 @@
 module Applitools::Core
   class EyesScreenshot
+    extend Applitools::Core::Helpers
+    attr_accessor :image
 
-  end
+    COORDINATE_TYPES = {
+      screenshot_as_is: 'SCREENSHOT_AS_IS',
+      context_as_is: 'CONTEXT_AS_IS',
+      context_relative: 'CONTEXT_RELATIVE'
+    }.freeze
+
+    def initialize(screenshot)
+      Applitools::Core::ArgumentGuard.is_a? screenshot, 'screenshot', Applitools::Core::Screenshot
+      self.image = screenshot
+    end
+
+    abstract_method :sub_screenshot, false
+    abstract_method :convert_location, false
+    abstract_method :location_in_screenshot, false
+    abstract_method :intersected_region, false
+
+    def convert_region_location(region, from, to)
+      Applittools::Core::ArgumentGuard.not_nil region, 'region'
+      Applittools::Core::ArgumentGuard.is_a? region, 'region', Applitools::Core::Region
+      return Region.new(0,0,0,0) if region.is_empty?
+      Applittools::Core::ArgumentGuard.not_nil from, 'from'
+      Applittools::Core::ArgumentGuard.not_nil to, 'to'
+
+      updated_location = convert_location(region.location, from, to)
+      Region.new updated_location.x, updated_location.y, region.width, region.height
+    end
+   end
 end

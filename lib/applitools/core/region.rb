@@ -24,6 +24,15 @@ module Applitools::Core
       @left == EMPTY.left && @top == EMPTY.top && @width == EMPTY.width && @height == EMPTY.height
     end
 
+    def location
+      Location.new left, top
+    end
+
+    def location=(other_location)
+      self.left = other_location.left
+      self.top = other_location.top
+    end
+
     def right
       left + width
     end
