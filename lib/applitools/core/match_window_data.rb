@@ -14,10 +14,16 @@ module Applitools::Core
       app_output.screenshot.image.to_blob
     end
 
+    alias appOutput app_output
+    alias userInputs user_inputs
+    alias ignoreMistmatch ignore_mistmatch
+
     def to_hash
-      %i(user_inputs app_output tag ignore_mistmatch options).map do |field|
-        [field, send(field)]
-      end.to_h
+      %i(userInputs appOutput tag ignoreMistmatch).map do |field|
+        result = send(field)
+        result = result.to_hash if result.respond_to? :to_hash
+        [field, result] if [String, Symbol, Hash, Array].include? result.class
+      end.compact.to_h
     end
 
   end

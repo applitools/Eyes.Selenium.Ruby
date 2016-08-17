@@ -8,5 +8,9 @@ module Applitools::Core
       @app_output = app_output
       @screenshot = screenshot
     end
+
+    def to_hash
+      app_output.to_hash
+    end
   end
 end

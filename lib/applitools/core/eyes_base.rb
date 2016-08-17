@@ -1,4 +1,5 @@
 require 'applitools/core/helpers'
+require 'applitools/core/eyes_screenshot'
 module Applitools::Core
   class EyesBase
     extend Forwardable
@@ -6,6 +7,9 @@ module Applitools::Core
 
     DEFAULT_MATCH_TIMEOUT = 2 #seconds
     USE_DEFAULT_TIMEOUT = -1
+
+    SCREENSHOT_AS_IS = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is].freeze
+    CONTEXT_RELATIVE = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative].freeze
 
     MATCH_LEVEL  = {
       none: 'None',
@@ -300,7 +304,7 @@ module Applitools::Core
     end
 
     def user_inputs
-      Array.new @user_inputs
+      @user_inputs
     end
 
     def add_user_input(trigger)
@@ -338,9 +342,9 @@ module Applitools::Core
         return
       end
 
-      add_user_input Applitools::Core::TextTrigger.new text, control
-      logger.info "Added '#{text}'"
-
+      trigger = Applitools::Core::TextTrigger.new text, control
+      add_user_input trigger
+      logger.info "Added '#{trigger}'"
     end
 
     def add_mouse_trigger_base(action, control, cursor)
@@ -362,17 +366,17 @@ module Applitools::Core
       cursor_in_screenshot.offset(control)
 
       begin
-        cursor_in_screenshot = last_screenshot.location_in_screenshot cursor_in_screenshot, CoordinatesType.CONTEXT_RELATIVE
-      rescue
+        cursor_in_screenshot = last_screenshot.location_in_screenshot cursor_in_screenshot, CONTEXT_RELATIVE
+      rescue Applitools::OutOfBoundsException
         logger.info "Ignoring #{action} (out of bounds)"
         return
       end
 
-      control_screenshot_intersect = last_screenshot.intersected_region control, CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS
+      control_screenshot_intersect = last_screenshot.intersected_region control, CONTEXT_RELATIVE, SCREENSHOT_AS_IS
 
       unless control_screenshot_intersect.empty?
-        control_screenshot_intersect.location
-        cursor_in_screenshot.offset-- control_screenshot_intersect
+        l = control_screenshot_intersect.location
+        cursor_in_screenshot.offset Applitools::Core::Location.new(-l.x, -l.y)
       end
 
       trigger = Applitools::Core::MouseTrigger.new action, control_screenshot_intersect,  cursor_in_screenshot
@@ -451,6 +455,12 @@ module Applitools::Core
       def add(trigger)
         raise Applitools::EyesIllegalArgument.new 'trigger must be kind of Trigger!' unless trigger.kind_of? Trigger
         self << trigger
+      end
+
+      def to_hash
+        self.map do |trigger|
+          trigger.to_hash if trigger.respond_to? :to_hash
+        end.compact
       end
     end
 

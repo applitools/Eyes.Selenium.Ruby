@@ -22,8 +22,8 @@ module Applitools::Core
 
     def to_hash
       {
-          trigget_type: trigger_type,
-          mouse_action: MOUSE_ACTION[mouse_action],
+          triggerType: trigger_type,
+          mouseAction: MOUSE_ACTION[mouse_action],
           control: control.to_hash,
           location: location.to_hash
       }

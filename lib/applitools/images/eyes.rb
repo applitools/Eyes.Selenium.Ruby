@@ -71,8 +71,8 @@ module Applitools::Images
 
     end
 
-    def add_mouse_trigger
-
+    def add_mouse_trigger(action, control, cursor)
+      add_mouse_trigger_base action, control, cursor
     end
 
     def add_text_trigger(control, text)

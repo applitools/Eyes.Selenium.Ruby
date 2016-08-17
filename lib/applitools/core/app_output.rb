@@ -6,5 +6,12 @@ module Applitools::Core
       @title = title
       @screenshot64 = screenshot64
     end
+
+    def to_hash
+      {
+          title: title,
+          screenshot64: ''
+      }
+    end
   end
 end

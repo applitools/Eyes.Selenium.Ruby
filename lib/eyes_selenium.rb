@@ -7,6 +7,7 @@ module Applitools
   class EyesError < StandardError; end
   class EyesAbort < EyesError; end
   class EyesIllegalArgument < EyesError; end
+  class OutOfBoundsException < EyesError; end;
 
   class AbstractMethodCalled < EyesError
     attr_accessor :method_name, :object

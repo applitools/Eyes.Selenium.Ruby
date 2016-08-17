@@ -8,7 +8,7 @@ module Applitools::Images
       super image
       if (location = options[:location]).present?
         Core::ArgumentGuard.is_a? location, 'options[:location]', Core::Location
-        @bounds = Core::region.new location.x, location.y, image.width, image.height
+        @bounds = Applitools::Core::Region.new location.x, location.y, image.width, image.height
       end
     end
 
@@ -64,6 +64,18 @@ module Applitools::Images
 
       intersected_region.location = convert_location intersected_region.location, to, from
       return intersected_region
+    end
+
+    def location_in_screenshot(location, coordinates_type)
+      Applitools::Core::ArgumentGuard.not_nil location, 'location'
+      Applitools::Core::ArgumentGuard.not_nil coordinates_type, 'coordinates_type'
+      location = convert_location(location, coordinates_type, CONTEXT_RELATIVE)
+
+      unless bounds.contains? location.left, location.top
+        raise Applitools::OutOfBoundsException.new "Location #{location} is not available in screenshot!"
+      end
+
+      convert_location location, CONTEXT_RELATIVE, SCREENSHOT_AS_IS
     end
 
     private

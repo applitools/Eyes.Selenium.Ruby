@@ -1,7 +1,7 @@
 require 'applitools/core/trigger'
 module Applitools::Core
   class TextTrigger < Trigger
-    TRIGGER_TYPE = :Text
+    TRIGGER_TYPE = :Text.freeze
     attr_reader :text, :control
 
     def initialize(text, control)
@@ -11,7 +11,7 @@ module Applitools::Core
 
     def to_hash
       {
-          trigget_type: trigger_type,
+          triggerType: trigger_type,
           text: text,
           control: control.to_hash
       }
