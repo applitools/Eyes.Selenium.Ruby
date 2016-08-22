@@ -27,7 +27,7 @@ module Applitools::Selenium
 
     def initialize(driver, dimension = nil)
       @driver = driver
-      @dimension = setup_dimension(dimension)
+      @dimension = dimension.nil? ? nil : setup_dimension(dimension)
     end
 
     def size
