@@ -42,10 +42,10 @@ module Applitools::Base
         return
       end
 
-      i_left = (left >= other.left) ? left : other.left
-      i_right = (right <= other.right) ? right : other.right
-      i_top = (top >= other.top) ? top : other.top
-      i_bottom = (bottom <= other.bottom) ? bottom : other.bottom
+      i_left = left >= other.left ? left : other.left
+      i_right = right <= other.right ? right : other.right
+      i_top = top >= other.top ? top : other.top
+      i_bottom = bottom <= other.bottom ? bottom : other.bottom
 
       @left = i_left
       @top = i_top

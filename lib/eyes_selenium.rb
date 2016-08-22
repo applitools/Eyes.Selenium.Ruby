@@ -1,8 +1,11 @@
 module Applitools
-  ROOT_DIR = File.join(File.dirname(File.expand_path(__FILE__)), 'applitools').freeze
-
-  Dir["#{ROOT_DIR}/*.rb"].sort.each { |f| require f }
-  Dir["#{ROOT_DIR}/**/*.rb"].sort.each { |f| require f }
+  class << self
+    def require_dir(dir)
+      Dir[File.join(File.dirname(File.expand_path(__FILE__)), 'applitools', dir, '*.rb')].sort.each do |f|
+        require f
+      end
+    end
+  end
 
   class EyesError < StandardError; end
   class EyesAbort < EyesError; end
@@ -19,3 +22,16 @@ module Applitools
 
   class NewTestError < TestFailedError; end
 end
+
+require_relative 'applitools/method_tracer'
+require_relative 'applitools/extensions'
+require_relative 'applitools/version'
+
+Applitools.require_dir 'base'
+Applitools.require_dir 'utils'
+Applitools.require_dir 'selenium'
+
+require_relative 'applitools/eyes'
+require_relative 'applitools/selenium_webdriver'
+require_relative 'applitools/appium_driver'
+require_relative 'applitools/watir_browser'

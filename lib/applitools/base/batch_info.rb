@@ -2,6 +2,8 @@ require 'securerandom'
 
 module Applitools::Base
   class BatchInfo
+    attr_accessor :name, :started_at, :id
+
     def initialize(name = nil, started_at = Time.now)
       @name = name
       @started_at = started_at

@@ -175,7 +175,7 @@ module Applitools::Selenium
           page_size.height).subregions(screenshot_part_size)
         parts = sub_regions.map do |screenshot_part|
           # Skip (0,0), as we already got the screenshot.
-          if screenshot_part.left == 0 && screenshot_part.top == 0
+          if screenshot_part.left.zero? && screenshot_part.top.zero?
             next Applitools::Base::ImagePosition.new(screenshot, Applitools::Base::Point::TOP_LEFT)
           end
 
