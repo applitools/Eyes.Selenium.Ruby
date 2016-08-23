@@ -8,7 +8,7 @@ if defined? Capybara::Selenium::Driver
       def browser(options = {})
         eyes = options.delete(:eyes)
         super()
-        if eyes.present?
+        unless eyes.nil?
           is_mobile_device = @browser.capabilities['platformName'] ? true : false
           @browser = Applitools::Selenium::Driver.new eyes,
             options.merge(driver: @browser,  is_mobile_device: is_mobile_device)

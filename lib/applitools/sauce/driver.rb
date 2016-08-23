@@ -12,7 +12,7 @@ if defined? Sauce::Selenium2
 
     def raw_driver(options = {})
       eyes = options.delete(:eyes)
-      if eyes.present?
+      unless eyes.nil?
         is_mobile_device = @raw_driver.capabilities['platformName'] ? true : false
         @raw_driver = Applitools::Selenium::Driver.new eyes,
           options.merge(driver: @raw_driver, is_mobile_device: is_mobile_device)

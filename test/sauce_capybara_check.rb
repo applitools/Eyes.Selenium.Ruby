@@ -1,9 +1,10 @@
-require 'capybara'
+require 'rspec'
 require 'sauce'
 require 'sauce/capybara'
+
 require_relative '../lib/eyes_selenium'
-require 'applitools/sauce'
 require 'openssl'
+
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 Sauce.config do |config|
