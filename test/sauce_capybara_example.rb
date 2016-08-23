@@ -17,7 +17,7 @@ Capybara.configure do |c|
   c.default_driver = :sauce
 end
 
-describe 'A Saucy Example Group', type: :feature, sauce: true do
+describe 'A Saucy Example Group', :type => :feature, :sauce => true do
   let!(:eyes) do
     Applitools::Eyes.new.tap do |eyes|
       eyes.api_key = ENV['APPLITOOLS_API_KEY']

@@ -4,13 +4,13 @@ require 'eyes_selenium'
 
 Sauce.config do |config|
   config[:browsers] = [
-      ['OS X 10.10', 'chrome', '39.0']
+    ['OS X 10.10', 'chrome', '39.0']
   ]
   config[:start_tunnel] = false
   # config[:sauce_connect_4_executable] = '/path/to/sauce-connect/bin/sc'
 end
 
-describe 'A Saucy Example Group', type: :feature, sauce: true do
+describe 'A Saucy Example Group', sauce: true do
   let!(:eyes) do
     Applitools::Eyes.new.tap do |eyes|
       eyes.api_key = ENV['APPLITOOLS_API_KEY']
