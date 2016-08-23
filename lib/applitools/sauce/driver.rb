@@ -1,7 +1,9 @@
 if defined? Sauce::Selenium2
-  Sauce::Capybara::Driver.class_eval do
-    def driver_for_eyes(eyes)
-      browser.raw_driver eyes: eyes
+  if defined? Capybara
+    Sauce::Capybara::Driver.class_eval do
+      def driver_for_eyes(eyes)
+        browser.raw_driver eyes: eyes
+      end
     end
   end
 
