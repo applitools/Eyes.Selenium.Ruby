@@ -17,6 +17,9 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'rack', ['~> 1.6.0']
     spec.add_development_dependency 'tomlrb', ['<= 1.2.2']
     spec.add_development_dependency 'rubocop', ['~> 0.41.1']
+    spec.add_development_dependency 'cmdparse', ['= 2.0.2']
+    spec.add_development_dependency 'net-ssh', ['<= 3.0.0']
+
   end,
   RUBY_2_0_0 => proc do |spec|
     spec.add_development_dependency 'rack', ['~> 1.6.0']
