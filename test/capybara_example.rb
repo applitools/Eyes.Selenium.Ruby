@@ -1,18 +1,8 @@
 require 'rspec'
 require 'capybara/rspec'
-require_relative '../lib/eyes_selenium'
-require 'openssl'
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+require 'eyes_selenium'
 
 Applitools.register_capybara_driver :browser => :chrome
-
-# require 'capybara/poltergeist'
-#
-# Capybara.register_driver :poltergeist_app do |app|
-#   Capybara::Poltergeist::Driver.new(app, :js_errors => false)
-# end
-#
-# Capybara.javascript_driver = :poltergeist_app
 
 describe 'Capybara Example', :type => :feature, :js => true do
   let(:eyes) do

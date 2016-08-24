@@ -1,10 +1,8 @@
-require 'capybara'
+require 'rspec'
+require 'capybara/rspec'
 require 'sauce'
 require 'sauce/capybara'
-require_relative '../lib/eyes_selenium'
-require 'applitools/sauce'
-require 'openssl'
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+require 'eyes_selenium'
 
 Sauce.config do |config|
   config[:browsers] = [
@@ -19,7 +17,7 @@ Capybara.configure do |c|
   c.default_driver = :sauce
 end
 
-describe 'A Saucy Example Group', sauce: true do
+describe 'A Saucy Example Group', :type => :feature, :sauce => true do
   let!(:eyes) do
     Applitools::Eyes.new.tap do |eyes|
       eyes.api_key = ENV['APPLITOOLS_API_KEY']
@@ -38,6 +36,6 @@ describe 'A Saucy Example Group', sauce: true do
   end
 
   after :each do
-    @eyes.abort_if_not_closed
+    eyes.abort_if_not_closed
   end
 end
