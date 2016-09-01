@@ -1,5 +1,5 @@
 if defined? Capybara::Selenium::Driver
-  module Applitools::Capybara
+  module Applitools::Selenium::Capybara
     class Driver < Capybara::Selenium::Driver
       def driver_for_eyes(eyes)
         browser eyes: eyes
