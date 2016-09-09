@@ -119,5 +119,9 @@ module Applitools::Core
     def to_s
       "(#{left}, #{top}), #{width} x #{height}"
     end
+
+    def size_equals?(region)
+      self.width == region.width && self.height == region.height
+    end
   end
 end

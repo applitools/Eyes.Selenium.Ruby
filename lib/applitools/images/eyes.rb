@@ -23,17 +23,13 @@ module Applitools::Images
 
     def check_image(options)
       options = {tag: nil, ignore_mistmatch: false}.merge options
-      unless options[:image].present? && options[:image].is_a?(Applitools::Core::Screenshot)
-        options[:image] = case
-                            when options[:image_path].present?
-                              Applitools::Core::Screenshot.new ChunkyPNG::Datastream.from_file(options[:image_path]).to_s
-                            when options[:image_bytes].present?
-                              Applitools::Core::Screenshot.new options[:image_bytes]
-                          end
 
+      if disabled?
+        logger.info "check_image(image, #{options[:tag]}, #{options[:ignore_mistmatch]}): Ignored"
+        return false
       end
 
-      Applitools::Core::ArgumentGuard.not_nil options[:image], 'options[:image] can\'t be nil!'
+      image = get_image_from_options options
 
       # options:
       # image_path
@@ -43,15 +39,11 @@ module Applitools::Images
       # tag
       # ignore_mistmatch = false
 
-
-      if disabled?
-        logger.info "check_image(image, #{options[:tag]}, #{options[:ignore_mistmatch]}): Ignored"
-        return false
-      end
-
       logger.info "check_image(image, #{options[:tag]}, #{options[:ignore_mistmatch]})"
-      self.viewport_size = Applitools::Core::RectangleSize.new options[:image].width, options[:image].height if viewport_size.nil?
-      self.screenshot = EyesImagesScreenshot.new options[:image] if options[:image].is_a? Applitools::Core::Screenshot
+      if image.is_a? Applitools::Core::Screenshot
+        self.viewport_size = Applitools::Core::RectangleSize.new image.width, image.height if viewport_size.nil?
+        self.screenshot = EyesImagesScreenshot.new image
+      end
       self.title = options[:tag] || ''
       region_provider = Object.new
       region_provider.instance_eval do
@@ -67,8 +59,36 @@ module Applitools::Images
       mr.as_expected?
     end
 
-    def check_region
+    def check_region(options)
+      options = {tag: nil, ignore_mistmatch: false}.merge options
 
+      if disabled?
+        logger.info "check_region(image, #{options[:tag]}, #{options[:ignore_mistmatch]}): Ignored"
+        return false
+      end
+
+      Applitools::Core::ArgumentGuard.not_nil options[:region], 'options[:region] can\'t be nil!'
+      image = get_image_from_options options
+
+      logger.info "check_region(image, #{options[:region]}, #{options[:tag]}, #{options[:ignore_mistmatch]})"
+
+      if image.is_a? Applitools::Core::Screenshot
+        self.viewport_size = Applitools::Core::RectangleSize.new image.width, image.height if viewport_size.nil?
+        self.screenshot = EyesImagesScreenshot.new image
+      end
+      self.title = options[:tag] || ''
+
+      region_provider = Object.new
+      region_provider.instance_eval do
+        define_singleton_method :region do
+          options[:region]
+        end
+        define_singleton_method :coordinate_type do
+          Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+        end
+      end
+      mr = check_window_base region_provider, options[:tag], options[:ignore_mistmatch], Applitools::Core::EyesBase::USE_DEFAULT_TIMEOUT
+      mr.as_expected?
     end
 
     def add_mouse_trigger(action, control, cursor)
@@ -81,10 +101,29 @@ module Applitools::Images
 
     private
 
-    def viewport_size= (value)
+    def viewport_size=(value)
       raise Applitools::EyesIllegalArgument.new 'Expected viewport size to be a Applitools::Core::RectangleSize!' unless
           value.nil? || value.is_a?(Applitools::Core::RectangleSize)
       @viewport_size = value
+    end
+
+    def get_image_from_options(options)
+      unless options[:image].present? && options[:image].is_a?(Applitools::Core::Screenshot)
+        image = case
+                  when options[:image_path].present?
+                    Applitools::Core::Screenshot.new ChunkyPNG::Datastream.from_file(options[:image_path]).to_s
+                  when options[:image_bytes].present?
+                    Applitools::Core::Screenshot.new options[:image_bytes]
+                  else
+                    nil
+                end
+      else
+        image = options[:image]
+      end
+
+      Applitools::Core::ArgumentGuard.not_nil image, 'options[:image] can\'t be nil!'
+
+      image
     end
 
   end

@@ -7,7 +7,7 @@ module Applitools::Images
     def initialize(image, options = {})
       super image
       if (location = options[:location]).present?
-        Core::ArgumentGuard.is_a? location, 'options[:location]', Core::Location
+        Applitools::Core::ArgumentGuard.is_a? location, 'options[:location]', Applitools::Core::Location
         @bounds = Applitools::Core::Region.new location.x, location.y, image.width, image.height
       end
     end
@@ -76,6 +76,25 @@ module Applitools::Images
       end
 
       convert_location location, CONTEXT_RELATIVE, SCREENSHOT_AS_IS
+    end
+
+    def sub_screenshot(region, coordinates_type, throw_if_clipped)
+      Applitools::Core::ArgumentGuard.not_nil region, 'region'
+      Applitools::Core::ArgumentGuard.not_nil coordinates_type, 'coordinates_type'
+
+      sub_screen_region = intersected_region region, coordinates_type, SCREENSHOT_AS_IS
+
+      if sub_screen_region.empty? || (throw_if_clipped && !region.size_equals?(sub_screen_region))
+        Applitools::OutOfBoundsException.new "Region #{sub_screen_region} (#{coordinates_type}) is out of " \
+          " screenshot bounds #{bounds}"
+      end
+
+      sub_screenshot_image = Applitools::Core::Screenshot.new image.crop(sub_screen_region.left, sub_screen_region.top,
+        sub_screen_region.width, sub_screen_region.height).to_datastream.to_blob
+
+      relative_sub_screenshot_region = convert_region_location(sub_screen_region, SCREENSHOT_AS_IS, CONTEXT_RELATIVE)
+
+      Applitools::Images::EyesImagesScreenshot.new sub_screenshot_image, location: relative_sub_screenshot_region.location
     end
 
     private
