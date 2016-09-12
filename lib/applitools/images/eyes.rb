@@ -10,10 +10,28 @@ module Applitools::Images
       @screenshot
     end
 
+    ##
+    # Creates a new eyes object
+    #   eyes = Applitools::Images::Eyes.new
+    #
+
     def initialize(server_url = Applitools::Connectivity::ServerConnector::DEFAULT_SERVER_URL)
       super
-      self.base_agent_id = 'eyes.selenium.ruby/2.33.0'
+      self.base_agent_id = 'eyes.images.ruby/1.0.0'
     end
+
+    ##
+    # Starts a test. Available options:
+    #
+    # +:app_name+ - the name of the application under trest. Required.
+    #
+    # +:test_name+ - the test name. Required
+    #
+    # +:viewport_size+ - viewport size for the baseline, may be passed as a string (<tt>'800x600'</tt>) or
+    # as a hash (<tt>{width: 800, height: 600}</tt>). If ommited, the viewport size will be grabbed from the actual
+    # image size
+    #
+    #   eyes.open app_name: 'my app', test_name: 'my test'
 
     def open(options = {})
       Applitools::Core::ArgumentGuard.hash options, 'open(options)', [:app_name, :test_name]
