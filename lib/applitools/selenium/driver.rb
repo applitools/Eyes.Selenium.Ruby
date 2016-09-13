@@ -89,8 +89,9 @@ module Applitools::Selenium
     #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
     #
     # Returns: +ChunkPng::Image+ A screenshot object, normalized by scale and rotation.
-    def get_screenshot(rotation = nil)
+    def get_screenshot(rotation = nil, tag = nil)
       image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
+      save_image(image, tag) if @eyes.debug_screenshot
       Applitools::Selenium::Driver.normalize_image(self, image, rotation)
       image
     end
@@ -136,6 +137,10 @@ module Applitools::Selenium
     end
 
     private
+
+    def save_image(image, tag)
+      image.save("#{(tag || 'screenshot').gsub(/\s+/, '_')}_#{Time.now.strftime('%Y_%m_%d_%H_%M')}.png")
+    end
 
     def bridge
       __getobj__.send(:bridge)

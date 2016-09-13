@@ -76,7 +76,7 @@ class Applitools::Eyes
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
     :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports,
     :match_level, :baseline_name, :rotation, :force_fullpage_screenshot, :hide_scrollbars,
-    :use_css_transition, :scale_ratio, :wait_before_screenshots
+    :use_css_transition, :scale_ratio, :wait_before_screenshots, :debug_screenshot
 
   def_delegators 'Applitools::EyesLogger', :log_handler, :log_handler=
   def_delegators 'Applitools::Base::ServerConnector', :api_key, :api_key=, :server_url, :server_url=, :set_proxy
@@ -103,7 +103,7 @@ class Applitools::Eyes
 
   def initialize(options = {})
     @is_disabled = false
-
+    @debug_screenshot = options[:debug_screenshot].nil? ? false : true
     return if disabled?
 
     @api_key = nil
@@ -124,7 +124,7 @@ class Applitools::Eyes
   end
 
   def open(options = {})
-    @driver = get_driver(options)
+    @driver = get_driver(options.merge(debug_screenshot: debug_screenshot))
     return driver if disabled?
 
     if api_key.nil?
