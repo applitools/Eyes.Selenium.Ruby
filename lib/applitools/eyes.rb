@@ -67,11 +67,16 @@ class Applitools::Eyes
   #   override Eyes' automatic scaling inference. Values must be >=0 or +nil+. 1 = Don't scale, +nil+ = use Eyes'
   #   automatic scaling inference.
   # +force_fullpage_screenshot+:: +boolean+ Whether or not to force fullpage screenshot taking, if the browser doesn't
-  #   support it explicitly.
+  #                               support it explicitly.
   # +hide_scrollbars+:: +boolean+ Whether or not hide scrollbars.
   # +use_css_transition+:: +boolean+ Whether or not to perform CSS transition.
   # +wait_before_screenshot+:: +Integer+ The number of milliseconds to wait before each screenshot. Use -1 to reset to
-  #   the default value.
+  #                            the default value.
+  # +debug_screenshot+:: +boolean+ If true saves every taken screenshot in current folder. File name has following
+  #                      format: +TAG_YYYY_MM_DD_HH_MI__N.png+, where +TAG+ - the tag specified for the test,
+  #                      +YYYY_MM_DD_HH_MI+ - date && time, +N+ - screenshot number (makes sence only when
+  #                      +force_fullpage_screenshot+ is true). Default value is false
+
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
     :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports,

@@ -86,12 +86,14 @@ module Applitools::Selenium
     # Return a normalized screenshot.
     #
     # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
-    #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
+    #              negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
+    # +tag+:: +String|nil+ The tag specified for the test, used onle when +debug_screenshot+ is set to true
     #
     # Returns: +ChunkPng::Image+ A screenshot object, normalized by scale and rotation.
     def get_screenshot(rotation = nil, tag = nil)
+      @tag_for_screenshot_debug = tag
+      @visible_screenshot_call_count = 0
       image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
-      save_image(image, tag) if @eyes.debug_screenshot
       Applitools::Selenium::Driver.normalize_image(self, image, rotation)
       image
     end
@@ -100,7 +102,9 @@ module Applitools::Selenium
       Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
       sleep(wait_before_screenshots)
       Applitools::EyesLogger.debug 'Finished waiting.'
-      Applitools::Utils::ImageUtils::Screenshot.new driver.screenshot_as(:png)
+      screenshot = driver.screenshot_as(:png)
+      save_image(screenshot) if @eyes.debug_screenshot
+      Applitools::Utils::ImageUtils::Screenshot.new screenshot
     end
 
     def mouse
@@ -138,8 +142,10 @@ module Applitools::Selenium
 
     private
 
-    def save_image(image, tag)
-      image.save("#{(tag || 'screenshot').gsub(/\s+/, '_')}_#{Time.now.strftime('%Y_%m_%d_%H_%M')}.png")
+    def save_image(image)
+      tag = (@tag_for_screenshot_debug || 'screenshot').gsub(/\s+/, '_')
+      screenshot = ChunkyPNG::Image.from_string(image)
+      screenshot.save("#{tag}_#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{@visible_screenshot_call_count+=1}.png")
     end
 
     def bridge
