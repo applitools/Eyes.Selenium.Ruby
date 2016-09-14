@@ -145,7 +145,7 @@ module Applitools::Selenium
     def save_image(image)
       tag = (@tag_for_screenshot_debug || 'screenshot').gsub(/\s+/, '_')
       screenshot = ChunkyPNG::Image.from_string(image)
-      screenshot.save("#{tag}_#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{@visible_screenshot_call_count+=1}.png")
+      screenshot.save("#{tag}_#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{@visible_screenshot_call_count += 1}.png")
     end
 
     def bridge
