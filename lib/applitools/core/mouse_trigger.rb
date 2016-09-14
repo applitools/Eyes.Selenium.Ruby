@@ -3,6 +3,9 @@ module Applitools::Core
   class MouseTrigger < Trigger
     TRIGGER_TYPE = :Mouse.freeze
 
+    ##
+    # A hash contains available mouse actions: +:click+, +:right_click+, +:double_click+, +:move+, +:down+, +:up+
+
     MOUSE_ACTION = {
         click: 'Click',
         right_click: 'RightClick',
