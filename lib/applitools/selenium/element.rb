@@ -67,5 +67,17 @@ module Applitools::Selenium
 
       Applitools::Base::Region.new(left, top, width, height)
     end
+
+    def find_element(*args)
+      self.class.new driver, super
+    end
+
+    def find_elements(*args)
+      super(*args).map { |e| self.class.new driver, e }
+    end
+
+    private
+
+    attr_reader :driver
   end
 end

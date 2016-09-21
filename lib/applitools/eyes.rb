@@ -132,14 +132,8 @@ class Applitools::Eyes
         "use 'api_key' to set it.")
     end
 
-    if driver.is_a?(Selenium::WebDriver::Driver)
-      is_mobile_device = driver.capabilities['platformName'] ? true : false
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
-    elsif defined?(Appium::Driver) && driver.is_a?(Appium::Driver)
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: true)
-    elsif defined?(Watir::Browser) && driver.is_a?(Watir::Browser)
-      is_mobile_device = driver.driver.capabilities['platformName'] ? true : false
-      @driver = Applitools::Selenium::Driver.new(self, driver: driver.driver, is_mobile_device: is_mobile_device)
+    if driver.respond_to? :driver_for_eyes
+      @driver = driver.driver_for_eyes self
     else
       unless driver.is_a?(Applitools::Selenium::Driver)
         Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
@@ -204,6 +198,8 @@ class Applitools::Eyes
         Applitools::EyesLogger.debug 'Element given as an argument...'
         raise Applitools::EyesError.new('Element does not exist') if what.nil?
         element_to_check = what
+      elsif how == :region && what.is_a?(Applitools::Base::Region)
+        return check_region_(what, tag, specific_timeout)
       else
         Applitools::EyesLogger.debug 'Finding element...'
         element_to_check = driver.find_element(how, what)

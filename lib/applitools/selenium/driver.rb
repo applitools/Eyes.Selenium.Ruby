@@ -35,7 +35,6 @@ module Applitools::Selenium
     # If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
     def initialize(eyes, options)
       super(options[:driver])
-
       @is_mobile_device = options.fetch(:is_mobile_device, false)
       @wait_before_screenshots = 0
       @eyes = eyes
@@ -138,6 +137,10 @@ module Applitools::Selenium
 
     private
 
+    def bridge
+      __getobj__.send(:bridge)
+    end
+
     def driver
       @driver ||= __getobj__
     end
@@ -174,11 +177,11 @@ module Applitools::Selenium
       # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
       #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
       def normalize_rotation(driver, image, rotation)
-        return if rotation == 0
+        return if rotation && rotation.zero?
 
         num_quadrants = 0
         if !rotation.nil?
-          if rotation % RIGHT_ANGLE != 0
+          if (rotation % RIGHT_ANGLE).nonzero?
             raise Applitools::EyesError.new('Currently only quadrant rotations are supported. Current rotation: '\
             "#{rotation}")
           end

@@ -1,4 +1,5 @@
-require 'applitools/core/batch_info'
+require 'securerandom'
+
 module Applitools::Base
   class BatchInfo < Applitools::Core::BatchInfo; end
 end

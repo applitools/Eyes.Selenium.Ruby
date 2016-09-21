@@ -26,8 +26,8 @@ module Applitools::Utils
       target_pixels = target.to_rgb_stream.unpack('C*')
       source_pixels = source.to_rgb_stream.unpack('C*')
       image_size = Dimension.new(target.width, target.height)
-      block_columns_count = (target.width / block_size) + ((target.width % block_size) == 0 ? 0 : 1)
-      block_rows_count = (target.height / block_size) + ((target.height % block_size) == 0 ? 0 : 1)
+      block_columns_count = (target.width / block_size) + ((target.width % block_size).zero? ? 0 : 1)
+      block_rows_count = (target.height / block_size) + ((target.height % block_size).zero? ? 0 : 1)
 
       # IMPORTANT: The "-Zlib::MAX_WBITS" tells ZLib to create raw deflate compression, without the
       # "Zlib headers" (this isn't documented in the Zlib page, I found this in some internet forum).
