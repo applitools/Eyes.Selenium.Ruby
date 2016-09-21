@@ -55,7 +55,27 @@ module Apllitools::Utils
     JS
 
     def current_scroll_position(executor)
+        position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
+        Applitools::Core::Location.new position[:left], position[:top]
+    end
 
+    def scroll_to(executor, point)
+      executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }, 0.25)
+    end
+
+    def entire_page_size(executor)
+      metrics = page_metrics(executor)
+      max_document_element_height = [metrics[:client_height], metrics[:scroll_height]].max
+      max_body_height = [metrics[:body_client_height], metrics[:body_scroll_height]].max
+
+      total_width = [metrics[:scroll_width], metrics[:body_scroll_width]].max
+      total_height = [max_document_element_height, max_body_height].max
+
+      Applitools::Core::RectangleSize.new(total_width, total_height)
+    end
+
+    def page_metrics(executor)
+      Applitools::Utils.underscore_hash_keys(executor.execute_script(JS_GET_PAGE_METRICS))
     end
   end
 end

@@ -38,6 +38,16 @@ module Applitools::Selenium
         return driver
       end
 
+      if driver.respond_to? :driver_for_eyes
+        @driver = driver.driver_for_eyes self
+      else
+        unless driver.is_a?(Applitools::Selenium::Driver)
+          Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
+          is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
+          @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+        end
+      end
+
       self.device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
 
       case stitch_mode
@@ -96,6 +106,17 @@ module Applitools::Selenium
 
     attr_accessor :check_frame_or_element, :region_to_check, :force_full_page_screenshot, :dont_get_title,
                   :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider
+
+    def get_driver(options)
+      # TODO: remove the "browser" related block when possible. It's for backward compatibility.
+      if options.key?(:browser)
+        Applitools::EyesLogger.warn('"browser" key is deprecated, please use "driver" instead.')
+        return options[:browser]
+      end
+
+      options.fetch(:driver, nil)
+    end
+
 
   end
 end

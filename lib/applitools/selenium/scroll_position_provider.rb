@@ -20,15 +20,25 @@ module Applitools::Selenium
     end
 
     def state
-
+      current_position
     end
 
-    def restore_state
-
+    def restore_state(value)
+      self.position = value
     end
 
     def position=(value)
+      logger.info "Scrolling to #{value}"
+      Applitools::Utils::EyesSeleniumUtils.scroll_to(executor, value)
+      logger.info("Done scrolling!");
+    end
 
+    alias scroll_to position=
+
+    def entire_size
+      result = Applitools::Utils::EyesSeleniumUtils.entire_page_size(executor)
+      logger.info "Entire size: #{result}"
+      result
     end
 
     private

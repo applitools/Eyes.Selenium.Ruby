@@ -42,6 +42,10 @@ module Applitools::Utils
     end
   end
 
+  def symbolize_keys(hash)
+    hash.reduce({}) {|memo, (k,v)| memo[k.to_sym] = v }
+  end
+
   private
 
   def convert_hash_keys(value, method)
