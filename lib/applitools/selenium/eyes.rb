@@ -6,19 +6,22 @@ module Applitools::Selenium
 
 
     DEFAULT_WAIT_BEFORE_SCREENSHOTS = 0.1 # Seconds
+
+    USE_DEFAULT_MATCH_TIMEOUT = -1
+
     STICH_MODE = {
         scroll: :SCROLL,
         css: :CSS
     }.freeze
 
 
-    attr_accessor :base_agent_id
+    attr_accessor :base_agent_id, :inferred_environment
 
     def initialize(server_url = Applitools::Connectivity::ServerConnector::DEFAULT_SERVER_URL)
       super
       self.base_agent_id = "eyes.selenium.ruby/#{Applitools::VERSION})".freeze
       @check_frame_or_element = false
-      @region_to_check = null
+      @region_to_check = nil
       @force_full_page_screenshot = false
       @dont_get_title = false
       @hide_scrollbars = false
@@ -30,6 +33,8 @@ module Applitools::Selenium
 
     def open(options = {})
       driver = options.delete(:driver)
+      options[:viewport_size] = Applitools::Core::RectangleSize.from_any_argument options[:viewport_size] if
+          options[:viewport_size].present?
       Applitools::Core::ArgumentGuard.not_nil driver, 'options[:driver]'
       Applitools::Core::ArgumentGuard.hash options, 'open(options)', [:app_name, :test_name]
 
@@ -60,6 +65,7 @@ module Applitools::Selenium
       end
 
       open_base options
+      @driver
     end
 
     # protected WebDriver open(WebDriver driver, String appName, String testName,
@@ -100,12 +106,59 @@ module Applitools::Selenium
     #   return this.driver;
     #   }
 
+    def check_window(tag = nil, match_timeout = USE_DEFAULT_MATCH_TIMEOUT)
 
+      Applitools::EyesLogger.info "check_window(match_timeout: #{match_timeout}, tag: #{tag}): Ignored" if disabled?
+      Applitools::EyesLogger.info "check_window(match_timeout: #{match_timeout}, tag: #{tag})"
+
+      region_provider = Object.new
+      region_provider.instance_eval do
+        define_singleton_method :region do
+          Applitools::Core::Region::EMPTY
+        end
+        define_singleton_method :coordinate_type do
+          nil
+        end
+      end
+
+      check_window_base region_provider, tag, false, match_timeout
+      # if (getIsDisabled()) {
+      #     logger.log(String.format("CheckWindow(%d, '%s'): Ignored",
+      #                              matchTimeout, tag));
+      # return;
+      # }
+      #
+      # logger.log(String.format("CheckWindow(%d, '%s')", matchTimeout,
+      #                          tag));
+      #
+      # super.checkWindowBase(
+      #     new RegionProvider() {
+      #       public Region getRegion() {
+      #         return Region.EMPTY;
+      #       }
+      #
+      #       public CoordinatesType getCoordinatesType() {
+      #         return null;
+      #       }
+      #     },
+      #         tag,
+      #         false,
+      #         matchTimeout
+      # );
+
+    end
 
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :force_full_page_screenshot, :dont_get_title,
                   :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider
+
+    def viewport_size=(value)
+      raise Applitools::EyesIllegalArgument.new 'Expected viewport size to be a Applitools::Core::RectangleSize!' unless
+          value.nil? || value.is_a?(Applitools::Core::RectangleSize)
+      @viewport_size = value
+    end
+
 
     def get_driver(options)
       # TODO: remove the "browser" related block when possible. It's for backward compatibility.

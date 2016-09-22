@@ -1,4 +1,4 @@
-module Apllitools::Utils
+module Applitools::Utils
   module EyesSeleniumUtils
     extend self
     JS_GET_USER_AGENT = <<-JS.freeze

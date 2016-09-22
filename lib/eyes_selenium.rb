@@ -1,3 +1,4 @@
+require 'pry'
 module Applitools
   class << self
     def require_dir(dir)
@@ -41,17 +42,33 @@ require_relative 'applitools/method_tracer'
 require_relative 'applitools/extensions'
 require_relative 'applitools/version'
 
+Applitools.require_dir 'core'
 Applitools.require_dir 'base'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
+
 
 require_relative 'applitools/eyes'
 require_relative 'applitools/selenium_webdriver'
 require_relative 'applitools/appium_driver'
 require_relative 'applitools/watir_browser'
 
-if defined? Sauce
-  require 'applitools/sauce'
-elsif defined? Capybara
-  require 'applitools/capybara'
-end
+
+# module Applitools
+#   extend self
+#   @initialized = nil
+#
+#   def initialize_applitools
+#     unless @initialized
+#       @initialized = true
+#       binding.pry
+#       if defined? Sauce
+#         require 'applitools/sauce'
+#       elsif defined? Capybara
+#         p "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1"
+#         require 'applitools/capybara'
+#       end
+#     end
+#   end
+# end
+#
