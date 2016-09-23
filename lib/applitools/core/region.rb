@@ -4,6 +4,12 @@ module Applitools::Core
     alias x left
     alias y top
 
+    class << self
+      def from_location_size(location, size)
+        new location.x, location.y, size.width, size.height
+      end
+    end
+
     def initialize(left, top, width, height)
       @left = left.round
       @top = top.round

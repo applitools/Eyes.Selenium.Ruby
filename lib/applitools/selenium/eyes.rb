@@ -148,10 +148,23 @@ module Applitools::Selenium
 
     end
 
+    def title
+      return driver.title unless dont_get_title
+    rescue Exception => e
+      Applitools::EyesLogger.warn "failed (#{e.message})"
+      self.dont_get_title = false
+      ''
+    end
+
+
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :force_full_page_screenshot, :dont_get_title,
                   :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider
+
+    def capture_screenshot
+
+    end
 
     def viewport_size=(value)
       raise Applitools::EyesIllegalArgument.new 'Expected viewport size to be a Applitools::Core::RectangleSize!' unless
