@@ -439,3 +439,45 @@ class Applitools::Eyes
       "of '#{@session_start_info.app_id_or_name}'")
   end
 end
+
+#
+# checkRegionInFrame(int frameIndex, By selector)
+# checkRegionInFrame(int frameIndex, By selector, boolean stitchContent)
+# checkRegionInFrame(int frameIndex, By selector, String tag)
+# checkRegionInFrame(int frameIndex, By selector, String tag, boolean stitchContent)
+# checkRegionInFrame(int frameIndex, By selector, int matchTimeout, String tag)
+# checkRegionInFrame(int frameIndex, By selector, int matchTimeout, String tag, boolean stitchContent)
+# checkRegionInFrame(String frameNameOrId, By selector)
+# checkRegionInFrame(String frameNameOrId, By selector, boolean stitchContent)
+# checkRegionInFrame(String frameNameOrId, By selector, String tag)
+# checkRegionInFrame(String frameNameOrId, By selector, String tag, boolean stitchContent)
+# checkRegionInFrame(String frameNameOrId, By selector, int matchTimeout, String tag)
+# checkRegionInFrame(String frameNameOrId, By selector, int matchTimeout, String tag, boolean stitchContent)
+# checkRegionInFrame(WebElement frameReference, By selector)
+# checkRegionInFrame(WebElement frameReference, By selector, boolean stitchContent)
+# checkRegionInFrame(WebElement frameReference, By selector, String tag)
+# checkRegionInFrame(WebElement frameReference, By selector, int matchTimeout, String tag)
+# checkRegionInFrame(WebElement frameReference, By selector, int matchTimeout, String tag, boolean stitchContent)
+#
+#
+# checkCurrentFrame(int matchTimeout, String tag)
+#
+#
+# checkFrame(String frameNameOrId)
+# checkFrame(String frameNameOrId, String tag)
+# checkFrame(String frameNameOrId, int matchTimeout, String tag)
+# checkFrame(int frameIndex)
+# checkFrame(int frameIndex, String tag)
+# checkFrame(int frameIndex, int matchTimeout, String tag)
+# checkFrame(WebElement frameReference)
+# checkFrame(WebElement frameReference, String tag)
+# checkFrame(WebElement frameReference, int matchTimeout, String tag)
+# checkFrame(String[] framePath, int matchTimeout, String tag)
+# checkFrame(String[] framesPath, String tag)
+# checkFrame(String[] framesPath)
+#
+#
+# checkRegionInFrame(String[] framePath, By selector, int matchTimeout, String tag, boolean stitchContent)
+# checkRegionInFrame(String[] framePath, By selector, int matchTimeout, String tag)
+# checkRegionInFrame(String[] framePath, By selector, String tag)
+# checkRegionInFrame(String[] framePath, By selector)
