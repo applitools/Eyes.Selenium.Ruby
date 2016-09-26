@@ -23,8 +23,8 @@ module Applitools::Utils
     #
     # Returns:
     # +ChunkyPNG::Canvas+ An image object.
-    def png_image_from_base64(png_bytes64)
-      png_image_from_bytes(Base64.decode64(png_bytes64))
+    def png_image_from_base64(png_bytes)
+      png_image_from_bytes(Base64.decode64(png_bytes))
     end
 
     # Get the raw PNG bytes of an image.
