@@ -42,6 +42,10 @@ module Applitools::Selenium
       Applitools::EyesLogger.warn '"screenshot_as" method not found!' unless driver.respond_to? :screenshot_as
     end
 
+    def execute_script(script)
+      raises_error { __getobj__.execute_script(script) }
+    end
+
     # Returns:
     # +String+ The platform name or +nil+ if it is undefined.
     def platform_name
@@ -136,6 +140,12 @@ module Applitools::Selenium
     end
 
     private
+
+    def raises_error
+      yield if block_given?
+    rescue => e
+      raise EyesDriverOperationException.new e.message
+    end
 
     def bridge
       __getobj__.send(:bridge)

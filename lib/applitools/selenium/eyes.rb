@@ -160,7 +160,8 @@ module Applitools::Selenium
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :force_full_page_screenshot, :dont_get_title,
-                  :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider
+                  :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider,
+                  :scale_provider,
 
     def capture_screenshot
 
@@ -183,6 +184,30 @@ module Applitools::Selenium
       options.fetch(:driver, nil)
     end
 
+    def update_scaling_params
+      if device_pixel_ratio == UNKNOWN_DEVICE_PIXEL_RATIO
+        Applitools::Logger.info 'Trying to extract device pixel ratio...'
+        begin
+          self.device_pixel_ratio = Applitools::Utils::EyesSeleniumUtils.device_pixel_ratio(driver)
+        rescue EyesDriverOperationException => e
+          Applitools::Logger.warn 'Failed to extract device pixel ratio! Using default.'
+          self.device_pixel_ratio = DEFAULT_DEVICE_PIXEL_RATIO
+        end
+
+        Applitools::Logger.info "Device pixel_ratio: #{device_pixel_ratio}"
+        Applitools::Logger.info 'Setting scale provider...'
+
+        begin
+          self.scale_provider = Applitools::Selenium::ContextBasedScaleProvider.new(position_provider.entire_size,
+            viewport_size, scale_method, device_pixel_ratio)
+        rescue => e
+          Applitools::Logger.info 'Failed to set ContextBasedScaleProvider'
+          Applitools::Logger.info 'Using FixedScaleProvider instead'
+          self.scale_provider = Applitools::Selenium::FixedScaleProvider.new(1/device_pixel_ratio)
+        end
+        logger.info 'Done!'
+      end
+    end
 
   end
 end

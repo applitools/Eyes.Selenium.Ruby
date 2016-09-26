@@ -74,6 +74,10 @@ module Applitools::Utils
       Applitools::Core::RectangleSize.new(total_width, total_height)
     end
 
+    def device_pixel_ratio(executor)
+      executor.execute_script(JS_GET_DEVICE_PIXEL_RATIO)
+    end
+
     def page_metrics(executor)
       Applitools::Utils.underscore_hash_keys(executor.execute_script(JS_GET_PAGE_METRICS))
     end
