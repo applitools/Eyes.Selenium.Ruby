@@ -310,6 +310,7 @@ class Applitools::Eyes
     return if disabled?
 
     @is_open = false
+    passed_driver.use_native_browser if passed_driver.respond_to? :use_native_browser
 
     return unless @session
 
