@@ -79,12 +79,4 @@ describe 'Other Capybara tests', :type => :feature, :js => true do
       # and so on
     end
   end
-
-  it 'some firefox test' do
-    Capybara.using_driver :selenium_firefox do
-      visit 'http://github.com'
-      fill_in('user[login]', with: 'user')
-      # and so on
-    end
-  end
 end
