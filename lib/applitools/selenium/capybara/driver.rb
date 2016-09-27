@@ -1,4 +1,3 @@
-require 'pry'
 if defined? Capybara::Selenium::Driver
   module Applitools::Selenium::Capybara
     class Driver < Capybara::Selenium::Driver

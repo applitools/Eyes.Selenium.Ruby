@@ -1,4 +1,3 @@
-require 'pry'
 require_relative 'version'
 require_relative 'eyes_logger'
 
