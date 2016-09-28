@@ -18,14 +18,14 @@ require 'applitools/capybara'
 #
 Applitools.register_capybara_driver :browser => :chrome
 
-#Register another driver if needed
+# Register another driver if needed
 Capybara.register_driver :selenium_chrome do |app|
-  Capybara::Selenium::Driver.new(app, browser: :chrome)
+  Capybara::Selenium::Driver.new(app, :browser => :chrome)
 end
 
-#And even one more
+# And even one more
 Capybara.register_driver :selenium_firefox do |app|
-  Capybara::Selenium::Driver.new(app, browser: :firefox)
+  Capybara::Selenium::Driver.new(app, :browser => :firefox)
 end
 
 describe 'Capybara Example', :type => :feature, :js => true do
