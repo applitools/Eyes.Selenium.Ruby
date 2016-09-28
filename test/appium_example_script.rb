@@ -1,7 +1,7 @@
 require 'logger'
 require 'appium_lib'
 
-require_relative '../lib/eyes_selenium'
+require 'eyes_selenium'
 
 # Based on Appium example: https://github.com/appium/appium/blob/master/sample-code/examples/ruby/
 
