@@ -77,7 +77,7 @@ class Applitools::Eyes
   #                      +YYYY_MM_DD_HH_MI+ - date && time, +N+ - screenshot number (makes sence only when
   #                      +force_fullpage_screenshot+ is true). Default value is false
 
-  attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver
+  attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver, :passed_driver
   attr_accessor :match_timeout, :batch, :host_os, :host_app, :branch_name, :parent_branch_name, :user_inputs,
     :save_new_tests, :save_failed_tests, :is_disabled, :server_url, :agent_id, :failure_reports,
     :match_level, :baseline_name, :rotation, :force_fullpage_screenshot, :hide_scrollbars,
@@ -129,7 +129,7 @@ class Applitools::Eyes
   end
 
   def open(options = {})
-    @driver = get_driver(options.merge(debug_screenshot: debug_screenshot))
+    @passed_driver = @driver = get_driver(options.merge(debug_screenshot: debug_screenshot))
     return driver if disabled?
 
     if api_key.nil?
@@ -237,6 +237,7 @@ class Applitools::Eyes
   def close(raise_ex = true)
     return if disabled?
     @is_open = false
+    passed_driver.use_native_browser if passed_driver.respond_to? :use_native_browser
 
     # If there's no running session, the test was never started (never reached check_window).
     unless @session
@@ -313,6 +314,7 @@ class Applitools::Eyes
     return if disabled?
 
     @is_open = false
+    passed_driver.use_native_browser if passed_driver.respond_to? :use_native_browser
 
     return unless @session
 
