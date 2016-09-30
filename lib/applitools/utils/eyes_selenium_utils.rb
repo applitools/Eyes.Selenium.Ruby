@@ -54,6 +54,8 @@ module Applitools::Utils
       }());
     JS
 
+    OVERFLOW_HIDDEN = 'hidden'.freeze
+
     def current_scroll_position(executor)
         position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
         Applitools::Core::Location.new position[:left], position[:top]
@@ -61,6 +63,26 @@ module Applitools::Utils
 
     def scroll_to(executor, point)
       executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }, 0.25)
+    end
+
+    def extract_viewport_size(executor)
+      width = nil
+      height = nil
+
+      width, height = executor.execute_script(JS_GET_VIEWPORT_SIZE)
+
+      if width.nil? || height.nil?
+        Applitools::EyesLogger.info 'Using window size as viewport size.'
+
+        width, height = *browser_size.values.map(&:ceil)
+
+        if @driver.landscape_orientation? && height > width
+          width, height = height, width
+        end
+      end
+
+      Applitools::Base::Dimension.new(width, height)
+
     end
 
     def entire_page_size(executor)
@@ -80,6 +102,21 @@ module Applitools::Utils
 
     def page_metrics(executor)
       Applitools::Utils.underscore_hash_keys(executor.execute_script(JS_GET_PAGE_METRICS))
+    end
+
+    def hide_scrollbars(executor)
+      set_overflow executor, OVERFLOW_HIDDEN
+    end
+
+    def set_overflow(executor, overflow)
+      with_timeout(0.1) { executor.execute_script(JS_SET_OVERFLOW % { overflow:  overflow}) }
+    end
+
+    private
+
+    def with_timeout(timeout, &block)
+      raise 'You have to pass block to method with_timeout' unless block_given?
+      yield.tap {sleep timeout}
     end
   end
 end

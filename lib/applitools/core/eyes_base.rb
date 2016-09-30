@@ -1,3 +1,4 @@
+require 'pry'
 require 'applitools/core/helpers'
 require 'applitools/core/eyes_screenshot'
 module Applitools::Core

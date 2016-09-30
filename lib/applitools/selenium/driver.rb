@@ -31,6 +31,7 @@ module Applitools::Selenium
 
     def_delegators :@eyes, :user_inputs, :clear_user_inputs
     def_delegators :@browser, :user_agent
+    def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 
     # If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
     def initialize(eyes, options)
@@ -139,7 +140,54 @@ module Applitools::Selenium
       platform_name.to_s.upcase == IOS
     end
 
+    # public RectangleSize getDefaultContentViewportSize(boolean forceQuery) {
+    #   logger.verbose("getDefaultContentViewportSize()");
+    #
+    #   if (defaultContentViewportSize != null && !forceQuery) {
+    #       logger.verbose("Using cached viewport size: "
+    #   + defaultContentViewportSize);
+    #   return defaultContentViewportSize;
+    #   }
+    #
+    #   FrameChain currentFrames = getFrameChain();
+    #   // Optimization
+    #   if (currentFrames.size() > 0) {
+    #       switchTo().defaultContent();
+    #   }
+    #
+    #   logger.verbose("Extracting viewport size...");
+    #   defaultContentViewportSize =
+    #       EyesSeleniumUtils.extractViewportSize(logger, this);
+    #   logger.verbose("Done! Viewport size: " + defaultContentViewportSize);
+    #
+    #   if (currentFrames.size() > 0) {
+    #       ((EyesTargetLocator) switchTo()).frames(currentFrames);
+    #   }
+    #   return defaultContentViewportSize;
+    #   }
+
+    def frame_chain
+      Applitools::Selenium::FrameChain.new other: @frame_chain
+    end
+
+    def default_content_viewport_size(force_query = false)
+      logger.info("default_content_viewport_size()");
+      if cached_default_content_viewport_size && !force_query
+        logger.info "Using cached viewport_size #{cached_default_content_viewport_size}"
+        return cached_default_content_viewport_size
+      end
+
+      current_frames = frame_chain
+      # switch_to.default_content if current_frames.size > 0
+      # @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils
+
+    end
+
+
     private
+
+    attr_reader :cached_default_content_viewport_size
+
 
     def raises_error
       yield if block_given?

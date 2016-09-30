@@ -23,8 +23,8 @@ module Applitools::Selenium
     def initialize(options = {})
       # options = {screenshot_type: SCREENSHOT_TYPES[:viewport]}.merge options
       Applitools::Core::ArgumentGuard.hash options, 'options', [:driver, :image]
-      Applitools::Core::ArumentGuard.not_nil options[:driver], 'options[:driver]'
-      Applitools::Core::ArumentGuard.not_nil options[:image], 'options[:image]'
+      Applitools::Core::ArgumentGuard.not_nil options[:driver], 'options[:driver]'
+      Applitools::Core::ArgumentGuard.not_nil options[:image], 'options[:image]'
       self.driver = options[:driver]
       self.image = options[:image]
       self.position_provider = Applitools::Selenium::ScrollPositionProvider.new driver
