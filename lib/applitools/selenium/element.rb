@@ -25,6 +25,9 @@ module Applitools::Selenium
     end
 
     def ==(other)
+      # If comparing two Applitools::Selenium::Element, compare their wrapped elements
+      return web_element == other.web_element if other.is_a?(self.class)
+
       other.is_a?(web_element.class) && web_element == other
     end
     alias eql? ==
