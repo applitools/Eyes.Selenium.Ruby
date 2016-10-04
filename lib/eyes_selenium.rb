@@ -13,6 +13,7 @@ module Applitools
   class EyesIllegalArgument < EyesError; end
   class OutOfBoundsException < EyesError; end;
   class EyesDriverOperationException < EyesError; end;
+  class EyesNotOpenException < EyesError; end;
 
   class AbstractMethodCalled < EyesError
     attr_accessor :method_name, :object
@@ -53,6 +54,7 @@ require_relative 'applitools/eyes'
 require_relative 'applitools/selenium_webdriver'
 require_relative 'applitools/appium_driver'
 require_relative 'applitools/watir_browser'
+require_relative 'applitools/images'
 
 
 # module Applitools

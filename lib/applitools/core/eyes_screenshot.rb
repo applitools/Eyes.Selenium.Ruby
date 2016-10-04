@@ -1,6 +1,9 @@
 module Applitools::Core
   class EyesScreenshot
+    extend Forwardable
     extend Applitools::Core::Helpers
+
+    def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
     attr_accessor :image
 
     COORDINATE_TYPES = {

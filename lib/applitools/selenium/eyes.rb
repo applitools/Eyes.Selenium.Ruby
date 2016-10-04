@@ -17,7 +17,7 @@ module Applitools::Selenium
 
     extend Forwardable
 
-    attr_accessor :base_agent_id, :inferred_environment
+    attr_accessor :base_agent_id, :inferred_environment, :screenshot
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -161,6 +161,10 @@ module Applitools::Selenium
       ''
     end
 
+    def get_viewport_size(web_driver = driver)
+      Applitools::Core::ArgumentGuard.not_nil 'web_driver', web_driver
+      Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(driver)
+    end
 
     private
 
@@ -200,12 +204,18 @@ module Applitools::Selenium
       end
     end
 
-    def viewport_size=(value)
-      raise Applitools::EyesIllegalArgument.new 'Expected viewport size to be a Applitools::Core::RectangleSize!' unless
-          value.nil? || value.is_a?(Applitools::Core::RectangleSize)
-      @viewport_size = value
+    def set_viewport_size(value)
+      raise Applitools::EyesNotOpenException.new 'set_viewport_size: Eyes not open!' unless open?
+      original_frame = driver.frame_chain
+      # driver.switch_to.default_content
+      begin
+        Applitools::Utils::EyesSeleniumUtils.set_viewport_size driver, value
+      rescue => e
+        raise Applitools::TestFailedError.new 'Failed to set viewport size!'
+      ensure
+        # driver.switch_to.frames(original_frame)
+      end
     end
-
 
     def get_driver(options)
       # TODO: remove the "browser" related block when possible. It's for backward compatibility.

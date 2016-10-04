@@ -4,7 +4,6 @@ module Applitools::Images
   class Eyes < Applitools::Core::EyesBase
 
     attr_accessor :base_agent_id, :screenshot, :inferred_environment, :title #:nodoc:
-    attr_reader :viewport_size #:nodoc:
 
     def capture_screenshot #:nodoc:
       @screenshot
@@ -176,10 +175,19 @@ module Applitools::Images
 
     private
 
-    def viewport_size=(value)
-      raise Applitools::EyesIllegalArgument.new 'Expected viewport size to be a Applitools::Core::RectangleSize!' unless
-          value.nil? || value.is_a?(Applitools::Core::RectangleSize)
-      @viewport_size = value
+    def get_viewport_size
+      viewport_size
+    end
+
+    # public void setViewportSize(RectangleSize size) {
+    #   ArgumentGuard.notNull(size, "size");
+    #   this.viewportSize = new RectangleSize(size.getWidth(),
+    #                                         size.getHeight());
+    # }
+
+    def set_viewport_size=(value)
+      Applitools::Core::ArgumentGuard.not_nil 'value', value
+      @viewport_size = Applitools::Core::RectangleSize.for value
     end
 
     def get_image_from_options(options)

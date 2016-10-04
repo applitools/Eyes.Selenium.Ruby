@@ -1,5 +1,8 @@
 module Applitools::Selenium
   class ScrollPositionProvider
+    extend Forwardable
+
+    def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 
     def initialize(executor)
       self.executor = executor

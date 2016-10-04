@@ -28,11 +28,14 @@ module Applitools::Core
 
     attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
         attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings, :scale_ratio, :scale_method,
-        :host_os, :host_app, :base_line_name, :position_provider
+        :host_os, :host_app, :base_line_name, :position_provider, :viewport_size
 
-    abstract_attr_accessor :base_agent_id, :viewport_size, :inferred_environment
+    abstract_attr_accessor :base_agent_id, :inferred_environment
     abstract_method :capture_screenshot, true
     abstract_method :title, true
+    abstract_method :set_viewport_size, true
+    abstract_method :get_viewport_size, true
+
 
     def initialize(server_url = nil)
       Applitools::Connectivity::ServerConnector.server_url = server_url
@@ -68,7 +71,8 @@ module Applitools::Core
       #
       # defaultMatchSettings = new ImageMatchSettings();
       # failureReports = FailureReports.ON_CLOSE;
-      # userInputs = new ArrayDeque<>();
+      # userInputs = new ArrayDeque<>();s
+
 
     end
 
@@ -116,7 +120,8 @@ module Applitools::Core
       logger.info '---Test aborted'
 
     rescue Applitools::EyesError => e
-      logger.error e.message
+      logger.error e.messages
+
     ensure
       self.running_session = nil
     end
@@ -389,11 +394,10 @@ module Applitools::Core
     def start_session
       logger.info 'start_session()'
 
-      #FIXME: looks strange
-      unless @viewport_size
-        @viewport_size = viewport_size
+      if viewport_size
+        set_viewport_size(viewport_size)
       else
-        self.viewport_size = @viewport_size
+        self.viewport_size = get_viewport_size
       end
 
       if batch.nil?

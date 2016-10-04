@@ -43,8 +43,8 @@ module Applitools::Selenium
       Applitools::EyesLogger.warn '"screenshot_as" method not found!' unless driver.respond_to? :screenshot_as
     end
 
-    def execute_script(script)
-      raises_error { __getobj__.execute_script(script) }
+    def execute_script(*args)
+      raises_error { __getobj__.execute_script(*args) }
     end
 
     # Returns:
@@ -179,8 +179,12 @@ module Applitools::Selenium
 
       current_frames = frame_chain
       # switch_to.default_content if current_frames.size > 0
-      # @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils
+      logger.info 'Extractiong viewport size...'
+      @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(self)
+      logger.info "Done! Viewport size is #{@cached_default_content_viewport_size}"
 
+      #do something if current_frames > 0
+      @cached_default_content_viewport_size
     end
 
 

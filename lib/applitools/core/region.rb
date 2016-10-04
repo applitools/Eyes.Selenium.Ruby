@@ -77,7 +77,7 @@ module Applitools::Core
     def middle_offset
       mid_x = width / 2
       mid_y = height / 2
-      Point.new(mid_x.round, mid_y.round)
+      Applitools::Core::Location.for(mid_x.round, mid_y.round)
     end
 
     def subregions(subregion_size)

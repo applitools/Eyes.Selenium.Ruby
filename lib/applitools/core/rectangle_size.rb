@@ -4,9 +4,12 @@ module Applitools::Core
       def from_any_argument(value)
         return from_string(value) if value.is_a? String
         return from_hash(value) if value.is_a? Hash
+        return from_struct(value) if value.respond_to?(:width) & value.respond_to?(:height)
         return value if value.is_a? self
         nil
       end
+
+      alias for from_any_argument
 
       def from_string(value)
         width, height = value.split /x/
@@ -15,10 +18,25 @@ module Applitools::Core
       def from_hash(value)
         new value[:width], value[:height]
       end
+      def from_struct(value)
+        new value.width, value.height
+      end
     end
 
     def to_s
       "#{width}x#{height}"
+    end
+
+    def -(other)
+      self.width = width - other.width
+      self.height = height - other.height
+      self
+    end
+
+    def +(other)
+      self.width = width + other.width
+      self.height = height + other.height
+      self
     end
 
     alias to_hash to_h

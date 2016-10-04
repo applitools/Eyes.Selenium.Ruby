@@ -29,10 +29,10 @@ module Applitools::Selenium
       self.image = options[:image]
       self.position_provider = Applitools::Selenium::ScrollPositionProvider.new driver
 
+
       viewport_size = driver.default_content_viewport_size #method in driver?
 
-      self.frame_chane = driver.frame_chain #method in driver? frame chain is in another branch
-
+      self.frame_chain = driver.frame_chain #method in driver? frame chain is in another branch
       unless frame_chain.size == 0
         frame_size = frame_chain.current_frame_size
       else
@@ -50,7 +50,7 @@ module Applitools::Selenium
       end
 
       unless options[:screenshot_type]
-        if (image.width <= viewport_size.width && image.height <= viewport_size.heigh)
+        if (image.width <= viewport_size.width && image.height <= viewport_size.height)
           self.screenshot_type = SCREENSHOT_TYPES[:viewport]
         else
           self.screenshot_type = SCREENSHOT_TYPES[:entire_frame]
@@ -60,23 +60,23 @@ module Applitools::Selenium
       end
 
       unless options[:frame_location_in_screenshot]
-        if frame_chaine.size > 0
+        if frame_chain.size > 0
           self.frame_location_in_screenshot =  calc_frame_location_in_screenshot
         else
           self.frame_location_in_screenshot = Applitools::Core::Location.new(0,0)
-          self.frame_location_in_screenshot.offset(-scroll_position.x, -scroll_position.y) if
+          frame_location_in_screenshot.offset Applitools::Core::Location.for(-scroll_position.x, -scroll_position.y) if
               screenshot_type == SCREENSHOT_TYPES[:viewport]
         end
       end
 
-      Applitools::Logger.info 'Calculating frame window..'
+      logger.info 'Calculating frame window..'
       self.frame_window = Applitools::Core::Region.from_location_size(frame_location_in_screenshot, frame_size);
-      self.frame_window.intersect Applitools::Core::Region.new(0, 0, image.width, image.height)
+      frame_window.intersect Applitools::Core::Region.new(0, 0, image.width, image.height)
 
       raise Applitools::EyesException.new 'Got empty frame window for screenshot!' if
           (frame_window.width <= 0 || frame_window.height <= 0)
 
-      Applitools::Logger.info 'Done!'
+      logger.info 'Done!'
     end
 
     def conver_location
@@ -105,7 +105,7 @@ module Applitools::Selenium
 
     private
 
-    attr_accessor :position_provider, :frame_chane, :scroll_position, :screenshot_type, :frame_location_in_screenshot,
+    attr_accessor :position_provider, :frame_chain, :scroll_position, :screenshot_type, :frame_location_in_screenshot,
                   :frame_window
 
     def calc_frame_location_in_screenshot

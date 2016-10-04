@@ -1,6 +1,28 @@
 module Applitools::Utils
   module EyesSeleniumUtils
     extend self
+
+    JS_GET_VIEWPORT_SIZE = <<-JS.freeze
+       return (function() {
+         var height = undefined;
+         var width = undefined;
+         if (window.innerHeight) {height = window.innerHeight;}
+         else if (document.documentElement && document.documentElement.clientHeight)
+         {height = document.documentElement.clientHeight;}
+         else { var b = document.getElementsByTagName('body')[0];
+            if (b.clientHeight) {height = b.clientHeight;}
+         };
+
+         if (window.innerWidth) {width = window.innerWidth;}
+         else if (document.documentElement && document.documentElement.clientWidth)
+         {width = document.documentElement.clientWidth;}
+         else { var b = document.getElementsByTagName('body')[0];
+            if (b.clientWidth) {width = b.clientWidth;}
+         };
+         return [width, height];
+         }());
+    JS
+
     JS_GET_USER_AGENT = <<-JS.freeze
       return navigator.userAgent;
     JS
@@ -55,6 +77,10 @@ module Applitools::Utils
     JS
 
     OVERFLOW_HIDDEN = 'hidden'.freeze
+    BROWSER_SIZE_CALCULATION_RETRIES = 3
+    VERIFY_RETRIES = 3
+    VERIFY_SLEEP_PERIOD = 1
+
 
     def current_scroll_position(executor)
         position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
@@ -66,23 +92,23 @@ module Applitools::Utils
     end
 
     def extract_viewport_size(executor)
+      Applitools::EyesLogger.info 'extract_viewport_size()'
       width = nil
       height = nil
 
-      width, height = executor.execute_script(JS_GET_VIEWPORT_SIZE)
-
-      if width.nil? || height.nil?
-        Applitools::EyesLogger.info 'Using window size as viewport size.'
-
-        width, height = *browser_size.values.map(&:ceil)
-
-        if @driver.landscape_orientation? && height > width
-          width, height = height, width
-        end
+      begin
+        width, height = executor.execute_script(JS_GET_VIEWPORT_SIZE)
+        return Applitools::Core::RectangleSize.from_any_argument width: width, height: height
+      rescue => e
+        Applitools::EyesLogger.error "Failed extracting viewport size using JavaScript: (#{e.message})"
       end
 
-      Applitools::Base::Dimension.new(width, height)
+      Applitools::EyesLogger.info 'Using window size as viewport size.'
 
+      width, height = executor.manage.window.size.to_a
+      width, height = height, width if executor.landscape_orientation? && height > width
+
+      Applitools::Core::RectangleSize.new width, height
     end
 
     def entire_page_size(executor)
@@ -112,7 +138,60 @@ module Applitools::Utils
       with_timeout(0.1) { executor.execute_script(JS_SET_OVERFLOW % { overflow:  overflow}) }
     end
 
+    def set_viewport_size(executor, viewport_size)
+      Applitools::Core::ArgumentGuard.not_nil 'viewport_size', viewport_size
+      Applitools::EyesLogger.debug "Set viewport size #{viewport_size}"
+
+      # Before resizing the window, set its position to the upper left corner (otherwise, there might not be enough
+      # "space" below/next to it and the operation won't be successful).
+      executor.manage.window.position = Selenium::WebDriver::Point.new(0, 0)
+
+      actual_viewport_size = extract_viewport_size(executor)
+
+      Applitools::EyesLogger.debug "Initial viewport size: #{actual_viewport_size}"
+
+      if actual_viewport_size == viewport_size
+        logger.info 'Required size is already set.'
+        return
+      end
+
+      browser_size_calculation_count = 0
+      while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
+        raise Applitools::TestFailedError.new 'Failed to set browser size!' \
+          " (current size: #{Applitools::Core::RectangleSize.for(executor.manage.window.size)})" unless
+            resize_attempt(executor, viewport_size)
+        browser_size_calculation_count += 1
+        if viewport_size == extract_viewport_size(executor)
+          Applitools::EyesLogger.debug "Actual viewport size #{viewport_size} 111"
+          return
+        end
+      end
+      raise Applitools::TestFailedError.new 'Failed to set viewport size'
+    end
+
+
+
     private
+
+    def resize_attempt(driver, required_viewport_size)
+      actual_viewport_size = extract_viewport_size(driver)
+      Applitools::EyesLogger.debug "Actual viewport size #{actual_viewport_size}"
+      required_browser_size = Applitools::Core::RectangleSize.for(driver.manage.window.size) - actual_viewport_size +
+          required_viewport_size
+
+      retries_left = VERIFY_RETRIES
+
+      until retries_left.zero?
+        return true if Applitools::Core::RectangleSize.for(driver.manage.window.size) == required_browser_size
+        Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
+        driver.manage.window.size = required_browser_size
+        sleep VERIFY_SLEEP_PERIOD
+        Applitools::EyesLogger.debug "Required browser size #{required_browser_size}, " \
+          "Current browser size #{Applitools::Core::RectangleSize.for(driver.manage.window.size)}"
+        retries_left -= 1
+      end
+      false
+    end
 
     def with_timeout(timeout, &block)
       raise 'You have to pass block to method with_timeout' unless block_given?
