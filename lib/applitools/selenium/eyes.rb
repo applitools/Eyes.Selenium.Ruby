@@ -17,7 +17,7 @@ module Applitools::Selenium
 
     extend Forwardable
 
-    attr_accessor :base_agent_id, :inferred_environment, :screenshot
+    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -33,7 +33,7 @@ module Applitools::Selenium
       @device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
       @stitch_mode = STICH_MODE[:scroll]
       @wait_before_screenshots = DEFAULT_WAIT_BEFORE_SCREENSHOTS
-      # @region_visibility_strategy = new MoveToRegionVisibilityStrategy(logger)
+      @region_visibility_strategy = MoveToRegionVisibilityStrategy.new
     end
 
     def open(options = {})
@@ -252,5 +252,110 @@ module Applitools::Selenium
       end
     end
 
+    def check_region(options = {})
+      element = options[:element] if options[:element]
+      tag = options[:tag] if options[:tag].present?
+      match_timeout = option[:match_timeout] if option[:mtch_timeout]
+
+      logger.info "check_region(element, #{match_timeout}, #{tag}): Ignored" and return if disabled?
+      Applitools::ArgumentGueard.not_nil 'options[:element]', element
+      logger.info "check_region(element: element, #{match_timeout}, #{tag})"
+
+      location_as_point = element.location
+
+
+
+
+
+    end
+
+
+    protected
+
+    def check_element(options = {})
+      # :element
+      # :match_timeout
+      # :tag
+      tag = options[:tag] if options[:tag].present?
+      match_timeout = options[:match_timeout] if options[:match_timeout]
+
+      eyes_element = options[:element] #check it carefully!
+      eyes_element = Applitools::Selenium::Element.new(driver, eyes_element) unless eyes_element.is_a? Applitools::Selenium::Element
+      original_overflow = nil
+      original_position_provider = position_provider
+      begin
+        self.check_frame_or_element = true
+        self.position_provider = Applitools::Selenium::ElementPositionProvider.new driver, eyes_element
+        original_overflow = eyes_element.overflow
+        eyes_element.overflow = 'hidden'
+
+        p = eyes_element.location
+        d = eyes_element.size
+
+        border_left_width = eyes_element.border_left_width
+        border_top_width = eyes_element.border_top_width
+        border_right_width = eyes_element.border_right_width
+        border_bottom_width = eyes_element.border_bottom_width
+
+        element_region = Applitools::Core::Region.new(
+          p.x + border_left_width,
+          p.y + border_top_width,
+          d.width - border_left_width - border_right_width,
+          d.height - border_top_width - border_bottom_width
+        )
+
+        logger.info "Element region: #{element_region}"
+
+        self.region_to_check = Object.new.tap do |prov|
+          prov.instance_eval do
+            define_singleton_method :region do
+              element_region
+            end
+
+            define_singleton_method :coordinate_type do
+              Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+            end
+          end
+        end
+
+        base_check_region_provider = Object.new.tap do |prov|
+          prov.instance_eval do
+            define_singleton_method :region do
+              Applitools::Core::Region::EMPTY
+            end
+
+            define_singleton_method :coordinate_type do
+              nil
+            end
+          end
+        end
+        check_window_base base_check_region_provider, tag, false, match_timeout
+      ensure
+        eyes_element.overflow = original_overflow unless original_overflow.nil?
+        self.check_frame_or_element = false
+        self.position_provider = original_position_provider
+        self.region_to_check = nil
+      end
+    end
   end
 end
+
+# checkRegion(By selector)
+# checkRegion(By selector, boolean stitchContent)
+# checkRegion(By selector, int matchTimeout, String tag)
+# checkRegion(By selector, int matchTimeout, String tag, boolean stitchContent)
+# checkRegion(By selector, String tag)
+# checkRegion(By selector, String tag, boolean stitchContent)
+# checkRegion(Region region)
+# checkRegion(final Region region, int matchTimeout, String tag)
+# checkRegion(WebElement element)
+# checkRegion(WebElement element, boolean stitchContent)
+# checkRegion(final WebElement element, int matchTimeout, String tag)
+# checkRegion(WebElement element, int matchTimeout, String tag, boolean stitchContent)
+# checkRegion(WebElement element, String tag)
+# checkRegion(WebElement element, String tag, boolean stitchContent)
+
+
+
+
+

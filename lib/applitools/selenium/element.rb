@@ -1,5 +1,32 @@
 module Applitools::Selenium
   class Element < SimpleDelegator
+
+    JS_GET_COMPUTED_STYLE_FORMATTED_STR = <<-JS.freeze
+       var elem = arguments[0];
+       var styleProp = '%s';
+       if (window.getComputedStyle) {
+       return window.getComputedStyle(elem, null)
+       .getPropertyValue(styleProp);
+       } else if (elem.currentStyle) {
+       return elem.currentStyle[styleProp];
+       } else {
+       return null;
+       };
+    JS
+
+    JS_GET_SCROLL_LEFT = "return arguments[0].scrollLeft;".freeze
+    JS_GET_SCROLL_TOP = "return arguments[0].scrollTop;".freeze
+    JS_GET_SCROLL_WIDTH = "return arguments[0].scrollWidth;".freeze
+    JS_GET_SCROLL_HEIGHT = "return arguments[0].scrollHeight;".freeze
+
+    JS_SCROLL_TO_FORMATTED_STR = <<-JS.freeze
+      arguments[0].scrollLeft = %d;
+      arguments[0].scrollTop = %d;
+    JS
+
+    JS_GET_OVERFLOW = "return arguments[0].style.overflow;".freeze
+    JS_SET_OVERFLOW_FORMATTED_STR = "arguments[0].style.overflow = '%s'".freeze
+
     TRACE_PREFIX = 'EyesWebElement'.freeze
 
     def initialize(driver, element)
@@ -74,6 +101,58 @@ module Applitools::Selenium
 
     def find_elements(*args)
       super(*args).map { |e| self.class.new driver, e }
+    end
+
+    def overflow
+      driver.execute_script(JS_GET_OVERFLOW, self).to_s;
+    end
+
+    def overflow=(overflow)
+      driver.execute_script(JS_SET_OVERFLOW_FORMATTED_STR % overflow, self);
+    end
+
+    def computed_style(prop_style)
+      driver.execute_script(JS_GET_COMPUTED_STYLE_FORMATTED_STR % prop_style, self).to_s
+    end
+
+    def computed_style_integer(prop_style)
+      computed_style(prop_style).gsub(/px/, '').round
+    end
+
+    def border_left_width
+      computed_style_integer(:'border-left-width')
+    end
+
+    def border_top_width
+      computed_style_integer(:'border-top-width')
+    end
+
+    def border_right_width
+      computed_style_integer(:'border-right-width')
+    end
+
+    def border_bottom_width
+      computed_style_integer(:'border-bottom-width')
+    end
+
+    def scroll_left
+      Integer driver.execute_script(JS_GET_SCROLL_LEFT, self).to_s
+    end
+
+    def scroll_top
+      Integer driver.execute_script(JS_GET_SCROLL_TOP, self).to_s
+    end
+
+    def scroll_width
+      Integer driver.execute_script(JS_GET_SCROLL_WIDTH, self).to_s
+    end
+
+    def scroll_height
+      Integer driver.execute_script(JS_GET_SCROLL_HEIGHT, self).to_s
+    end
+
+    def scroll_to(location)
+      driver.execute_script JS_SCROLL_TO_FORMATTED_STR % [location.x, location.y], self
     end
 
     private

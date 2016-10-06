@@ -92,13 +92,15 @@ module Applitools::Utils
     end
 
     def extract_viewport_size(executor)
-      Applitools::EyesLogger.info 'extract_viewport_size()'
+      Applitools::EyesLogger.debug 'extract_viewport_size()'
       width = nil
       height = nil
 
       begin
         width, height = executor.execute_script(JS_GET_VIEWPORT_SIZE)
-        return Applitools::Core::RectangleSize.from_any_argument width: width, height: height
+        result = Applitools::Core::RectangleSize.from_any_argument width: width, height: height
+        Applitools::EyesLogger.debug "Viewport size is #{result}."
+        return result
       rescue => e
         Applitools::EyesLogger.error "Failed extracting viewport size using JavaScript: (#{e.message})"
       end
@@ -108,7 +110,9 @@ module Applitools::Utils
       width, height = executor.manage.window.size.to_a
       width, height = height, width if executor.landscape_orientation? && height > width
 
-      Applitools::Core::RectangleSize.new width, height
+      result = Applitools::Core::RectangleSize.new width, height
+      Applitools::EyesLogger.debug "Viewport size is #{result}."
+      result
     end
 
     def entire_page_size(executor)
@@ -140,7 +144,7 @@ module Applitools::Utils
 
     def set_viewport_size(executor, viewport_size)
       Applitools::Core::ArgumentGuard.not_nil 'viewport_size', viewport_size
-      Applitools::EyesLogger.debug "Set viewport size #{viewport_size}"
+      Applitools::EyesLogger.info "Set viewport size #{viewport_size}"
 
       # Before resizing the window, set its position to the upper left corner (otherwise, there might not be enough
       # "space" below/next to it and the operation won't be successful).
@@ -148,7 +152,7 @@ module Applitools::Utils
 
       actual_viewport_size = extract_viewport_size(executor)
 
-      Applitools::EyesLogger.debug "Initial viewport size: #{actual_viewport_size}"
+      Applitools::EyesLogger.info "Initial viewport size: #{actual_viewport_size}"
 
       if actual_viewport_size == viewport_size
         logger.info 'Required size is already set.'
@@ -162,7 +166,7 @@ module Applitools::Utils
             resize_attempt(executor, viewport_size)
         browser_size_calculation_count += 1
         if viewport_size == extract_viewport_size(executor)
-          Applitools::EyesLogger.debug "Actual viewport size #{viewport_size} 111"
+          Applitools::EyesLogger.info "Actual viewport size #{viewport_size}."
           return
         end
       end
@@ -175,7 +179,7 @@ module Applitools::Utils
 
     def resize_attempt(driver, required_viewport_size)
       actual_viewport_size = extract_viewport_size(driver)
-      Applitools::EyesLogger.debug "Actual viewport size #{actual_viewport_size}"
+      Applitools::EyesLogger.info "Actual viewport size #{actual_viewport_size}."
       required_browser_size = Applitools::Core::RectangleSize.for(driver.manage.window.size) - actual_viewport_size +
           required_viewport_size
 
@@ -183,10 +187,10 @@ module Applitools::Utils
 
       until retries_left.zero?
         return true if Applitools::Core::RectangleSize.for(driver.manage.window.size) == required_browser_size
-        Applitools::EyesLogger.debug "Trying to set browser size to #{required_browser_size}"
+        Applitools::EyesLogger.info "Trying to set browser size to #{required_browser_size}."
         driver.manage.window.size = required_browser_size
         sleep VERIFY_SLEEP_PERIOD
-        Applitools::EyesLogger.debug "Required browser size #{required_browser_size}, " \
+        Applitools::EyesLogger.info "Required browser size #{required_browser_size}, " \
           "Current browser size #{Applitools::Core::RectangleSize.for(driver.manage.window.size)}"
         retries_left -= 1
       end
