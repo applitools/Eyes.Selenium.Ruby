@@ -23,11 +23,11 @@ module Applitools::Core
     abstract_method :intersected_region, false
 
     def convert_region_location(region, from, to)
-      Applittools::Core::ArgumentGuard.not_nil region, 'region'
-      Applittools::Core::ArgumentGuard.is_a? region, 'region', Applitools::Core::Region
-      return Region.new(0,0,0,0) if region.is_empty?
-      Applittools::Core::ArgumentGuard.not_nil from, 'from'
-      Applittools::Core::ArgumentGuard.not_nil to, 'to'
+      Applitools::Core::ArgumentGuard.not_nil region, 'region'
+      Applitools::Core::ArgumentGuard.is_a? region, 'region', Applitools::Core::Region
+      return Region.new(0,0,0,0) if region.empty?
+      Applitools::Core::ArgumentGuard.not_nil from, 'from'
+      Applitools::Core::ArgumentGuard.not_nil to, 'to'
 
       updated_location = convert_location(region.location, from, to)
       Region.new updated_location.x, updated_location.y, region.width, region.height

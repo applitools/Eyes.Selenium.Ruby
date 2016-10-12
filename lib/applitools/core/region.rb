@@ -30,6 +30,10 @@ module Applitools::Core
       @left == EMPTY.left && @top == EMPTY.top && @width == EMPTY.width && @height == EMPTY.height
     end
 
+    def size
+      Applitools::Core::RectangleSize.new width, height
+    end
+
     def location
       Location.new left, top
     end

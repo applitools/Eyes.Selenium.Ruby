@@ -150,7 +150,6 @@ module Applitools::Selenium
       #         false,
       #         matchTimeout
       # );
-
     end
 
     def title
@@ -165,6 +164,16 @@ module Applitools::Selenium
       Applitools::Core::ArgumentGuard.not_nil 'web_driver', web_driver
       Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(driver)
     end
+
+    def check_region(*args)
+      options = Applitools::Utils.extract_options! args
+      if options.delete(:stitch_content)
+        check_element args, options
+      else
+        check_region_ args, options
+      end
+    end
+
 
     private
 
@@ -186,14 +195,20 @@ module Applitools::Selenium
       begin
         if check_frame_or_element
           logger.info 'Check frame/element requested'
+          algo = Applitools::Selenium::FullPageCaptureAlgorithm.new
+          #entire_frame_or_element = algo.get_stiched_region(driver, region_to_check, position_provider, position_provider, scale_provider, cut_provider, wait_before_screenshots) #ЗАЧЕМ КУТ ПРОВАЙДЕР???
+          entire_frame_or_element = algo.get_stiched_region(driver, region_to_check, position_provider, position_provider, scale_provider, wait_before_screenshots) #ЗАЧЕМ КУТ ПРОВАЙДЕР???
+          logger.info 'Building screenshot object...'
+          # self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new driver: driver, image: entire_frame_or_element, region: ЗАЧЕМ_РЕКТАНГЛЕ_САЙЗ????
+          self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new entire_frame_or_element, driver: driver, entire_frame_size: Applitools::Core::Region.new(0,0,500, 500)
         elsif force_full_page_screenshot
           logger.info 'Full page screenshot requested'
         else
           logger.info 'Screenshot requested...'
-          image = driver.visible_screenshot
+          image = Applitools::Core::Screenshot.new driver.visible_screenshot.to_datastream.to_blob
           scale_provider.scale_image(image)
           # cut_provider.cut(image)
-          self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new driver: driver, image: image
+          self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
         end
       ensure
         begin
@@ -252,34 +267,68 @@ module Applitools::Selenium
       end
     end
 
-    def check_region(options = {})
-      element = options[:element] if options[:element]
+    protected
+
+    def check_region_(element_or_selector, options = {})
+      # :element
+      # :selector
+      # :tag
+      # :match_timeout
+      # :stitch_content
+      selector = element_or_selector if Applitools::Selenium::Driver::FINDERS.keys.include? element_or_selector.first
+      element = element_or_selector.first if element_or_selector.first.instance_of? Applitools::Selenium::Element
+      element = driver.find_element(*selector) unless element
+      raise Applitools::EyesIllegalArgument.new 'You should pass :selector or :element!' unless element
+
       tag = options[:tag] if options[:tag].present?
-      match_timeout = option[:match_timeout] if option[:mtch_timeout]
+      match_timeout = options[:match_timeout] || USE_DEFAULT_MATCH_TIMEOUT
 
       logger.info "check_region(element, #{match_timeout}, #{tag}): Ignored" and return if disabled?
-      Applitools::ArgumentGueard.not_nil 'options[:element]', element
+      Applitools::Core::ArgumentGuard.not_nil 'options[:element]', element
       logger.info "check_region(element: element, #{match_timeout}, #{tag})"
 
       location_as_point = element.location
+      region_visibility_strategy.move_to_region position_provider, Applitools::Core::Location.new(location_as_point.x, location_as_point.y)
 
+      region_provider = Object.new.tap do |prov|
+        prov.instance_eval do
+          define_singleton_method :region do
+            p = element.location
+            d = element.size
+            Applitools::Core::Region.from_location_size p, d
+          end
 
+          define_singleton_method :coordinate_type do
+            Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+          end
+        end
+      end
 
+      result = check_window_base region_provider, tag, false, match_timeout
 
-
+      logger.info 'Done! trying to scroll back to original position...'
+      region_visibility_strategy.return_to_original_position position_provider
+      logger.info 'Done!'
+      result
     end
 
-
-    protected
-
-    def check_element(options = {})
+    def check_element(element_or_selector, options = {})
+      # :selector
       # :element
       # :match_timeout
       # :tag
+      selector = element_or_selector if Applitools::Selenium::Driver::FINDERS.keys.include? element_or_selector.first
       tag = options[:tag] if options[:tag].present?
-      match_timeout = options[:match_timeout] if options[:match_timeout]
+      match_timeout = options[:match_timeout] || USE_DEFAULT_MATCH_TIMEOUT
 
-      eyes_element = options[:element] #check it carefully!
+      if disabled?
+        logger.info "check_element(#{options.inject([]) {|res, p| res << "#{p.first}: #{p.last}"}.join(', ')}): Ignored"
+        return
+      end
+
+      eyes_element = element_or_selector.first if element_or_selector.first.instance_of? Applitools::Selenium::Element
+      eyes_element = driver.find_element(*selector) unless eyes_element
+      raise Applitools::EyesIllegalArgument.new 'You should pass :selector or :element!' unless eyes_element
       eyes_element = Applitools::Selenium::Element.new(driver, eyes_element) unless eyes_element.is_a? Applitools::Selenium::Element
       original_overflow = nil
       original_position_provider = position_provider
@@ -355,6 +404,13 @@ end
 # checkRegion(WebElement element, String tag)
 # checkRegion(WebElement element, String tag, boolean stitchContent)
 
+
+#checkElement(By selector)
+#checkElement(By selector, String tag)
+#checkElement(By selector, int matchTimeout, String tag)
+#checkElement(WebElement element)
+#checkElement(final WebElement element, int matchTimeout, String tag)
+#checkElement(WebElement element, String tag)
 
 
 

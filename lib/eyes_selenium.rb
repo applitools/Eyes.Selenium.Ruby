@@ -14,6 +14,7 @@ module Applitools
   class OutOfBoundsException < EyesError; end;
   class EyesDriverOperationException < EyesError; end;
   class EyesNotOpenException < EyesError; end;
+  class EyesCoordinateTypeConversionException < EyesError; end;
 
   class AbstractMethodCalled < EyesError
     attr_accessor :method_name, :object

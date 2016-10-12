@@ -1,4 +1,4 @@
-module Applitoools::Selenium
+module Applitools::Selenium
   class ElementPositionProvider
     extend Forwardable
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=

@@ -116,7 +116,7 @@ module Applitools::Selenium
     end
 
     def computed_style_integer(prop_style)
-      computed_style(prop_style).gsub(/px/, '').round
+      computed_style(prop_style).gsub(/px/, '').to_i.round
     end
 
     def border_left_width

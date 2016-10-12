@@ -8,9 +8,9 @@ module Applitools::Core
           new args[0], args[1]
         elsif args.size == 1
           value = args.shift
-          from_hash(value) if value is_a? Hash
-          from_array(value) if value is_a? Array
-          from_string(value) if value is_a? String
+          from_hash(value) if value.is_a? Hash
+          from_array(value) if value.is_a? Array
+          from_string(value) if value.is_a? String
           from_struct(value) if value.respond_to?(:x) & value.respond_to?(:y)
         end
       end

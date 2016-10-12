@@ -104,7 +104,8 @@ module Applitools::Selenium
       Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
       sleep(wait_before_screenshots)
       Applitools::EyesLogger.debug 'Finished waiting.'
-      Applitools::Utils::ImageUtils::Screenshot.new driver.screenshot_as(:png)
+      # Applitools::Utils::ImageUtils::Screenshot.new driver.screenshot_as(:png)
+      Applitools::Core::Screenshot.new driver.screenshot_as(:png)
     end
 
     def mouse

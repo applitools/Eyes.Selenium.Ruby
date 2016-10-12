@@ -88,7 +88,7 @@ module Applitools::Utils
     end
 
     def scroll_to(executor, point)
-      executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }, 0.25)
+      with_timeout(0.25) {executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top })}
     end
 
     def extract_viewport_size(executor)

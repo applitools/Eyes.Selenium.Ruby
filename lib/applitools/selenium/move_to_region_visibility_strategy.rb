@@ -9,7 +9,7 @@ module Applitools::Selenium
       logger.info 'Getting current position state...'
       self.original_position = position_provider.state
       logger.info 'Done! Setting position...'
-      position_provider.position = location``
+      position_provider.position = location
       logger.info 'Done!'
     end
 

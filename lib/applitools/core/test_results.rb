@@ -14,11 +14,13 @@ module Applitools::Core
     end
 
     def passed?
-      !is_new && !(mismatches > 0) && !(missing > 0)
+      return !(mismatches > 0) && !(missing > 0) unless new?
+      false
     end
 
     def failed?
-      !is_new && (mismatches > 0) && (missing > 0)
+      return (mismatches > 0) || (missing > 0) unless new?
+      false
     end
 
     def new?

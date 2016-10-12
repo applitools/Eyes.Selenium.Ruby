@@ -6,27 +6,55 @@ module Applitools::Selenium
         entire_frame: 'ENTIRE_FRAME'
     }.freeze
 
-    # public EyesWebDriverScreenshot(Logger logger,
-    #                                       EyesWebDriver driver,
-    #                                                     BufferedImage image,
-    #                                                                           RectangleSize entireFrameSize)
-    #
-    # public EyesWebDriverScreenshot(Logger logger, EyesWebDriver driver,
-    #                                                             BufferedImage image)
-    #
-    # public EyesWebDriverScreenshot(Logger logger, EyesWebDriver driver,
-    #                                                             BufferedImage image,
-    #                                                                           ScreenshotType screenshotType,
-    #                                                                                          Location frameLocationInScreenshot)
+    INIT_CALLBACKS = {
+        [:driver, :screenshot_type, :frame_location_in_screenshot].sort => :initialize_main,
+        [:driver].sort => :initialize_main,
+        [:driver, :entire_frame_size].sort => :initialize_for_element
+
+    }.freeze
+
     attr_accessor :driver
 
-    def initialize(options = {})
-      # options = {screenshot_type: SCREENSHOT_TYPES[:viewport]}.merge options
-      Applitools::Core::ArgumentGuard.hash options, 'options', [:driver, :image]
+    class << self
+      alias _new new
+
+      def new(*args)
+        image = args.shift
+        raise Applitools::EyesIllegalArgument.new "image is expected to be Applitools::Core::Screenshot!" unless image.is_a? Applitools::Core::Screenshot
+        if (options = args.first).is_a? Hash
+          _new(image).tap do |obj|
+             callback = INIT_CALLBACKS[options.keys.sort]
+             if obj.respond_to? callback
+               obj.send callback, options
+             else
+               raise Applitools::EyesIllegalArgument.new 'Can\'t find an appropriate initializer!'
+             end
+          end
+        else
+          raise Applitools::EyesIllegalArgument.new "#{self.class}.initialize(): Hash is expected as an argument!"
+        end
+      end
+    end
+
+    def initialize_for_element(options = {})
       Applitools::Core::ArgumentGuard.not_nil options[:driver], 'options[:driver]'
-      Applitools::Core::ArgumentGuard.not_nil options[:image], 'options[:image]'
+      Applitools::Core::ArgumentGuard.not_nil options[:entire_frame_size], 'options[:entire_frame_size]'
+      entire_frame_size = options[:entire_frame_size]
       self.driver = options[:driver]
-      self.image = options[:image]
+      self.frame_chain = driver.frame_chain
+      self.screenshot_type = SCREENSHOT_TYPES[:entire_frame]
+      self.scroll_position = Applitools::Core::Location.new 0,0
+      self.frame_location_in_screenshot = Applitools::Core::Location.new 0,0
+      self.frame_window = Applitools::Core::Region.new(0,0,entire_frame_size.width, entire_frame_size.height)
+    end
+
+    def initialize_main(options = {})
+      # options = {screenshot_type: SCREENSHOT_TYPES[:viewport]}.merge options
+
+      Applitools::Core::ArgumentGuard.hash options, 'options', [:driver]
+      Applitools::Core::ArgumentGuard.not_nil options[:driver], 'options[:driver]'
+
+      self.driver = options[:driver]
       self.position_provider = Applitools::Selenium::ScrollPositionProvider.new driver
 
 
@@ -67,6 +95,8 @@ module Applitools::Selenium
           frame_location_in_screenshot.offset Applitools::Core::Location.for(-scroll_position.x, -scroll_position.y) if
               screenshot_type == SCREENSHOT_TYPES[:viewport]
         end
+      else
+        self.frame_location_in_screenshot = options[:frame_location_in_screenshot] if options[:frame_location_in_screenshot]
       end
 
       logger.info 'Calculating frame window..'
@@ -79,8 +109,15 @@ module Applitools::Selenium
       logger.info 'Done!'
     end
 
-    def conver_location
+    def convert_location(location, from, to)
+      Applitools::Core::ArgumentGuard.not_nil location, 'location'
+      Applitools::Core::ArgumentGuard.not_nil from, 'from'
+      Applitools::Core::ArgumentGuard.not_nil to, 'to'
 
+      result = Applitools::Core::Location.for location
+      return result if from == to
+
+      result
     end
 
     def frame_chain
@@ -91,16 +128,54 @@ module Applitools::Selenium
 
     end
 
-    def intersected_region
+    def intersected_region(region, original_coordinate_types, result_coordinate_types)
+      return Applitools::Core::Region::EMPTY if region.empty?
+      intersected_region = convert_region_location region, original_coordinate_types, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
 
+      case original_coordinate_types
+        when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+        when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+          intersected_region.intersect frame_window
+        when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+          intersected_region.intersect Applitools::Core::Region.new(0,0, image.width, image.height)
+        else
+          raise Applitools::EyesCoordinateTypeConversionException.new "Unknown coordinates type: #{original_coordinate_types}"
+      end
+
+      return intersected_region if intersected_region.empty?
+      convert_region_location(intersected_region, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is], result_coordinate_types)
     end
 
     def location_in_screenshot
 
     end
 
-    def sub_screenshot
+    def sub_screenshot(region, coordinate_type, throw_if_clipped = false)
+      logger.info "get_subscreenshot(#{region}, #{coordinate_type}, #{throw_if_clipped})"
+      Applitools::Core::ArgumentGuard.not_nil region, 'region'
+      Applitools::Core::ArgumentGuard.not_nil coordinate_type, 'coordinate_type'
 
+      as_is_subscreenshot_region = intersected_region region, coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+      raise Applitools::OutOfBoundsException.new "Region #{region} (#{coordinate_type}) is out" \
+        " of screenshot bounds [#{frame_window}]" if
+          as_is_subscreenshot_region.empty? || (throw_if_clipped && !as_is_subscreenshot_region.size == region.size)
+
+      sub_screenshot_image = Applitools::Core::Screenshot.new image.crop(as_is_subscreenshot_region.left,
+        as_is_subscreenshot_region.top, as_is_subscreenshot_region.width,
+        as_is_subscreenshot_region.height).to_datastream.to_blob
+
+      context_as_is_region_location = convert_location as_is_subscreenshot_region.location,
+                                                       Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is],
+                                                       Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+
+
+      frame_location_in_sub_screenshot = Applitools::Core::Location.new -context_as_is_region_location.x,
+          -context_as_is_region_location.y
+      result = self.class.new sub_screenshot_image, driver: driver, screenshot_type: screenshot_type,
+                              frame_location_in_screenshot: frame_location_in_sub_screenshot
+
+      logger.info 'Done!'
+      result
     end
 
     private
