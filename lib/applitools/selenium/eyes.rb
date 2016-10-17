@@ -182,6 +182,7 @@ module Applitools::Selenium
                   :scale_provider
 
     def capture_screenshot
+      image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver
       logger.info 'Getting screenshot (capture_screenshot() has been invoked)'
 
       update_scaling_params
@@ -196,16 +197,21 @@ module Applitools::Selenium
         if check_frame_or_element
           logger.info 'Check frame/element requested'
           algo = Applitools::Selenium::FullPageCaptureAlgorithm.new
-          #entire_frame_or_element = algo.get_stiched_region(driver, region_to_check, position_provider, position_provider, scale_provider, cut_provider, wait_before_screenshots) #ЗАЧЕМ КУТ ПРОВАЙДЕР???
-          entire_frame_or_element = algo.get_stiched_region(driver, region_to_check, position_provider, position_provider, scale_provider, wait_before_screenshots) #ЗАЧЕМ КУТ ПРОВАЙДЕР???
+          entire_frame_or_element = algo.get_stiched_region(image_provider: image_provider,
+                                                            region_to_check: region_to_check,
+                                                            origin_provider: position_provider,
+                                                            position_provider: position_provider,
+                                                            scale_provider: scale_provider,
+                                                            cut_provider: nil,
+                                                            wait_before_screenshots: wait_before_screenshots)
           logger.info 'Building screenshot object...'
-          # self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new driver: driver, image: entire_frame_or_element, region: ЗАЧЕМ_РЕКТАНГЛЕ_САЙЗ????
-          self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new entire_frame_or_element, driver: driver, entire_frame_size: Applitools::Core::Region.new(0,0,500, 500)
+          self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new entire_frame_or_element,
+              driver: driver, entire_frame_size: Applitools::Core::Region.new(0,0,500, 500)
         elsif force_full_page_screenshot
           logger.info 'Full page screenshot requested'
         else
           logger.info 'Screenshot requested...'
-          image = Applitools::Core::Screenshot.new driver.visible_screenshot.to_datastream.to_blob
+          image = image_provider.take_screenshot
           scale_provider.scale_image(image)
           # cut_provider.cut(image)
           self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
