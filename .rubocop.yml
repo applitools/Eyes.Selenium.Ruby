@@ -23,6 +23,9 @@ Metrics/AbcSize:
 Metrics/BlockNesting:
   Max: 4
 
+Metrics/BlockLength:
+  Max: 50
+
 Style/SignalException:
   EnforcedStyle: only_raise
 
