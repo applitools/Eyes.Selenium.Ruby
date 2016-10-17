@@ -1,4 +1,3 @@
-require 'pry'
 module Applitools::Selenium
   class Element < SimpleDelegator
     TRACE_PREFIX = 'EyesWebElement'.freeze
