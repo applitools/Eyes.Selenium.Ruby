@@ -84,37 +84,9 @@ module Applitools::Core
       Applitools::Core::Location.for(mid_x.round, mid_y.round)
     end
 
-    def subregions(subregion_size)
-      [].tap do |subregions|
-        current_top = @top
-        bottom = @top + @height
-        right = @left + @width
-        subregion_width = [@width, subregion_size.width].min
-        subregion_height = [@height, subregion_size.height].min
-
-        while current_top < bottom
-          current_bottom = current_top + subregion_height
-          if current_bottom > bottom
-            current_bottom = bottom
-            current_top = current_bottom - subregion_height
-          end
-
-          current_left = @left
-          while current_left < right
-            current_right = current_left + subregion_width
-            if current_right > right
-              current_right = right
-              current_left = current_right - subregion_width
-            end
-
-            subregions << Region.new(current_left, current_top, subregion_width, subregion_height)
-
-            current_left += subregion_width
-          end
-
-          current_top += subregion_height
-        end
-      end
+    def sub_regions(subregion_size, is_fixed_size = false)
+      return self.class.sub_regions_with_fixed_size self, subregion_size if is_fixed_size
+      self.class.sub_regions_with_varying_size self, subregion_size
     end
 
     def to_hash
@@ -132,6 +104,76 @@ module Applitools::Core
 
     def size_equals?(region)
       self.width == region.width && self.height == region.height
+    end
+
+    class << self
+      def sub_regions_with_fixed_size(container_region, sub_region)
+        Applitools::Core::ArgumentGuard.not_nil container_region, 'container_region'
+        Applitools::Core::ArgumentGuard.not_nil sub_region, 'sub_region'
+
+        Applitools::Core::ArgumentGuard.greater_than_zero(sub_region.width, 'sub_region.width')
+        Applitools::Core::ArgumentGuard.greater_than_zero(sub_region.height, 'sub_region.height')
+
+        sub_region_width = sub_region.width
+        sub_region_height = sub_region.height
+
+        # Normalizing.
+        sub_region_width = container_region.width if sub_region_width > container_region.width
+        sub_region_height = container_region.height if sub_region_height > container_region.height
+
+        return Enumerator(1) do |y|
+          y << sub_region
+        end if sub_region_width == container_region.width && sub_region_height == sub_region_height
+
+        current_top = container_region.top
+        bottom = container_region.top + container_region.height - 1
+        right = container_region.left + container_region.width - 1
+        Enumerator.new do |y|
+          while current_top <= bottom
+            current_top = (bottom - sub_region_height) + 1 if current_top + sub_region_height > bottom
+            current_left = container_region.left
+            while current_left <= right
+              current_left = (rught - sub_region_width) + 1 if current_left + sub_region_width > right
+              y << new(current_left, current_top, sub_region_width, sub_region_height)
+              current_left = current_left + sub_region_width
+            end
+            current_top = current_top + sub_region_height
+          end
+        end
+      end
+
+
+      def sub_regions_with_varying_size(container_region, sub_region)
+        Applitools::Core::ArgumentGuard.not_nil container_region, 'container_region'
+        Applitools::Core::ArgumentGuard.not_nil sub_region, 'sub_region'
+
+        Applitools::Core::ArgumentGuard.greater_than_zero(sub_region.width, 'sub_region.width')
+        Applitools::Core::ArgumentGuard.greater_than_zero(sub_region.height, 'sub_region.height')
+
+        current_top = container_region.top
+        bottom = container_region.top + container_region.height
+        right = container_region.left + container_region.width
+
+        Enumerator.new do |y|
+          while current_top < bottom
+            current_bottom = current_top + sub_region.height
+            current_bottom = bottom if (current_bottom > bottom)
+            current_left = container_region.left
+            while current_left < right
+              current_right = current_left + sub_region.width
+              currentRight = right if current_right > right
+
+              current_height = current_bottom - current_top
+              current_width = current_right - current_left
+
+              y << new(current_left, current_top, current_width, current_height)
+
+              current_left = current_left + sub_region.width
+            end
+            current_top = current_top + sub_region.height
+          end
+        end
+      end
     end
   end
 end

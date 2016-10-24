@@ -440,6 +440,7 @@ module Applitools::Core
       region = region_provider.region
 
       unless region.empty?
+        binding.pry
         screenshot = screenshot.sub_screenshot region, region_provider.coordinate_type, false
       end
 

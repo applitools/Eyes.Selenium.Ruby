@@ -197,7 +197,7 @@ module Applitools::Selenium
     def raises_error
       yield if block_given?
     rescue => e
-      raise EyesDriverOperationException.new e.message
+      raise Applitools::EyesDriverOperationException.new e.message
     end
 
     def bridge

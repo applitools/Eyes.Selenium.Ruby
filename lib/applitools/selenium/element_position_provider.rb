@@ -20,17 +20,17 @@ module Applitools::Selenium
 
     def entire_size
       logger.info 'entire_size()'
-      result = Applitools::Core::RectangleSize.new(element.scroll_width, scroll_height)
+      result = Applitools::Core::RectangleSize.new(element.scroll_width, element.scroll_height)
       logger.info "Entire size: #{result}"
       result
     end
 
     def state
-
+      current_position
     end
 
-    def restore_state()
-
+    def restore_state(value)
+      self.position = value
     end
 
     def position=(location)

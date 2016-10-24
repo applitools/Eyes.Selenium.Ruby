@@ -116,16 +116,58 @@ module Applitools::Selenium
 
       result = Applitools::Core::Location.for location
       return result if from == to
-
+      if frame_chain.size.zero? && screenshot_type == SCREENSHOT_TYPES[:entire_frame]
+        if (from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative] ||
+            from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]) &&
+            to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+          result.offset frame_location_in_screenshot
+        elsif from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is] &&
+            (to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative] ||
+             to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is])
+          result.offset_negative frame_location_in_screenshot
+        end
+      else
+        case from
+          when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+            case to
+              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+                result.offset scroll_position
+              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+                result.offset frame_location_in_screenshot
+            else
+              raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
+            end
+          when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+            case to
+              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+                # binding.pry
+                result.offset_negative scroll_position
+                # result.offset frame_location_in_screenshot
+                # binding.pry
+              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+                result.offset_negative scroll_position
+            else
+              raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
+            end
+          when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+            case to
+              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+                result.offset_negative frame_location_in_screenshot
+                result.offset scroll_position
+              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+                result.offset_negative frame_location_in_screenshot
+            else
+              raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
+            end
+        else
+          raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
+        end
+      end
       result
     end
 
     def frame_chain
-
-    end
-
-    def frame_window
-
+      Applitools::Core::FrameChain.new other: @frame_chain
     end
 
     def intersected_region(region, original_coordinate_types, result_coordinate_types)

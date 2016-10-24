@@ -47,6 +47,10 @@ module Applitools::Core
 
     TOP_LEFT = Location.new(0, 0)
 
+    def to_s
+      "#{x} x #{y}"
+    end
+
     def ==(other)
       return super.==(other) unless other.is_a?(Location)
       @x == other.x && @y == other.y
@@ -69,6 +73,11 @@ module Applitools::Core
     def offset(other)
       @x += other.x
       @y += other.y
+    end
+
+    def offset_negative(other)
+      @x -= other.x
+      @y -= other.y
     end
   end
 end

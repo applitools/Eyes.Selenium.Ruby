@@ -104,7 +104,7 @@ module Applitools::Selenium
     end
 
     def overflow
-      driver.execute_script(JS_GET_OVERFLOW, self).to_s;
+      driver.execute_script(JS_GET_OVERFLOW, __getobj__).to_s;
     end
 
     def overflow=(overflow)

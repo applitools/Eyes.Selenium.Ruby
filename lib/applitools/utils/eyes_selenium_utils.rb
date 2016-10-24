@@ -148,14 +148,18 @@ module Applitools::Utils
 
       # Before resizing the window, set its position to the upper left corner (otherwise, there might not be enough
       # "space" below/next to it and the operation won't be successful).
-      executor.manage.window.position = Selenium::WebDriver::Point.new(0, 0)
+      begin
+        executor.manage.window.position = Selenium::WebDriver::Point.new(0, 0)
+      rescue Selenium::WebDriver::Error::UnsupportedOperationError => e
+        Applitools::EyesLogger.error e.message << '\n Continue...'
+      end
 
       actual_viewport_size = extract_viewport_size(executor)
 
       Applitools::EyesLogger.info "Initial viewport size: #{actual_viewport_size}"
 
       if actual_viewport_size == viewport_size
-        logger.info 'Required size is already set.'
+        Applitools::EyesLogger.info 'Required size is already set.'
         return
       end
 

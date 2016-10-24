@@ -17,7 +17,7 @@ module Applitools::Selenium
 
     extend Forwardable
 
-    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy
+    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy, :force_full_page_screenshot
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -25,15 +25,15 @@ module Applitools::Selenium
     def initialize(server_url = Applitools::Connectivity::ServerConnector::DEFAULT_SERVER_URL)
       super
       self.base_agent_id = "eyes.selenium.ruby/#{Applitools::VERSION})".freeze
-      @check_frame_or_element = false
-      @region_to_check = nil
-      @force_full_page_screenshot = false
-      @dont_get_title = false
-      @hide_scrollbars = false
-      @device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
-      @stitch_mode = STICH_MODE[:scroll]
-      @wait_before_screenshots = DEFAULT_WAIT_BEFORE_SCREENSHOTS
-      @region_visibility_strategy = MoveToRegionVisibilityStrategy.new
+      self.check_frame_or_element = false
+      self.region_to_check = nil
+      self.force_full_page_screenshot = false
+      self.dont_get_title = false
+      self.hide_scrollbars = false
+      self.device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
+      self.stitch_mode = STICH_MODE[:scroll]
+      self.wait_before_screenshots = DEFAULT_WAIT_BEFORE_SCREENSHOTS
+      self.region_visibility_strategy = MoveToRegionVisibilityStrategy.new
     end
 
     def open(options = {})
@@ -177,12 +177,15 @@ module Applitools::Selenium
 
     private
 
-    attr_accessor :check_frame_or_element, :region_to_check, :force_full_page_screenshot, :dont_get_title,
+    attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
                   :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider,
                   :scale_provider
 
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver
+      eyes_screenshot_factory = ->(image) {
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+      }
       logger.info 'Getting screenshot (capture_screenshot() has been invoked)'
 
       update_scaling_params
@@ -197,23 +200,53 @@ module Applitools::Selenium
         if check_frame_or_element
           logger.info 'Check frame/element requested'
           algo = Applitools::Selenium::FullPageCaptureAlgorithm.new
+
           entire_frame_or_element = algo.get_stiched_region(image_provider: image_provider,
                                                             region_to_check: region_to_check,
                                                             origin_provider: position_provider,
                                                             position_provider: position_provider,
                                                             scale_provider: scale_provider,
                                                             cut_provider: nil,
-                                                            wait_before_screenshots: wait_before_screenshots)
+                                                            wait_before_screenshots: wait_before_screenshots,
+                                                            eyes_screenshot_factory: eyes_screenshot_factory
+                                                           )
+
           logger.info 'Building screenshot object...'
           self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new entire_frame_or_element,
-              driver: driver, entire_frame_size: Applitools::Core::Region.new(0,0,500, 500)
+              driver: driver,
+              entire_frame_size: Applitools::Core::RectangleSize.new(entire_frame_or_element.width,
+                                                                     entire_frame_or_element.height)
         elsif force_full_page_screenshot
           logger.info 'Full page screenshot requested'
+          original_frame = driver.frame_chain
+          driver.switch_to.default_content
+          algo = Applitools::Selenium::FullPageCaptureAlgorithm.new
+          region_provider = Object.new
+          region_provider.instance_eval do
+            def region
+              Applitools::Core::Region::EMPTY
+            end
+
+            def coordinate_type
+              nil
+            end
+          end
+          full_page_image = algo.get_stiched_region image_provider: image_provider,
+                                  region_to_check: region_provider,
+                                  origin_provider: Applitools::Selenium::ScrollPositionProvider.new(driver),
+                                  position_provider: position_provider,
+                                  scale_provider: scale_provider,
+                                  cut_provider: nil,
+                                  wait_before_screenshots: wait_before_screenshots,
+                                  eyes_screenshot_factory: eyes_screenshot_factory
+
+          # driver.switch_to.frame original_frame
+          Applitools::Selenium::EyesWebDriverScreenshot.new full_page_image, driver: driver
         else
           logger.info 'Screenshot requested...'
           image = image_provider.take_screenshot
-          scale_provider.scale_image(image)
-          # cut_provider.cut(image)
+          scale_provider.scale_image(image) if scale
+          cut_provider.cut(image) if cut_provider
           self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
         end
       ensure
@@ -232,6 +265,8 @@ module Applitools::Selenium
       begin
         Applitools::Utils::EyesSeleniumUtils.set_viewport_size driver, value
       rescue => e
+        logger.error e.class
+        logger.error e.message
         raise Applitools::TestFailedError.new 'Failed to set viewport size!'
       ensure
         # driver.switch_to.frames(original_frame)

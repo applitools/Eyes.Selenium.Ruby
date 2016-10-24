@@ -11,7 +11,7 @@ module Applitools::Selenium
     end
 
     def scale_image(image)
-
+      image
     end
   end
 end

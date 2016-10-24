@@ -3,6 +3,12 @@ module Applitools::Core
     extend Forwardable
     def_delegators :header, :width, :height
 
+    class << self
+      def from_region(region)
+        new ChunkyPNG::Image.new(region.width, region.height).to_blob
+      end
+    end
+
     def initialize(image)
       @datastream = ChunkyPNG::Datastream.from_string image
     end
