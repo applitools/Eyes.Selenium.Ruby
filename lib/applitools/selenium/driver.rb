@@ -29,7 +29,7 @@ module Applitools::Selenium
     attr_reader :browser
     attr_accessor :wait_before_screenshots
 
-    def_delegators :@eyes, :user_inputs, :clear_user_inputs
+    def_delegators :@eyes, :add_mouse_trigger, :add_text_trigger
     def_delegators :@browser, :user_agent
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 

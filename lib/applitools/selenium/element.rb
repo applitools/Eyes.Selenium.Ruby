@@ -29,6 +29,8 @@ module Applitools::Selenium
 
     TRACE_PREFIX = 'EyesWebElement'.freeze
 
+    # def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
+
     def initialize(driver, element)
       super(element)
 
@@ -40,10 +42,8 @@ module Applitools::Selenium
     end
 
     def click
-      current_control = region
-      offset = current_control.middle_offset
-      @driver.user_inputs << Applitools::Base::MouseTrigger.new(:click, current_control, offset)
-
+      @driver.add_mouse_trigger(Applitools::Core::MouseTrigger::MOUSE_ACTION[:click], self)
+      # logger.info "click(#{bounds})";
       web_element.click
     end
 
@@ -57,16 +57,14 @@ module Applitools::Selenium
     alias eql? ==
 
     def send_keys(*args)
-      current_control = region
       Selenium::WebDriver::Keys.encode(args).each do |key|
-        @driver.user_inputs << Applitools::Base::TextTrigger.new(key.to_s, current_control)
+        @driver.add_text_trigger(self, key.to_s)
       end
-
       web_element.send_keys(*args)
     end
     alias send_key send_keys
 
-    def region
+    def boubds
       point = location
       left = point.x
       top = point.y

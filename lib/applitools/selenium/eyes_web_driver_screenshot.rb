@@ -188,8 +188,10 @@ module Applitools::Selenium
       convert_region_location(intersected_region, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is], result_coordinate_types)
     end
 
-    def location_in_screenshot
-
+    def location_in_screenshot(location, coordinate_type)
+      location = convert_location(location, coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is])
+      raise Applitools::OutOfBoundException.new "Location #{location} (#{coordinate_type}) is not visible in screenshot!" unless (frame_window.contains?(location.x,location.y))
+      location
     end
 
     def sub_screenshot(region, coordinate_type, throw_if_clipped = false)

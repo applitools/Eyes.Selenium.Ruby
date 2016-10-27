@@ -1,4 +1,3 @@
-require 'pry'
 module Applitools::Selenium
   class Eyes  < Applitools::Core::EyesBase
 
@@ -174,6 +173,59 @@ module Applitools::Selenium
       end
     end
 
+    def add_text_trigger(control, text)
+      if disabled?
+        logger.info "Ignoring #{text} (disabled)"
+        return
+      end
+
+      Applitools::Core::ArgumentGuard.not_nil control, 'control'
+      if control.is_a? Applitools::Core::Region
+        return _add_text_trigger(control, text)
+      elsif control.is_a? Applitools::Selenium::Element
+        pl = control.location
+        ds = control.size
+
+        element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
+
+        return _add_text_trigger(element_region, text)
+      end
+    end
+
+    def add_mouse_trigger(mouse_action, element)
+      if disabled?
+        logger.info "Ignoring #{mouse_action} (disabled)"
+        return
+      end
+
+      Applitools::Core::ArgumentGuard.not_nil element, 'element'
+      Applitools::Core::ArgumentGuard.is_a? element, 'element', Applitools::Selenium::Element
+
+      pl = element.location
+      ds = element.size
+
+      element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
+
+      unless(last_screenshot)
+        logger.info "Ignoring #{mouse_action} (no screenshot)"
+        return
+      end
+
+      # if (!FrameChain.isSameFrameChain(driver.getFrameChain(),
+      #                                  ((EyesWebDriverScreenshot) lastScreenshot).getFrameChain())) {
+      #     logger.verbose(String.format("Ignoring %s (different frame)",
+      #                                  action));
+      # return;
+      # }
+
+      element_region = last_screenshot.intersected_region(element_region,
+                            Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
+                            Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+      )
+
+      add_mouse_trigger_base(mouse_action, element_region, element_region.middle_offset)
+    end
+
 
     private
 
@@ -245,7 +297,7 @@ module Applitools::Selenium
         else
           logger.info 'Screenshot requested...'
           image = image_provider.take_screenshot
-          scale_provider.scale_image(image) if scale
+          scale_provider.scale_image(image) if scale_provider
           cut_provider.cut(image) if cut_provider
           self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
         end
@@ -306,6 +358,23 @@ module Applitools::Selenium
         end
         logger.info 'Done!'
       end
+    end
+
+    def _add_text_trigger(control, text)
+      unless(last_screenshot)
+        logger.info "Ignoring #{text} (no screenshot)"
+        return
+      end
+
+      # if (!FrameChain.isSameFrameChain(driver.getFrameChain(),
+      #                                  ((EyesWebDriverScreenshot) lastScreenshot).getFrameChain())) {
+      #     logger.verbose(String.format("Ignoring '%s' (different frame)",
+      #                                  text));
+      # return;
+      # }
+
+      add_text_trigger_base(control, text)
+
     end
 
     protected

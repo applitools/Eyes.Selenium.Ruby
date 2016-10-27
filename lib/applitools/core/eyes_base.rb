@@ -1,4 +1,3 @@
-require 'pry'
 require 'applitools/core/helpers'
 require 'applitools/core/eyes_screenshot'
 module Applitools::Core
@@ -291,7 +290,7 @@ module Applitools::Core
     private
 
     attr_accessor :running_session, :last_screenshot, :current_app_name, :test_name, :session_type,
-                  :scale_provider_handler, :cut_provider_handler, :default_match_settings,
+                  :scale_provider, :cut_provider, :default_match_settings,
                   :session_start_info, :should_match_window_run_once_on_timeout, :app_output_provider
 
     private :full_agent_id, :full_agent_id=
