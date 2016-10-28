@@ -27,7 +27,7 @@ module Applitools::Core
       region_provider = options[:region_provider]
       tag = options[:tag]
       should_match_window_run_once_on_timeout = options[:should_match_window_run_once_on_timeout]
-      ignore_istmatch = options[:ignore_istmatch]
+      ignore_mismatch = options[:ignore_mismatch]
       retry_timeout = options[:retry_timeout]
 
       retry_timeout = default_retry_timeout if retry_timeout < 0
@@ -39,24 +39,24 @@ module Applitools::Core
         sleep retry_timeout if should_match_window_run_once_on_timeout
         app_output = app_output_provider.app_output region_provider, last_screenshot
         match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag,
-          ignore_mistmatch: ignore_istmatch;
+          ignore_mismatch: ignore_mismatch;
       else
         app_output = app_output_provider.app_output region_provider, last_screenshot
         start = Time.now
-        match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mistmatch: true;
+        match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mismatch: true;
         retry_time = Time.now - start
 
         while retry_time < retry_timeout && !match_result.as_expected? do
           sleep MATCH_INTERVAL
           app_output = app_output_provider.app_output region_provider, last_screenshot
-          match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mistmatch: true;
+          match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mismatch: true;
           retry_time = Time.now - start
         end
 
         unless match_result.as_expected?
           app_output = app_output_provider.app_output region_provider, last_screenshot
           match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag,
-            ignore_mistmatch: ignore_istmatch;
+            ignore_mismatch: ignore_mismatch;
         end
       end
 
@@ -74,9 +74,9 @@ module Applitools::Core
       user_inputs = options[:user_inputs]
       app_output = options[:app_output]
       tag = options[:tag]
-      ignore_mistmatch = options[:tag]
-      data = Applitools::Core::MatchWindowData.new user_inputs, app_output, tag, ignore_mistmatch,
-        tag: tag, user_inputs: user_inputs, ignore_mistmatch: ignore_mistmatch, ignore_match: false,
+      ignore_mismatch = options[:ignore_mismatch]
+      data = Applitools::Core::MatchWindowData.new user_inputs, app_output, tag, ignore_mismatch,
+        tag: tag, user_inputs: user_inputs, ignore_mismatch: ignore_mismatch, ignore_match: false,
         force_mistmatch: false, force_match: false
       return Applitools::Connectivity::ServerConnector.match_window running_session, data
     end

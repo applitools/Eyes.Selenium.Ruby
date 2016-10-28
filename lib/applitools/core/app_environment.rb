@@ -24,5 +24,13 @@ module Applitools::Core
           inferred: @inferred
       }
     end
+
+    def to_s
+      result = ""
+      to_hash.each_pair do |k,v|
+        result << "#{k}: #{v}; "
+      end
+      result
+    end
   end
 end

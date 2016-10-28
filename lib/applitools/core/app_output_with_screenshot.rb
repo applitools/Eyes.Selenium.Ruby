@@ -12,5 +12,9 @@ module Applitools::Core
     def to_hash
       app_output.to_hash
     end
+
+    def to_s
+      app_output.to_hash.to_s
+    end
   end
 end
