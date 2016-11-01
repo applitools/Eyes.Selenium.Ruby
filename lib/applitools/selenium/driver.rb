@@ -28,6 +28,7 @@ module Applitools::Selenium
 
     attr_reader :browser
     attr_accessor :wait_before_screenshots
+    attr_accessor :rotation
 
     def_delegators :@eyes, :add_mouse_trigger, :add_text_trigger
     def_delegators :@browser, :user_agent
@@ -88,33 +89,42 @@ module Applitools::Selenium
 
     alias set_overflow overflow=
 
-    # Return a normalized screenshot.
+    def screenshot_as(format)
+        raise "Invalid format (#{format}) passed! Available formats: :png, :base64" unless %i(base64 png).include? format
+        png_screenshot = driver.screenshot_as(:png)
+        screenshot = Applitools::Core::Screenshot.new(png_screenshot)
+        self.class.normalize_rotation(self, screenshot, rotation)
+        return Applitools::Utils::ImageUtils.base64_from_png_image(screenshot.restore) if format == :base64
+        screenshot.to_blob
+    end
+
+    # # Return a normalized screenshot.
+    # #
+    # # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
+    # #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
+    # #
+    # # Returns: +ChunkPng::Image+ A screenshot object, normalized by scale and rotation.
+    # def get_screenshot(rotation = nil)
+    #   image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
+    #   Applitools::Selenium::Driver.normalize_image(self, image, rotation)
+    #   image
+    # end
     #
-    # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
-    #   negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
+    # def visible_screenshot
+    #   Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
+    #   sleep(wait_before_screenshots)
+    #   Applitools::EyesLogger.debug 'Finished waiting.'
+    #   # Applitools::Utils::ImageUtils::Screenshot.new driver.screenshot_as(:png)
+    #   Applitools::Core::Screenshot.new driver.screenshot_as(:png)
+    # end
     #
-    # Returns: +ChunkPng::Image+ A screenshot object, normalized by scale and rotation.
-    def get_screenshot(rotation = nil)
-      image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
-      Applitools::Selenium::Driver.normalize_image(self, image, rotation)
-      image
-    end
-
-    def visible_screenshot
-      Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
-      sleep(wait_before_screenshots)
-      Applitools::EyesLogger.debug 'Finished waiting.'
-      # Applitools::Utils::ImageUtils::Screenshot.new driver.screenshot_as(:png)
-      Applitools::Core::Screenshot.new driver.screenshot_as(:png)
-    end
-
-    def mouse
-      Applitools::Selenium::Mouse.new(self, driver.mouse)
-    end
-
-    def keyboard
-      Applitools::Selenium::Keyboard.new(self, driver.keyboard)
-    end
+    # def mouse
+    #   Applitools::Selenium::Mouse.new(self, driver.mouse)
+    # end
+    #
+    # def keyboard
+    #   Applitools::Selenium::Keyboard.new(self, driver.keyboard)
+    # end
 
     def find_element(*args)
       how, what = extract_args(args)

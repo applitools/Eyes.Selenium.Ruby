@@ -35,7 +35,6 @@ module Applitools::Core
     abstract_method :set_viewport_size, true
     abstract_method :get_viewport_size, true
 
-
     def initialize(server_url = nil)
       Applitools::Connectivity::ServerConnector.server_url = server_url
       self.disabled = false

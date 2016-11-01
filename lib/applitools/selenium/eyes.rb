@@ -2,25 +2,42 @@ module Applitools::Selenium
   class Eyes  < Applitools::Core::EyesBase
 
     UNKNOWN_DEVICE_PIXEL_RATIO = 0
-    DEFAULT_DEVICE_PIXEL_RATIO = 1
 
+    DEFAULT_DEVICE_PIXEL_RATIO = 1
 
     DEFAULT_WAIT_BEFORE_SCREENSHOTS = 0.1 # Seconds
 
     USE_DEFAULT_MATCH_TIMEOUT = -1
 
+    # @!visibility private
     STICH_MODE = {
         scroll: :SCROLL,
         css: :CSS
     }.freeze
 
     extend Forwardable
+    # @!visibility public
 
-    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy, :force_full_page_screenshot
+    # @!attribute [rw] force_full_page_screenshot
+    #   Forces a full page screenshot (by scrolling and stitching) if the
+    #   browser only ﻿supports viewport screenshots.
+    #   @return [boolean] force full page screenshot flag
+    # @!attribute [rw] wait_before_screenshots
+    #   Sets the time to wait just before taking a screenshot (e.g., to allow
+    #   positioning to stabilize when performing a full page stitching).
+    #   @return [Float] The time to wait (Seconds). Values
+    #     smaller or equal to 0, will cause the default value to be used.
+
+
+    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy,
+                  :force_full_page_screenshot, :wait_before_screenshots
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 
+    # Creates a new (possibly disabled) Eyes instance that interacts with the
+    # Eyes Server at the specified url.
+    # @param server_url The Eyes Server URL
     def initialize(server_url = Applitools::Connectivity::ServerConnector::DEFAULT_SERVER_URL)
       super
       self.base_agent_id = "eyes.selenium.ruby/#{Applitools::VERSION})".freeze
@@ -173,64 +190,10 @@ module Applitools::Selenium
       end
     end
 
-    def add_text_trigger(control, text)
-      if disabled?
-        logger.info "Ignoring #{text} (disabled)"
-        return
-      end
-
-      Applitools::Core::ArgumentGuard.not_nil control, 'control'
-      if control.is_a? Applitools::Core::Region
-        return _add_text_trigger(control, text)
-      elsif control.is_a? Applitools::Selenium::Element
-        pl = control.location
-        ds = control.size
-
-        element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
-
-        return _add_text_trigger(element_region, text)
-      end
-    end
-
-    def add_mouse_trigger(mouse_action, element)
-      if disabled?
-        logger.info "Ignoring #{mouse_action} (disabled)"
-        return
-      end
-
-      Applitools::Core::ArgumentGuard.not_nil element, 'element'
-      Applitools::Core::ArgumentGuard.is_a? element, 'element', Applitools::Selenium::Element
-
-      pl = element.location
-      ds = element.size
-
-      element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
-
-      unless(last_screenshot)
-        logger.info "Ignoring #{mouse_action} (no screenshot)"
-        return
-      end
-
-      # if (!FrameChain.isSameFrameChain(driver.getFrameChain(),
-      #                                  ((EyesWebDriverScreenshot) lastScreenshot).getFrameChain())) {
-      #     logger.verbose(String.format("Ignoring %s (different frame)",
-      #                                  action));
-      # return;
-      # }
-
-      element_region = last_screenshot.intersected_region(element_region,
-                            Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
-                            Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-      )
-
-      add_mouse_trigger_base(mouse_action, element_region, element_region.middle_offset)
-    end
-
-
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
-                  :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :wait_before_screenshots, :position_provider,
+                  :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :position_provider,
                   :scale_provider
 
     def capture_screenshot
@@ -377,8 +340,90 @@ module Applitools::Selenium
 
     end
 
-    protected
+    def add_text_trigger(control, text)
+      if disabled?
+        logger.info "Ignoring #{text} (disabled)"
+        return
+      end
 
+      Applitools::Core::ArgumentGuard.not_nil control, 'control'
+      if control.is_a? Applitools::Core::Region
+        return _add_text_trigger(control, text)
+      elsif control.is_a? Applitools::Selenium::Element
+        pl = control.location
+        ds = control.size
+
+        element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
+
+        return _add_text_trigger(element_region, text)
+      end
+    end
+
+    def add_mouse_trigger(mouse_action, element)
+      if disabled?
+        logger.info "Ignoring #{mouse_action} (disabled)"
+        return
+      end
+
+      if (element.is_a? Hash)
+        return add_mouse_trigger_by_region_and_location(mouse_action, element[:region], element[:location]) if
+            element.key?(:location) && element.key?(:region)
+        raise Applitools::EyesIllegalArgument.new 'Element[] doesn\'t contain required keys!'
+      end
+
+      Applitools::Core::ArgumentGuard.not_nil element, 'element'
+      Applitools::Core::ArgumentGuard.is_a? element, 'element', Applitools::Selenium::Element
+
+      pl = element.location
+      ds = element.size
+
+      element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
+
+      unless(last_screenshot)
+        logger.info "Ignoring #{mouse_action} (no screenshot)"
+        return
+      end
+
+      # if (!FrameChain.isSameFrameChain(driver.getFrameChain(),
+      #                                  ((EyesWebDriverScreenshot) lastScreenshot).getFrameChain())) {
+      #     logger.verbose(String.format("Ignoring %s (different frame)",
+      #                                  action));
+      # return;
+      # }
+
+      element_region = last_screenshot.intersected_region(element_region,
+                                                          Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
+                                                          Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+      )
+
+      add_mouse_trigger_base(mouse_action, element_region, element_region.middle_offset)
+    end
+
+    # control - Region
+    # cursor - Location
+    def add_mouse_trigger_by_region_and_location(mouse_action, control, cursor)
+      unless last_screenshot
+        logger.info "Ignoring #{mouse_action} (no screenshot)"
+        return
+      end
+
+      Applitools::Core::ArgumentGuard.is_a? control, 'control', Applitools::Core::Region
+      Applitools::Core::ArgumentGuard.is_a? cursor, 'cursor', Applitools::Core::Location
+
+      # if (!FrameChain.isSameFrameChain(driver.getFrameChain(),
+      #                                  ((EyesWebDriverScreenshot) lastScreenshot).getFrameChain())) {
+      #     logger.verbose(String.format("Ignoring %s (different frame)",
+      #                                  action));
+      # return;
+      # }
+
+      add_mouse_trigger_base(mouse_action, control, cursor)
+    end
+
+    protected
+    #testtesttest
+    #@param [Hash]options
+    #@option options [Region] :region
     def check_region_(element_or_selector, options = {})
       # :element
       # :selector

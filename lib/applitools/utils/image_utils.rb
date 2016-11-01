@@ -69,74 +69,9 @@ module Applitools::Utils
       end
     end
 
-    def scale!(image, factor)
-      image.resample_nearest_neighbor!(image.width.to_f * factor, image.height.to_f * factor)
-    end
-
-    def stitch_images(size, images_data)
-      stitched_screenshot = ChunkyPNG::Image.new(size.width, size.height, ChunkyPNG::Color::TRANSPARENT).tap do |res|
-        images_data.each do |image_data|
-          # Crop out of bounds images.
-          image = image_data.image
-          position = image_data.position
-
-          new_width = position.left + image.width > size.width ? size.width - position.left : image.width
-          new_height = position.top + image.height > size.height ? size.height - position.top : image.height
-
-          if new_width != image.width || new_height != image.height
-            image = image.crop!(0, 0, new_width, new_height)
-          end
-
-          res.replace!(image.restore, position.left, position.top)
-          GC.start
-        end
-      end
-      result = Applitools::Utils::ImageUtils::Screenshot.new stitched_screenshot.to_blob.dup
-      GC.start
-      result
-    end
-
-    class Screenshot < Delegator
-      extend Forwardable
-      def_delegators :header, :width, :height
-
-      def initialize(image)
-        @datastream = ChunkyPNG::Datastream.from_string image
-      end
-
-      def to_blob
-        @datastream.to_blob
-      end
-
-      def __getobj__
-        restore
-      end
-
-      def header
-        @datastream.header_chunk
-      end
-
-      def __setobj__(obj)
-        @datastream = obj.to_datastream
-        self
-      end
-
-      def method_missing(method, *args, &block)
-        if method =~ /^.+!$/
-          __setobj__ super
-        else
-          super
-        end
-      end
-
-      def respond_to_missing?(method_name, include_private = false)
-        super
-      end
-
-      def restore
-        ChunkyPNG::Image.from_datastream @datastream
-      end
-    end
+    # def scale!(image, factor)
+    #   image.resample_nearest_neighbor!(image.width.to_f * factor, image.height.to_f * factor)
+    # end
 
     include Applitools::MethodTracer
   end

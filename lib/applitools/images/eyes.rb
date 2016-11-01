@@ -3,35 +3,33 @@ require 'applitools/core/eyes_base'
 module Applitools::Images
   class Eyes < Applitools::Core::EyesBase
 
-    attr_accessor :base_agent_id, :screenshot, :inferred_environment, :title #:nodoc:
+    # @!visibility private
+    attr_accessor :base_agent_id, :screenshot, :inferred_environment, :title
 
-    def capture_screenshot #:nodoc:
+    # @!visibility private
+    def capture_screenshot
       @screenshot
     end
 
-    ##
-    # Creates a new eyes object
-    #   eyes = Applitools::Images::Eyes.new
-    #
 
+    # Creates a new eyes object
+    # @example
+    #   eyes = Applitools::Images::Eyes.new
+    # @param server_url The Eyes Server URL
     def initialize(server_url = Applitools::Connectivity::ServerConnector::DEFAULT_SERVER_URL)
       super
       self.base_agent_id = 'eyes.images.ruby/1.0.0'
     end
 
-    ##
-    # Starts a test. Available options:
-    #
-    # +:app_name+ - the name of the application under trest. Required.
-    #
-    # +:test_name+ - the test name. Required
-    #
-    # +:viewport_size+ - viewport size for the baseline, may be passed as a string (<tt>'800x600'</tt>) or
-    # as a hash (<tt>{width: 800, height: 600}</tt>). If ommited, the viewport size will be grabbed from the actual
-    # image size
-    #
+    # Starts a test.
+    # @param [Hash] options
+    # @option options [Symbol] :app_name the name of the application under trest. Required.
+    # @option options [Symbol] :test_name the test name. Required
+    # @option options [Symbol] :viewport_size viewport size for the baseline, may be passed as a
+    #   string (<tt>'800x600'</tt>) or as a hash (<tt>{width: 800, height: 600}</tt>).
+    #   If ommited, the viewport size will be grabbed from the actual image size
+    # @example
     #   eyes.open app_name: 'my app', test_name: 'my test'
-
     def open(options = {})
       Applitools::Core::ArgumentGuard.hash options, 'open(options)', [:app_name, :test_name]
       options[:viewport_size] = Applitools::Core::RectangleSize.from_any_argument options[:viewport_size]
