@@ -1,4 +1,5 @@
 module Applitools::Images
+  #@!visibility private
   class EyesImagesScreenshot < ::Applitools::Core::EyesScreenshot
 
     SCREENSHOT_AS_IS = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is].freeze

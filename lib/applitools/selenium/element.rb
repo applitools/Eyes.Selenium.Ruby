@@ -41,6 +41,8 @@ module Applitools::Selenium
       @web_element ||= __getobj__
     end
 
+    protected :web_element
+
     def click
       @driver.add_mouse_trigger(Applitools::Core::MouseTrigger::MOUSE_ACTION[:click], self)
       # logger.info "click(#{bounds})";
@@ -52,7 +54,11 @@ module Applitools::Selenium
     end
 
     def ==(other)
-      other.is_a?(web_element.class) && web_element == other
+      if other.is_a? self.class
+        super other.web_element
+      else
+        super other
+      end
     end
     alias eql? ==
 

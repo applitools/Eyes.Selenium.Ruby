@@ -1,6 +1,8 @@
 require 'pry'
 module Applitools
+  # @!visibility private
   class << self
+    # @!visibility private
     def require_dir(dir)
       Dir[File.join(File.dirname(File.expand_path(__FILE__)), 'applitools', dir, '*.rb')].sort.each do |f|
         require f
@@ -8,14 +10,22 @@ module Applitools
     end
   end
 
+  # @!visibility private
   class EyesError < StandardError; end
+  # @!visibility private
   class EyesAbort < EyesError; end
+  # @!visibility private
   class EyesIllegalArgument < EyesError; end
+  # @!visibility private
   class OutOfBoundsException < EyesError; end;
+  # @!visibility private
   class EyesDriverOperationException < EyesError; end;
+  # @!visibility private
   class EyesNotOpenException < EyesError; end;
+  # @!visibility private
   class EyesCoordinateTypeConversionException < EyesError; end;
 
+  # @!visibility private
   class AbstractMethodCalled < EyesError
     attr_accessor :method_name, :object
 
@@ -28,6 +38,7 @@ module Applitools
     end
   end
 
+  # @!visibility private
   class TestFailedError < StandardError
     attr_accessor :test_results
 
@@ -38,6 +49,7 @@ module Applitools
     end
   end
 
+  # @!visibility private
   class NewTestError < TestFailedError; end
 end
 

@@ -1,3 +1,4 @@
+# @!visibility private
 class Module
   def alias_attribute(new_name, old_name)
     module_eval <<-STR, __FILE__, __LINE__ + 1

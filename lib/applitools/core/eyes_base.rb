@@ -225,6 +225,9 @@ module Applitools::Core
       result
     end
 
+    # Closes eyes
+    # @param [Boolean] throw_exception If set to +true+ eyes will trow [Applitools::TestFailedError] exception
+
     def close(throw_exception = false)
 
       if disabled?

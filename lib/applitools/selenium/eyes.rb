@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  # The main API gateway for the SDK
   class Eyes  < Applitools::Core::EyesBase
 
     UNKNOWN_DEVICE_PIXEL_RATIO = 0
@@ -28,7 +29,6 @@ module Applitools::Selenium
     #   @return [Float] The time to wait (Seconds). Values
     #     smaller or equal to 0, will cause the default value to be used.
 
-
     attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy,
                   :force_full_page_screenshot, :wait_before_screenshots
     attr_reader :driver
@@ -52,6 +52,16 @@ module Applitools::Selenium
       self.region_visibility_strategy = MoveToRegionVisibilityStrategy.new
     end
 
+    # Starts a test
+    # @param options [Hash] options
+    # @option options :driver The driver that controls the browser hosting the application under the test. (*Required* option)
+    # @option options [String] :app_name The name of the application under the test. (*Required* option)
+    # @option options [String] :test_name The test name (*Required* option)
+    # @option options [String | Hash] :viewport_size The required browser's viewport size
+    #   (i.e., the visible part of the document's body) or +nil+ to use the current window's viewport.
+    # @option options :session_type The type of the test (e.g., standard test / visual performance test).
+    #   Default value is 'SEQUENTAL'
+    # @return [Applitools::Selenium::Driver] A wrapped web driver which enables Eyes trigger recording and frame handling
     def open(options = {})
       driver = options.delete(:driver)
       options[:viewport_size] = Applitools::Core::RectangleSize.from_any_argument options[:viewport_size] if
@@ -89,45 +99,15 @@ module Applitools::Selenium
       @driver
     end
 
-    # protected WebDriver open(WebDriver driver, String appName, String testName,
-    #                                                                   RectangleSize viewportSize, SessionType sessionType) {
-    #
-    #   if (getIsDisabled()) {
-    #       logger.verbose("Ignored");
-    #   return driver;
-    #   }
-    #
-    #   openBase(appName, testName, viewportSize, sessionType);
-    #
-    #   ArgumentGuard.notNull(driver, "driver");
-    #
-    #   if (driver instanceof RemoteWebDriver) {
-    #       this.driver = new EyesWebDriver(logger, this,
-    #                                       (RemoteWebDriver) driver);
-    #   } else if (driver instanceof EyesWebDriver) {
-    #       this.driver = (EyesWebDriver) driver;
-    #   } else {
-    #       String errMsg = "Driver is not a RemoteWebDriver (" +
-    #       driver.getClass().getName() + ")";
-    #   logger.log(errMsg);
-    #   throw new EyesException(errMsg);
-    #   }
-    #   devicePixelRatio = UNKNOWN_DEVICE_PIXEL_RATIO;
-    #
-    #   // Setting the correct position provider.
-    #       switch (getStitchMode()) {
-    #     case CSS: setPositionProvider(
-    #         new CssTranslatePositionProvider(logger, this.driver));
-    #     break;
-    #     default: setPositionProvider(
-    #         new ScrollPositionProvider(logger, this.driver));
-    #   }
-    #
-    #   this.driver.setRotation(rotation);
-    #   return this.driver;
-    #   }
+    # Takes a snapshot of the application under test and matches it with the expected output.
+    # @param [String] tag An optional tag to be assosiated with the snapshot.
+    # @param [Fixnum] match_timeout The amount of time to retry matching (seconds)
+    def check_window(match_timeout = USE_DEFAULT_MATCH_TIMEOUT, tag = nil)
 
-    def check_window(tag = nil, match_timeout = USE_DEFAULT_MATCH_TIMEOUT)
+      if disabled?
+        logger.info "check_window(#{tag}, #{match_timeout}): Ignored"
+        return
+      end
 
       logger.info "check_window(match_timeout: #{match_timeout}, tag: #{tag}): Ignored" if disabled?
       logger.info "check_window(match_timeout: #{match_timeout}, tag: #{tag})"
@@ -143,29 +123,6 @@ module Applitools::Selenium
       end
 
       check_window_base region_provider, tag, false, match_timeout
-      # if (getIsDisabled()) {
-      #     logger.log(String.format("CheckWindow(%d, '%s'): Ignored",
-      #                              matchTimeout, tag));
-      # return;
-      # }
-      #
-      # logger.log(String.format("CheckWindow(%d, '%s')", matchTimeout,
-      #                          tag));
-      #
-      # super.checkWindowBase(
-      #     new RegionProvider() {
-      #       public Region getRegion() {
-      #         return Region.EMPTY;
-      #       }
-      #
-      #       public CoordinatesType getCoordinatesType() {
-      #         return null;
-      #       }
-      #     },
-      #         tag,
-      #         false,
-      #         matchTimeout
-      # );
     end
 
     def title
@@ -181,6 +138,7 @@ module Applitools::Selenium
       Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(driver)
     end
 
+
     def check_region(*args)
       options = Applitools::Utils.extract_options! args
       if options.delete(:stitch_content)
@@ -188,6 +146,22 @@ module Applitools::Selenium
       else
         check_region_ args, options
       end
+    end
+
+    # Use this method to perform seamless testing with selenium through eyes driver.
+    # Using Selenium methods inside the 'test' block will send the messages to Selenium
+    # after creating the Eyes triggers for them.
+    # @example
+    #   eyes.test(app_name: 'my app', test_name: 'my test') do |driver|
+    #      get "http://www.google.com"
+    #      check_window("initial")
+    #   end
+    def test(options = {}, &_block)
+      open(options)
+      yield(driver)
+      close
+    ensure
+      abort_if_not_closed
     end
 
     private
@@ -337,7 +311,6 @@ module Applitools::Selenium
       # }
 
       add_text_trigger_base(control, text)
-
     end
 
     def add_text_trigger(control, text)
@@ -543,30 +516,3 @@ module Applitools::Selenium
     end
   end
 end
-
-# checkRegion(By selector)
-# checkRegion(By selector, boolean stitchContent)
-# checkRegion(By selector, int matchTimeout, String tag)
-# checkRegion(By selector, int matchTimeout, String tag, boolean stitchContent)
-# checkRegion(By selector, String tag)
-# checkRegion(By selector, String tag, boolean stitchContent)
-# checkRegion(Region region)
-# checkRegion(final Region region, int matchTimeout, String tag)
-# checkRegion(WebElement element)
-# checkRegion(WebElement element, boolean stitchContent)
-# checkRegion(final WebElement element, int matchTimeout, String tag)
-# checkRegion(WebElement element, int matchTimeout, String tag, boolean stitchContent)
-# checkRegion(WebElement element, String tag)
-# checkRegion(WebElement element, String tag, boolean stitchContent)
-
-
-#checkElement(By selector)
-#checkElement(By selector, String tag)
-#checkElement(By selector, int matchTimeout, String tag)
-#checkElement(WebElement element)
-#checkElement(final WebElement element, int matchTimeout, String tag)
-#checkElement(WebElement element, String tag)
-
-
-
-
