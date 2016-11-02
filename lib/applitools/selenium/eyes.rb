@@ -102,7 +102,7 @@ module Applitools::Selenium
     # Takes a snapshot of the application under test and matches it with the expected output.
     # @param [String] tag An optional tag to be assosiated with the snapshot.
     # @param [Fixnum] match_timeout The amount of time to retry matching (seconds)
-    def check_window(match_timeout = USE_DEFAULT_MATCH_TIMEOUT, tag = nil)
+    def check_window(tag = nil, match_timeout = USE_DEFAULT_MATCH_TIMEOUT)
 
       if disabled?
         logger.info "check_window(#{tag}, #{match_timeout}): Ignored"

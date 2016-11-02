@@ -1,5 +1,4 @@
 require 'faraday'
-require 'pry'
 require 'oj'
 Oj.default_options = { :mode => :compat }
 
@@ -54,7 +53,7 @@ module Applitools::Connectivity
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
       response = Oj.load(res.body)
-      Applitools::Base::Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
+      Applitools::Core::Session.new(response['id'], response['url'], res.status == HTTP_STATUS_CODES[:created])
     end
 
     def stop_session(session, aborted = nil, save = false)
@@ -62,7 +61,7 @@ module Applitools::Connectivity
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
       response = Oj.load(res.body)
-      Applitools::Base::TestResults.new(response)
+      Applitools::Core::TestResults.new(response)
     end
 
     private

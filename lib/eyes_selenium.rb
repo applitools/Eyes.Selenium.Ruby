@@ -58,7 +58,7 @@ require_relative 'applitools/extensions'
 require_relative 'applitools/version'
 
 Applitools.require_dir 'core'
-Applitools.require_dir 'base'
+Applitools.require_dir 'connectivity'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
 
