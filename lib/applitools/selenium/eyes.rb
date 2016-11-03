@@ -412,7 +412,7 @@ module Applitools::Selenium
       element = driver.find_element(*selector) unless element
       raise Applitools::EyesIllegalArgument.new 'You should pass :selector or :element!' unless element
 
-      if options[:tag].present?
+      if !options[:tag].nil? && !options[:tag].empty?
         tag = options[:tag]
         self.tag_for_debug = tag
       end
@@ -454,7 +454,7 @@ module Applitools::Selenium
       # :match_timeout
       # :tag
       selector = element_or_selector if Applitools::Selenium::Driver::FINDERS.keys.include? element_or_selector.first
-      if options[:tag].present?
+      if !options[:tag].nil? && !options[:tag].empty?
         tag = options[:tag]
         self.tag_for_debug = tag
       end

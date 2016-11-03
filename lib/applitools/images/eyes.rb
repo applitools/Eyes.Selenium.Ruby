@@ -162,11 +162,11 @@ module Applitools::Images
     end
 
     def get_image_from_options(options)
-      unless options[:image].present? && options[:image].is_a?(Applitools::Core::Screenshot)
+      unless !options[:image].nil? && options[:image].is_a?(Applitools::Core::Screenshot)
         image = case
-                  when options[:image_path].present?
+                  when !options[:image_path].nil? && !options[:image_path].empty?
                     Applitools::Core::Screenshot.new ChunkyPNG::Datastream.from_file(options[:image_path]).to_s
-                  when options[:image_bytes].present?
+                  when options[:image_bytes].nil? && !options[:image_bytes].empty?
                     Applitools::Core::Screenshot.new options[:image_bytes]
                   else
                     nil
