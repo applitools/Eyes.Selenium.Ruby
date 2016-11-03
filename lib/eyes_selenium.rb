@@ -1,4 +1,3 @@
-require 'pry'
 module Applitools
   # @!visibility private
   class << self
@@ -62,8 +61,8 @@ Applitools.require_dir 'connectivity'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
 
-
-require_relative 'applitools/eyes'
+require_relative 'applitools/version'
+require_relative 'applitools/eyes_logger'
 require_relative 'applitools/selenium_webdriver'
 require_relative 'applitools/appium_driver'
 require_relative 'applitools/watir_browser'

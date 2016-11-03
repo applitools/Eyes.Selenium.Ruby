@@ -1,5 +1,6 @@
 require 'applitools/core/helpers'
 require 'applitools/core/eyes_screenshot'
+
 module Applitools::Core
   class EyesBase
     extend Forwardable
@@ -75,7 +76,7 @@ module Applitools::Core
     end
 
     def full_agent_id
-      if agent_id && agent_id.present?
+      if !agent_id.nil? && !agent_id.empty?
         "#{agent_id} [#{base_agent_id}]"
       else
         base_agent_id
@@ -95,7 +96,7 @@ module Applitools::Core
     end
 
     def app_name
-      current_app_name.present? ? current_app_name : @app_name
+      !current_app_name.nil? && !current_app_name.empty? ? current_app_name : @app_name
     end
 
     def abort_if_not_closed

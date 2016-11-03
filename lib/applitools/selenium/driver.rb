@@ -92,6 +92,7 @@ module Applitools::Selenium
     def screenshot_as(format)
         raise "Invalid format (#{format}) passed! Available formats: :png, :base64" unless %i(base64 png).include? format
         png_screenshot = driver.screenshot_as(:png)
+        yield png_screenshot if block_given?
         screenshot = Applitools::Core::Screenshot.new(png_screenshot)
         self.class.normalize_rotation(self, screenshot, rotation)
         return Applitools::Utils::ImageUtils.base64_from_png_image(screenshot.restore) if format == :base64

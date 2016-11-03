@@ -30,7 +30,7 @@ module Applitools::Selenium
     #     smaller or equal to 0, will cause the default value to be used.
 
     attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy,
-                  :force_full_page_screenshot, :wait_before_screenshots
+                  :force_full_page_screenshot, :wait_before_screenshots, :debug_screenshot
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -50,6 +50,7 @@ module Applitools::Selenium
       self.stitch_mode = STICH_MODE[:scroll]
       self.wait_before_screenshots = DEFAULT_WAIT_BEFORE_SCREENSHOTS
       self.region_visibility_strategy = MoveToRegionVisibilityStrategy.new
+      self.debug_screenshot = false
     end
 
     # Starts a test
@@ -65,7 +66,7 @@ module Applitools::Selenium
     def open(options = {})
       driver = options.delete(:driver)
       options[:viewport_size] = Applitools::Core::RectangleSize.from_any_argument options[:viewport_size] if
-          options[:viewport_size].present?
+          options[:viewport_size]
       Applitools::Core::ArgumentGuard.not_nil driver, 'options[:driver]'
       Applitools::Core::ArgumentGuard.hash options, 'open(options)', [:app_name, :test_name]
 
@@ -103,7 +104,8 @@ module Applitools::Selenium
     # @param [String] tag An optional tag to be assosiated with the snapshot.
     # @param [Fixnum] match_timeout The amount of time to retry matching (seconds)
     def check_window(tag = nil, match_timeout = USE_DEFAULT_MATCH_TIMEOUT)
-
+      self.tag_for_debug = tag
+      self.screenshot_name_enumerator = nil
       if disabled?
         logger.info "check_window(#{tag}, #{match_timeout}): Ignored"
         return
@@ -141,6 +143,7 @@ module Applitools::Selenium
 
     def check_region(*args)
       options = Applitools::Utils.extract_options! args
+      self.screenshot_name_enumerator = nil
       if options.delete(:stitch_content)
         check_element args, options
       else
@@ -168,10 +171,11 @@ module Applitools::Selenium
 
     attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
                   :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :position_provider,
-                  :scale_provider
+                  :scale_provider, :tag_for_debug
 
     def capture_screenshot
-      image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver
+      image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
+          debug_screenshot: debug_screenshot, name_enumerator: screenshot_name_enumerator
       eyes_screenshot_factory = ->(image) {
         Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
       }
@@ -408,7 +412,11 @@ module Applitools::Selenium
       element = driver.find_element(*selector) unless element
       raise Applitools::EyesIllegalArgument.new 'You should pass :selector or :element!' unless element
 
-      tag = options[:tag] if options[:tag].present?
+      if options[:tag].present?
+        tag = options[:tag]
+        self.tag_for_debug = tag
+      end
+
       match_timeout = options[:match_timeout] || USE_DEFAULT_MATCH_TIMEOUT
 
       logger.info "check_region(element, #{match_timeout}, #{tag}): Ignored" and return if disabled?
@@ -446,7 +454,10 @@ module Applitools::Selenium
       # :match_timeout
       # :tag
       selector = element_or_selector if Applitools::Selenium::Driver::FINDERS.keys.include? element_or_selector.first
-      tag = options[:tag] if options[:tag].present?
+      if options[:tag].present?
+        tag = options[:tag]
+        self.tag_for_debug = tag
+      end
       match_timeout = options[:match_timeout] || USE_DEFAULT_MATCH_TIMEOUT
 
       if disabled?
@@ -513,6 +524,20 @@ module Applitools::Selenium
         self.position_provider = original_position_provider
         self.region_to_check = nil
       end
+    end
+
+    def screenshot_name_enumerator
+      @name_enumerator ||= Enumerator.new do |y|
+        counter = 1
+        loop do
+          y << "#{tag_for_debug.gsub /\s+/, '_'}__#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{counter}.png"
+          counter = counter + 1;
+        end
+      end
+    end
+
+    def screenshot_name_enumerator=(value)
+      @name_enumerator = nil unless value
     end
   end
 end
