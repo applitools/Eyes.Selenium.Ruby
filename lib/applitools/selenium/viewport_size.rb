@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  #@!visibility private
   class ViewportSize
     JS_GET_VIEWPORT_SIZE = <<-JS.freeze
        return (function() {

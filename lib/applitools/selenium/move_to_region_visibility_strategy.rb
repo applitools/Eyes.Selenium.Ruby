@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  #@!visibility private
   class MoveToRegionVisibilityStrategy
     extend Forwardable
 

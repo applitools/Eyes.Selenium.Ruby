@@ -7,7 +7,7 @@ module Applitools::Images
 
     def initialize(image, options = {})
       super image
-      if !(location = options[:location]).nil? && !location.empty?
+      if !(location = options[:location]).nil?
         Applitools::Core::ArgumentGuard.is_a? location, 'options[:location]', Applitools::Core::Location
         @bounds = Applitools::Core::Region.new location.x, location.y, image.width, image.height
       end

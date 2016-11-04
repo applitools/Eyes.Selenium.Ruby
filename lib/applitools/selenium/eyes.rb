@@ -127,6 +127,7 @@ module Applitools::Selenium
       check_window_base region_provider, tag, false, match_timeout
     end
 
+    #@!visibilty private
     def title
       return driver.title unless dont_get_title
     rescue Exception => e
@@ -135,12 +136,29 @@ module Applitools::Selenium
       ''
     end
 
+    #@!visibility private
     def get_viewport_size(web_driver = driver)
       Applitools::Core::ArgumentGuard.not_nil 'web_driver', web_driver
       Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(driver)
     end
 
-
+    # Takes a snapshot of the application under test and matches a region of
+    # a specific element with the expected region output.
+    # @param [Applitools::Selenium::Element] element Represents a region to check.
+    # @param [Symbol] how a finder, such :css or :id. Selects a finder will be used to find an element
+    #   See Selenium::Webdriver::Element#find_element documentation for full list of possible finders.
+    # @param [String] what The value will be passed to a specified finder. If finder is :css it must be a css selector.
+    # @param [Hash] options
+    # @option options [String] :tag An optional tag to be associated with the snapshot.
+    # @option options [Fixnum] :match_timeout The amount of time to retry matching. (Seconds)
+    # @option options [Boolean] :stitch_content If set to true, will try to get full content of the element
+    #   (including hidden content due overflow settings) by scrolling the element,
+    #   taking and stitching partial screenshots.
+    # @example Check region by element
+    #   check_region(element, tag: 'Check a region by element', match_timeout: 3, stitch_content: false)
+    # @example Check region by css selector
+    #   check_region(:css, '.form-row .input#e_mail', tag: 'Check a region by element', match_timeout: 3, stitch_content: false)
+    # @!parse def check_region(element, how=nil, what=nil, options = {}); end
     def check_region(*args)
       options = Applitools::Utils.extract_options! args
       self.screenshot_name_enumerator = nil
@@ -151,13 +169,17 @@ module Applitools::Selenium
       end
     end
 
+    # @!parse def check_region(element, how=nil, what=nil, options = {}); end
+
     # Use this method to perform seamless testing with selenium through eyes driver.
+    # It yields a block and passes to it an Applitools::Selenium::Driver instance, which wraps standard driver.
     # Using Selenium methods inside the 'test' block will send the messages to Selenium
-    # after creating the Eyes triggers for them.
+    # after creating the Eyes triggers for them. Options are similar to {open}
+    # @yieldparam driver [Applitools::Selenium::Driver] Gives a driver to a block, which translates calls to a native Selemium::Driver instance
     # @example
     #   eyes.test(app_name: 'my app', test_name: 'my test') do |driver|
-    #      get "http://www.google.com"
-    #      check_window("initial")
+    #      driver.get "http://www.google.com"
+    #      driver.check_window("initial")
     #   end
     def test(options = {}, &_block)
       open(options)

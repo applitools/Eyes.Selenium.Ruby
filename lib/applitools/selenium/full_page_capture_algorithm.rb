@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  #@!visibility private
   class FullPageCaptureAlgorithm
     extend Forwardable
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=

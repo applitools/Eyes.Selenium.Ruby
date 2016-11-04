@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  #@!visibility private
   class EyesWebDriverScreenshot < Applitools::Core::EyesScreenshot
 
     SCREENSHOT_TYPES = {

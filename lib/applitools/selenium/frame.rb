@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  #@!visibility private
   class Frame
 
     attr_accessor :refernce, :frame_id, :location, :size, :parent_scroll_position
