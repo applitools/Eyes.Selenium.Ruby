@@ -208,7 +208,7 @@ module Applitools::Selenium
       begin
         original_overflow = Applitools::Utils::EyesSeleniumUtils.hide_scrollbars driver
       rescue Applitools::EyesDriverOperationException => e
-        Applitools::Logger.warn "Failed to hide scrollbars! Error: #{e.message}"
+        logger.warn "Failed to hide scrollbars! Error: #{e.message}"
       end
 
       begin
