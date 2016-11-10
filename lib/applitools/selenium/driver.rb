@@ -158,32 +158,6 @@ module Applitools::Selenium
       platform_name.to_s.upcase == IOS
     end
 
-    # public RectangleSize getDefaultContentViewportSize(boolean forceQuery) {
-    #   logger.verbose("getDefaultContentViewportSize()");
-    #
-    #   if (defaultContentViewportSize != null && !forceQuery) {
-    #       logger.verbose("Using cached viewport size: "
-    #   + defaultContentViewportSize);
-    #   return defaultContentViewportSize;
-    #   }
-    #
-    #   FrameChain currentFrames = getFrameChain();
-    #   // Optimization
-    #   if (currentFrames.size() > 0) {
-    #       switchTo().defaultContent();
-    #   }
-    #
-    #   logger.verbose("Extracting viewport size...");
-    #   defaultContentViewportSize =
-    #       EyesSeleniumUtils.extractViewportSize(logger, this);
-    #   logger.verbose("Done! Viewport size: " + defaultContentViewportSize);
-    #
-    #   if (currentFrames.size() > 0) {
-    #       ((EyesTargetLocator) switchTo()).frames(currentFrames);
-    #   }
-    #   return defaultContentViewportSize;
-    #   }
-
     def frame_chain
       Applitools::Selenium::FrameChain.new other: @frame_chain
     end
