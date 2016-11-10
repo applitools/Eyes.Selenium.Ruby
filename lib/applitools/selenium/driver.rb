@@ -87,6 +87,12 @@ module Applitools::Selenium
       @browser.set_overflow(overflow)
     end
 
+    # Returns native driver
+    # @return Selenium::WebDriver
+    def remote_web_driver
+      driver
+    end
+
     alias set_overflow overflow=
 
     def screenshot_as(format)
@@ -191,7 +197,7 @@ module Applitools::Selenium
 
       current_frames = frame_chain
       # switch_to.default_content if current_frames.size > 0
-      logger.info 'Extractiong viewport size...'
+      logger.info 'Extracting viewport size...'
       @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(self)
       logger.info "Done! Viewport size is #{@cached_default_content_viewport_size}"
 
@@ -272,7 +278,7 @@ module Applitools::Selenium
         return if driver.mobile_device?
 
         normalization_factor = driver.browser.image_normalization_factor(image)
-        Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
+        Applitools::Utils::ImageUtils.scale!(image, :speed, normalization_factor) unless normalization_factor == 1
       end
     end
   end

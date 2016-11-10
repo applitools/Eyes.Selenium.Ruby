@@ -81,6 +81,22 @@ module Applitools::Utils
     VERIFY_RETRIES = 3
     VERIFY_SLEEP_PERIOD = 1
 
+    def mobile_device?
+      return $driver if $driver && $driver.is_a?(Appium::Driver)
+      nil
+    end
+
+    def android?(driver)
+      driver.respond_to?(:appium_device) && driver.appium_device == :android
+    end
+
+    def ios?(driver)
+      driver.respond_to?(:appium_device) && driver.appium_device == :ios
+    end
+
+    def platform_version(driver)
+      driver.respond_to?(:caps) && driver.caps[:platformVersion]
+    end
 
     def current_scroll_position(executor)
         position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash

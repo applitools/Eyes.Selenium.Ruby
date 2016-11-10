@@ -66,7 +66,7 @@ module Applitools::Core
       # cutProviderHandler.set(new NullCutProvider());
       #
       # positionProvider = new InvalidPositionProvider();
-      # scaleMethod = ScaleMethod.getDefault();
+      self.scale_method = :speed
       #
       # defaultMatchSettings = new ImageMatchSettings();
       # failureReports = FailureReports.ON_CLOSE;

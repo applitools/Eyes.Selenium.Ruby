@@ -317,7 +317,7 @@ module Applitools::Selenium
         rescue => e
           logger.info 'Failed to set ContextBasedScaleProvider'
           logger.info 'Using FixedScaleProvider instead'
-          self.scale_provider = Applitools::Selenium::FixedScaleProvider.new(1/device_pixel_ratio)
+          self.scale_provider = Applitools::Core::FixedScaleProvider.new(1.to_f/device_pixel_ratio)
         end
         logger.info 'Done!'
       end
@@ -420,6 +420,43 @@ module Applitools::Selenium
     end
 
     protected
+
+    def app_environment
+      app_env = super
+      underlying_driver = driver.remote_web_driver
+      if app_env.os.nil?
+        logger.info 'No OS set, checking for mobile OS...'
+        if underlying_driver = Applitools::Utils::EyesSeleniumUtils.mobile_device?
+          logger.info 'Mobile device detected! Checking device type...'
+          if Applitools::Utils::EyesSeleniumUtils.android?(underlying_driver)
+            logger.info 'Android detected...'
+            platform_name = 'Android'
+          elsif Applitools::Utils::EyesSeleniumUtils.ios?(underlying_driver)
+            logger.info 'iOS detected...'
+            platform_name = 'iOS'
+          else
+            logger.info 'Unknown device type'
+          end
+        end
+
+        if platform_name && !platform_name.empty?
+          os = platform_name
+          platform_version = Applitools::Utils::EyesSeleniumUtils.platform_version(underlying_driver).to_s
+          if !platform_version.empty?
+            major_version = platform_version.split(/\./).first
+            os << " #{major_version}"
+          end
+          logger.info "Setting OS: #{os}"
+          app_env.os = os
+          logger.info "Setting scale method for mobile."
+          self.scale_method = :quality
+        end
+      else
+        logger.info 'No mobile OS detected.'
+      end
+      app_env
+    end
+
     #testtesttest
     #@param [Hash]options
     #@option options [Region] :region
