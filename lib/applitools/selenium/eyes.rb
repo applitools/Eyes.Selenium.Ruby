@@ -38,7 +38,7 @@ module Applitools::Selenium
     #   @return [boolean] scroll_to_region flag
 
 
-    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
+    attr_accessor :base_agent_id, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
                   :wait_before_screenshots, :debug_screenshot
     attr_reader :driver
 
@@ -625,6 +625,12 @@ module Applitools::Selenium
     # @param [Boolean] value should be false or nil to reset the sequence. Takes no effect if +true+ passed
     def screenshot_name_enumerator=(value)
       @name_enumerator = nil unless value
+    end
+
+    def inferred_environment
+      user_agent = driver.user_agent
+      return "useragent: #{user_agent}" if user_agent && !user_agent.empty?
+      nil
     end
   end
 end
