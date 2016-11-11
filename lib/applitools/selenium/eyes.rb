@@ -2,8 +2,10 @@ module Applitools::Selenium
   # The main API gateway for the SDK
   class Eyes  < Applitools::Core::EyesBase
 
+    # @!visibility private
     UNKNOWN_DEVICE_PIXEL_RATIO = 0
 
+    # The pixel ratio will be used if detection of device pixel ratio is failed
     DEFAULT_DEVICE_PIXEL_RATIO = 1
 
     DEFAULT_WAIT_BEFORE_SCREENSHOTS = 0.1 # Seconds
@@ -28,9 +30,16 @@ module Applitools::Selenium
     #   positioning to stabilize when performing a full page stitching).
     #   @return [Float] The time to wait (Seconds). Values
     #     smaller or equal to 0, will cause the default value to be used.
+    # @!attribute [rw] hide_scrollbars
+    #   Turns on/off hiding scrollbars before taking a screenshot
+    #   @return [boolean] hide_scrollbars flag
+    # @!attribute [rw] scroll_to_region
+    #   If set to +true+ browser will scroll to specified region (even it is out of viewport window) when check_region is called
+    #   @return [boolean] scroll_to_region flag
 
-    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :region_visibility_strategy,
-                  :force_full_page_screenshot, :wait_before_screenshots, :debug_screenshot
+
+    attr_accessor :base_agent_id, :inferred_environment, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
+                  :wait_before_screenshots, :debug_screenshot
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -189,11 +198,25 @@ module Applitools::Selenium
       abort_if_not_closed
     end
 
+    # @!visibility private
+    def scroll_to_region
+      region_visibility_strategy.is_a? Applitools::Selenium::MoveToRegionVisibilityStrategy
+    end
+
+    # @!visibility private
+    def scroll_to_region=(value)
+      if(value)
+        self.region_visibility_strategy = Applitools::Selenium::MoveToRegionVisibilityStrategy.new
+      else
+        self.region_visibility_strategy = Applitools::Selenium::NopRegionVisibilityStrategy.new
+      end
+    end
+
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
-                  :hide_scrollbars, :device_pixel_ratio, :stitch_mode, :position_provider,
-                  :scale_provider, :tag_for_debug
+                  :device_pixel_ratio, :stitch_mode, :position_provider,
+                  :scale_provider, :tag_for_debug, :region_visibility_strategy
 
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
@@ -205,10 +228,12 @@ module Applitools::Selenium
 
       update_scaling_params
 
-      begin
-        original_overflow = Applitools::Utils::EyesSeleniumUtils.hide_scrollbars driver
-      rescue Applitools::EyesDriverOperationException => e
-        logger.warn "Failed to hide scrollbars! Error: #{e.message}"
+      if hide_scrollbars
+        begin
+          original_overflow = Applitools::Utils::EyesSeleniumUtils.hide_scrollbars driver
+        rescue Applitools::EyesDriverOperationException => e
+          logger.warn "Failed to hide scrollbars! Error: #{e.message}"
+        end
       end
 
       begin
@@ -457,15 +482,13 @@ module Applitools::Selenium
       app_env
     end
 
-    #testtesttest
-    #@param [Hash]options
-    #@option options [Region] :region
+    # check a region, specified by element_or_selector parameter
+    # @param [Array] element_or_selector Array, which contains Applitools::Selenium::Element or [:finder, :value]
+    #    pair should be used in find_element
+    # @param [Hash] options
+    # @option options [String] :tag
+    # @option options [Float] :tmatch_timeout
     def check_region_(element_or_selector, options = {})
-      # :element
-      # :selector
-      # :tag
-      # :match_timeout
-      # :stitch_content
       selector = element_or_selector if Applitools::Selenium::Driver::FINDERS.keys.include? element_or_selector.first
       element = element_or_selector.first if element_or_selector.first.instance_of? Applitools::Selenium::Element
       element = driver.find_element(*selector) unless element
@@ -507,11 +530,14 @@ module Applitools::Selenium
       result
     end
 
+    # Chacks an element, specified by +element_or_selector+ parameter
+    # @param [Array] element_or_selector Array, which contains Applitools::Selenium::Element or [:finder, :value]
+    #    pair should be used in find_element
+    # @param [Hash] options
+    # @option options [String] :tag
+    # @option options [Float] :tmatch_timeout
+
     def check_element(element_or_selector, options = {})
-      # :selector
-      # :element
-      # :match_timeout
-      # :tag
       selector = element_or_selector if Applitools::Selenium::Driver::FINDERS.keys.include? element_or_selector.first
       if !options[:tag].nil? && !options[:tag].empty?
         tag = options[:tag]
@@ -595,6 +621,8 @@ module Applitools::Selenium
       end
     end
 
+    # Resets screenshot_names sequence to initial state.
+    # @param [Boolean] value should be false or nil to reset the sequence. Takes no effect if +true+ passed
     def screenshot_name_enumerator=(value)
       @name_enumerator = nil unless value
     end

@@ -182,7 +182,7 @@ module Applitools::Core
       raise Applitools::EyesError.new 'Eyes not open' unless open?
       Applitools::Core::ArgumentGuard.not_nil region_provider, 'region_provider'
 
-      logger.info "check_window_base(region_provider, #{tag}, #{ignore_mismatch}, #{retry_timeout})"
+      logger.info "check_window_base(#{region_provider}, #{tag}, #{ignore_mismatch}, #{retry_timeout})"
 
       tag = '' if tag.nil?
 

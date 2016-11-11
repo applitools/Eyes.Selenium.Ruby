@@ -99,7 +99,6 @@ module Applitools::Selenium
       else
         self.frame_location_in_screenshot = options[:frame_location_in_screenshot] if options[:frame_location_in_screenshot]
       end
-
       logger.info 'Calculating frame window..'
       self.frame_window = Applitools::Core::Region.from_location_size(frame_location_in_screenshot, frame_size);
       frame_window.intersect Applitools::Core::Region.new(0, 0, image.width, image.height)
@@ -191,7 +190,7 @@ module Applitools::Selenium
 
     def location_in_screenshot(location, coordinate_type)
       location = convert_location(location, coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is])
-      raise Applitools::OutOfBoundException.new "Location #{location} (#{coordinate_type}) is not visible in screenshot!" unless (frame_window.contains?(location.x,location.y))
+      raise Applitools::OutOfBoundsException.new "Location #{location} (#{coordinate_type}) is not visible in screenshot!" unless (frame_window.contains?(location.x,location.y))
       location
     end
 
