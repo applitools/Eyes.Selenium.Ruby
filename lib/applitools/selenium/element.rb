@@ -139,6 +139,22 @@ module Applitools::Selenium
       computed_style_integer(:'border-bottom-width')
     end
 
+    def padding_left_width
+      computed_style_integer(:'padding-left')
+    end
+
+    def padding_right_width
+      computed_style_integer(:'padding-right')
+    end
+
+    def padding_top_width
+      computed_style_integer(:'padding-top')
+    end
+
+    def padding_bottom_width
+      computed_style_integer(:'padding-bottom')
+    end
+
     def scroll_left
       Integer driver.execute_script(JS_GET_SCROLL_LEFT, self).to_s
     end

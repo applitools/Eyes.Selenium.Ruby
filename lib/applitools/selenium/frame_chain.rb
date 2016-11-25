@@ -14,7 +14,7 @@ module Applitools::Selenium
     end
 
     def same_frame_chain?(other)
-      return false unless length == other.length
+      return false unless size == other.size
       all? {|my_elem| my_elem.id == other.next.id }
     end
 
@@ -28,6 +28,10 @@ module Applitools::Selenium
       @frames.pop
     end
 
+    def shift
+      @frames.shift
+    end
+
     def clear
       @frames = []
     end
@@ -37,9 +41,13 @@ module Applitools::Selenium
     end
 
     def current_frame_offset
-      reduce(Applitools::Base::Point.new 0, 0) do |result, frame|
+      @frames.reduce(Applitools::Core::Location.new(0, 0)) do |result, frame|
         result.offset frame.location
       end
+    end
+
+    def current_frame
+      @frames.last
     end
 
     def default_content_scroll_position

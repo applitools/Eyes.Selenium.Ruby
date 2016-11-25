@@ -15,6 +15,8 @@ module Applitools::Selenium
     }.freeze
 
     attr_accessor :driver
+    attr_accessor :frame_chain
+    private :frame_chain=
 
     class << self
       alias _new new
@@ -34,6 +36,26 @@ module Applitools::Selenium
         else
           raise Applitools::EyesIllegalArgument.new "#{self.class}.initialize(): Hash is expected as an argument!"
         end
+      end
+
+      def calc_frame_location_in_screenshot(frame_chain, screenshot_type, logger)
+        frame_chain = Applitools::Selenium::FrameChain.new other: frame_chain
+        logger.info 'Getting first frame...'
+        first_frame = frame_chain.shift
+        logger.info 'Done!'
+        location_in_screenshot = Applitools::Core::Location.for first_frame.location
+
+        if screenshot_type == SCREENSHOT_TYPES[:viewport]
+          default_content_scroll = first_frame.parent_scroll_position
+          location_in_screenshot.offset_negative Applitools::Core::Location.for(default_content_scroll.x, default_content_scroll.y)
+        end
+
+        logger.info 'Iterating over frames...'
+        frame_chain.each do |frame|
+          location_in_screenshot.offset(Applitools::Core::Location.for(frame.location.x, frame.location.y)).
+              offset_negative(Applitools::Core::Location.for(frame.parent_scroll_position.x, frame.parent_scroll_position.y))
+        end
+        location_in_screenshot
       end
     end
 
@@ -59,9 +81,9 @@ module Applitools::Selenium
       self.position_provider = Applitools::Selenium::ScrollPositionProvider.new driver
 
 
-      viewport_size = driver.default_content_viewport_size #method in driver?
+      viewport_size = driver.default_content_viewport_size
 
-      self.frame_chain = driver.frame_chain #method in driver? frame chain is in another branch
+      self.frame_chain = driver.frame_chain
       unless frame_chain.size == 0
         frame_size = frame_chain.current_frame_size
       else
@@ -90,11 +112,11 @@ module Applitools::Selenium
 
       unless options[:frame_location_in_screenshot]
         if frame_chain.size > 0
-          self.frame_location_in_screenshot =  calc_frame_location_in_screenshot
+          self.frame_location_in_screenshot =  self.class.calc_frame_location_in_screenshot(frame_chain, screenshot_type, logger)
         else
           self.frame_location_in_screenshot = Applitools::Core::Location.new(0,0)
-          frame_location_in_screenshot.offset Applitools::Core::Location.for(-scroll_position.x, -scroll_position.y) if
-              screenshot_type == SCREENSHOT_TYPES[:viewport]
+          # frame_location_in_screenshot.offset_negative Applitools::Core::Location.for(scroll_position.x, scroll_position.y) if
+          #     screenshot_type == SCREENSHOT_TYPES[:viewport]
         end
       else
         self.frame_location_in_screenshot = options[:frame_location_in_screenshot] if options[:frame_location_in_screenshot]
@@ -116,58 +138,44 @@ module Applitools::Selenium
 
       result = Applitools::Core::Location.for location
       return result if from == to
-      if frame_chain.size.zero? && screenshot_type == SCREENSHOT_TYPES[:entire_frame]
-        if (from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative] ||
-            from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]) &&
-            to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-          result.offset frame_location_in_screenshot
-        elsif from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is] &&
-            (to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative] ||
-             to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is])
-          result.offset_negative frame_location_in_screenshot
-        end
+      # if frame_chain.size.zero? && screenshot_type == SCREENSHOT_TYPES[:entire_frame]
+      #   if (from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative] ||
+      #       from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]) &&
+      #       to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+      #     result.offset frame_location_in_screenshot
+      #   elsif from == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is] &&
+      #       (to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative] ||
+      #        to == Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is])
+      #     result.offset_negative frame_location_in_screenshot
+      #   end
+      # end
+
+      case from
+        when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+          case to
+            when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+              result.offset_negative scroll_position
+              result.offset frame_location_in_screenshot
+          else
+            raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
+          end
+        when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
+          case to
+            when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+              result.offset_negative frame_location_in_screenshot
+              result.offset scroll_position
+          else
+            raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
+          end
       else
-        case from
-          when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
-            case to
-              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-                result.offset scroll_position
-              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-                result.offset frame_location_in_screenshot
-            else
-              raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
-            end
-          when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-            case to
-              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-                # binding.pry
-                result.offset_negative scroll_position
-                # result.offset frame_location_in_screenshot
-                # binding.pry
-              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
-                result.offset_negative scroll_position
-            else
-              raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
-            end
-          when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-            case to
-              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-                result.offset_negative frame_location_in_screenshot
-                result.offset scroll_position
-              when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
-                result.offset_negative frame_location_in_screenshot
-            else
-              raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
-            end
-        else
-          raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
-        end
+        raise Applitools::EyesCoordinateTypeConversionException.new "Can't convert coordinates from #{from} to #{to}"
       end
+
       result
     end
 
     def frame_chain
-      Applitools::Core::FrameChain.new other: @frame_chain
+      Applitools::Selenium::FrameChain.new other: @frame_chain
     end
 
     def intersected_region(region, original_coordinate_types, result_coordinate_types)
@@ -224,11 +232,8 @@ module Applitools::Selenium
 
     private
 
-    attr_accessor :position_provider, :frame_chain, :scroll_position, :screenshot_type, :frame_location_in_screenshot,
+    attr_accessor :position_provider, :scroll_position, :screenshot_type, :frame_location_in_screenshot,
                   :frame_window
 
-    def calc_frame_location_in_screenshot
-      ##stub - need to implement
-    end
   end
 end

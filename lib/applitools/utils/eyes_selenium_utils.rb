@@ -98,6 +98,8 @@ module Applitools::Utils
       driver.respond_to?(:caps) && driver.caps[:platformVersion]
     end
 
+    # @param [Applitools::Selenium::Driver] executor
+    # @return [Applitools::Core::Location] instance which indicates current scroll position
     def current_scroll_position(executor)
         position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
         Applitools::Core::Location.new position[:left], position[:top]

@@ -40,6 +40,7 @@ module Applitools::Selenium
       @is_mobile_device = options.fetch(:is_mobile_device, false)
       @wait_before_screenshots = 0
       @eyes = eyes
+      @frame_chain = Applitools::Selenium::FrameChain.new
       @browser = Applitools::Selenium::Browser.new(self, @eyes)
       Applitools::EyesLogger.warn '"screenshot_as" method not found!' unless driver.respond_to? :screenshot_as
     end
@@ -48,8 +49,7 @@ module Applitools::Selenium
       raises_error { __getobj__.execute_script(*args) }
     end
 
-    # Returns:
-    # +String+ The platform name or +nil+ if it is undefined.
+    # @return [String] The platform name or +nil+ if it is undefined.
     def platform_name
       capabilities['platformName']
     end
@@ -162,6 +162,10 @@ module Applitools::Selenium
       Applitools::Selenium::FrameChain.new other: @frame_chain
     end
 
+    def frame_chain!
+      @frame_chain
+    end
+
     def default_content_viewport_size(force_query = false)
       logger.info("default_content_viewport_size()");
       if cached_default_content_viewport_size && !force_query
@@ -170,15 +174,18 @@ module Applitools::Selenium
       end
 
       current_frames = frame_chain
-      # switch_to.default_content if current_frames.size > 0
+      switch_to.default_content if current_frames.size > 0
       logger.info 'Extracting viewport size...'
       @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(self)
       logger.info "Done! Viewport size is #{@cached_default_content_viewport_size}"
 
-      #do something if current_frames > 0
+      switch_to.frames(frame_chain: current_frames)  if current_frames.size > 0
       @cached_default_content_viewport_size
     end
 
+    def switch_to
+      @switch_to ||= Applitools::Selenium::EyesTargetLocator.new(self, driver.switch_to, FrameChangeEventListener.new(self))
+    end
 
     private
 
@@ -215,6 +222,47 @@ module Applitools::Selenium
       else
         raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
       end
+    end
+
+    class FrameChangeEventListener
+      extend Forwardable
+
+      def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
+
+      def initialize(parent)
+        self.parent = parent
+      end
+
+      def will_switch_to_frame(target_type, target_frame)
+        logger.info 'will_switch_to_frame()'
+        case target_type
+          when :default_content
+            logger.info 'Default content.'
+            parent.frame_chain!.clear
+          when :parent_frame
+            logger.info 'Parent frame.'
+            parent.frame_chain!.pop
+          when :frame
+            logger.info 'Frame.'
+            frame_location_size = Applitools::Selenium::BorderAwareElementContentLocationProvider.new target_frame
+            parent.frame_chain!.push Frame.new reference: target_frame, frame_id: '',
+                      location: Applitools::Core::Location.for(frame_location_size.location),
+                      size: Applitools::Core::RectangleSize.for(frame_location_size.size),
+                      parent_scroll_position: Applitools::Selenium::ScrollPositionProvider.new(parent).current_position
+
+            logger.info 'Done!'
+          else
+            raise Applitools::EyesError.new('will_switch_to_frame(): target type is not recognized!')
+        end
+      end
+
+      def will_switch_to_window(name_or_handle)
+
+      end
+
+      private
+
+      attr_accessor :parent
     end
 
     class << self

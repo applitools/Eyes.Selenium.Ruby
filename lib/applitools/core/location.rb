@@ -73,11 +73,13 @@ module Applitools::Core
     def offset(other)
       @x += other.x
       @y += other.y
+      self
     end
 
     def offset_negative(other)
       @x -= other.x
       @y -= other.y
+      self
     end
   end
 end

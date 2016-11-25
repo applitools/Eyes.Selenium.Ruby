@@ -16,6 +16,8 @@ module Applitools
   # @!visibility private
   class EyesIllegalArgument < EyesError; end
   # @!visibility private
+  class EyesNoSuchFrame < EyesError; end
+  # @!visibility private
   class OutOfBoundsException < EyesError; end;
   # @!visibility private
   class EyesDriverOperationException < EyesError; end;
