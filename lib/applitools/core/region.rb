@@ -161,7 +161,7 @@ module Applitools::Core
             current_left = container_region.left
             while current_left < right
               current_right = current_left + sub_region.width
-              currentRight = right if current_right > right
+              current_right = right if current_right > right
 
               current_height = current_bottom - current_top
               current_width = current_right - current_left

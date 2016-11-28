@@ -286,8 +286,8 @@ module Applitools::Selenium
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
           debug_screenshot: debug_screenshot, name_enumerator: screenshot_name_enumerator
-      eyes_screenshot_factory = ->(image) {
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+      eyes_screenshot_factory = ->(image, position_provider) {
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, position_provider: position_provider)
       }
       logger.info 'Getting screenshot (capture_screenshot() has been invoked)'
 
@@ -665,7 +665,7 @@ module Applitools::Selenium
 
       begin
         self.check_frame_or_element = true
-        self.position_provider = Applitools::Selenium::ElementPositionProvider.new driver, eyes_element
+        self.position_provider = Applitools::Selenium::ElementPositionProvider.new driver, eyes_element, original_position_provider
         original_overflow = eyes_element.overflow
         eyes_element.overflow = 'hidden'
 

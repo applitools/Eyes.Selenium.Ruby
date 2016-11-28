@@ -42,9 +42,14 @@ module Applitools::Selenium
       image = scale_provider.scale_image(image) if scale_provider
       image = cut_provider.cut(image) if cut_provider
       logger.info 'Done! Creating screenshot object...'
-      screenshot = eyes_screenshot_factory.call(image)
+      screenshot = eyes_screenshot_factory.call(image, position_provider)
       logger.info 'Done! Getting region in screenshot...'
+
+
+
+      p region_provider.region
       region_in_screenshot = screenshot.convert_region_location(region_provider.region, region_provider.coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is])
+      p region_in_screenshot
       logger.info "Done! region in screenshot: #{region_in_screenshot}"
 
       # Handling a specific case where the region is actually larger than
@@ -119,15 +124,36 @@ module Applitools::Selenium
           part_image = cut_provider.cut part_image if cut_provider
 
           logger.info 'Done!'
+          begin
+            a_screenshot = eyes_screenshot_factory.call(part_image, position_provider).sub_screenshot(part_region, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative])
+          rescue Applitools::OutOfBoundsException => e
+            break
+          end
 
-          part_image.crop!(region_in_screenshot.x,
-                           region_in_screenshot.y,
-                           region_in_screenshot.width,
-                           region_in_screenshot.height) unless region_in_screenshot.empty?
+          # a_screenshot.sub_screenshot(part_region, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative])
+          # crop_dimensions = a_screenshot.convert_region_location(part_region,
+          #                                    Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
+          #                                    Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is])
+          # crop_dimensions.intersect
+
+          # p "#{part_region}"
+          # p "#{crop_dimensions}"
+
+          # part_image.crop!(crop_dimensions.x, crop_dimensions.y, crop_dimensions.width, crop_dimensions.height)
+
+          # part_image.crop!(region_in_screenshot.x,
+          #                  region_in_screenshot.y,
+          #                  region_in_screenshot.width,
+          #                  region_in_screenshot.height) unless region_in_screenshot.empty?
 
           logger.info 'Stitching part into the image container...'
 
-          stitched_image.replace! part_image, current_position.x, current_position.y
+          p "--------------------------------------------------------------------------------------------------------"
+          p "#{part_region}"
+          p "#{part_image.width} x #{part_image.height}"
+          p "#{current_position}"
+          # stitched_image.replace! a_screenshot.image, current_position.x, current_position.y
+          stitched_image.replace! a_screenshot.image, part_region.x, part_region.y
           logger.info 'Done!'
 
           last_successful_location = current_position
@@ -150,7 +176,7 @@ module Applitools::Selenium
 
       if (actual_image_width < stitched_image.width() || actual_image_height < stitched_image.height)
         logger.info 'Trimming unnecessary margins...'
-        stitched_image.crop!(0,0,actual_image_width,actual_image_height)
+        # stitched_image.crop!(0,0,actual_image_width,actual_image_height)
         logger.info 'Done!'
       end
 

@@ -239,13 +239,15 @@ module Applitools::Selenium
           when :default_content
             logger.info 'Default content.'
             parent.frame_chain!.clear
+            return nil
           when :parent_frame
             logger.info 'Parent frame.'
-            parent.frame_chain!.pop
+            return parent.frame_chain!.pop
           when :frame
             logger.info 'Frame.'
             frame_location_size = Applitools::Selenium::BorderAwareElementContentLocationProvider.new target_frame
-            parent.frame_chain!.push Frame.new reference: target_frame, frame_id: '',
+
+            return parent.frame_chain!.push Frame.new reference: target_frame, frame_id: '',
                       location: Applitools::Core::Location.for(frame_location_size.location),
                       size: Applitools::Core::RectangleSize.for(frame_location_size.size),
                       parent_scroll_position: Applitools::Selenium::ScrollPositionProvider.new(parent).current_position

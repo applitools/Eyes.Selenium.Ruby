@@ -117,7 +117,6 @@ module Applitools::Selenium
 
       logger.info 'Done! Making preparations...'
       on_will_switch.will_switch_to_frame :frame, target_frame
-
       logger.info 'Done! Switching to frame...'
 
       #TODO: Looks like switching to frame by index (Fixnum) doesn't work at least for Chrome browser
@@ -142,9 +141,8 @@ module Applitools::Selenium
         raise Applitools::EyesNoSuchFrame.new "No frame with name or id #{name_or_id} exists!"  if frames.size == 0
       end
       logger.info 'Done! Making preparations...'
-      on_will_switch.will_switch_to_frame :frame, frames.first
+      on_will_switch.will_switch_to_frame(:frame, frames.first).last
       logger.info 'Done! Switching to frame...'
-
       __getobj__.frame frames.first
 
       logger.info 'Done!'
@@ -156,7 +154,6 @@ module Applitools::Selenium
       logger.info 'Done! Making preparations...'
       on_will_switch.will_switch_to_frame :frame, web_element
       logger.info 'Done! Switching to frame...'
-
       __getobj__.frame web_element
 
       logger.info 'Done!'
@@ -167,9 +164,9 @@ module Applitools::Selenium
       logger.info "EyesTargetLocator.frames(:frame_chain => a_chain) [#{frame_chain}]"
       frame_chain.each do |frame|
         logger.info 'Scrolling by parent scroll position...'
-        scroll_position_provider.scroll_to frame.parent_scroll_position
+        # scroll_position_provider.scroll_to frame.parent_scroll_position
         logger.info 'Done! Switching to frame...'
-        __getobj__.frame frame.reference
+        frame frame_element: frame.reference
         logger.info 'Done!'
         logger.info 'Done switching into nested frames!'
         driver
@@ -180,7 +177,7 @@ module Applitools::Selenium
       logger.info "EyesTargetLocator.frames(:frames_path => a_chain)"
       frames_path.each do |frame_name_or_id|
         logger.info 'Switching to frame...'
-        __getobj__.frame(frame_name_or_id)
+        frame(name_or_id: frame_name_or_id)
         logger.info 'Done!'
       end
       logger.info 'Done switching into nested frames!'
