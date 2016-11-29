@@ -4,16 +4,13 @@ module Applitools::Selenium
     extend Forwardable
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 
-    attr_reader :element_location_in_screenshot
 
-    def initialize(executor, passed_element, parent_context_position_provider)
+    def initialize(executor, passed_element)
       Applitools::Core::ArgumentGuard.not_nil 'executor', executor
       Applitools::Core::ArgumentGuard.not_nil 'passed_element', passed_element
       self.driver = executor
       self.element = passed_element
       self.element = Applitools::Selenium::Element.new(driver, element) unless element.is_a? Applitools::Selenium::Element
-      @element_location_in_screenshot = Applitools::Core::Location.for(passed_element.location).offset_negative(parent_context_position_provider.current_position)
-      p "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ #{@element_location_in_screenshot}"
     end
 
     def current_position

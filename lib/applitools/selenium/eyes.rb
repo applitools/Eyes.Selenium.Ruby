@@ -133,6 +133,9 @@ module Applitools::Selenium
         end
       end
 
+      self.eyes_screenshot_factory = ->(image) {
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+      }
       check_window_base region_provider, tag, false, match_timeout
     end
 
@@ -277,7 +280,7 @@ module Applitools::Selenium
 
     attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
                   :device_pixel_ratio, :stitch_mode, :position_provider,
-                  :scale_provider, :tag_for_debug, :region_visibility_strategy
+                  :scale_provider, :tag_for_debug, :region_visibility_strategy, :eyes_screenshot_factory
 
     def switch_to_parent_frame(options = {})
 
@@ -286,9 +289,6 @@ module Applitools::Selenium
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
           debug_screenshot: debug_screenshot, name_enumerator: screenshot_name_enumerator
-      eyes_screenshot_factory = ->(image, position_provider) {
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, position_provider: position_provider)
-      }
       logger.info 'Getting screenshot (capture_screenshot() has been invoked)'
 
       update_scaling_params
@@ -352,7 +352,8 @@ module Applitools::Selenium
           image = image_provider.take_screenshot
           scale_provider.scale_image(image) if scale_provider
           cut_provider.cut(image) if cut_provider
-          self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
+          # self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
+          self.screenshot = eyes_screenshot_factory.call(image)
         end
       ensure
         begin
@@ -542,6 +543,10 @@ module Applitools::Selenium
           end
         end
 
+        self.eyes_screenshot_factory = ->(image) {
+          Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+        }
+
         check_window_base region_provider, tag, false, match_timeout
       ensure
         driver.overflow = original_overflow unless original_overflow.nil?
@@ -624,6 +629,10 @@ module Applitools::Selenium
         end
       end
 
+      self.eyes_screenshot_factory = ->(image) {
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+      }
+
       result = check_window_base region_provider, tag, false, match_timeout
 
       logger.info 'Done! trying to scroll back to original position...'
@@ -665,7 +674,7 @@ module Applitools::Selenium
 
       begin
         self.check_frame_or_element = true
-        self.position_provider = Applitools::Selenium::ElementPositionProvider.new driver, eyes_element, original_position_provider
+        self.position_provider = Applitools::Selenium::ElementPositionProvider.new driver, eyes_element
         original_overflow = eyes_element.overflow
         eyes_element.overflow = 'hidden'
 
@@ -709,6 +718,11 @@ module Applitools::Selenium
             end
           end
         end
+
+        self.eyes_screenshot_factory = ->(image) {
+          Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, force_offset: position_provider.state)
+        }
+
         check_window_base base_check_region_provider, tag, false, match_timeout
       ensure
         eyes_element.overflow = original_overflow unless original_overflow.nil?

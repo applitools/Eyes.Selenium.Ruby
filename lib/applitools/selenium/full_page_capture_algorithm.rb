@@ -42,27 +42,31 @@ module Applitools::Selenium
       image = scale_provider.scale_image(image) if scale_provider
       image = cut_provider.cut(image) if cut_provider
       logger.info 'Done! Creating screenshot object...'
-      screenshot = eyes_screenshot_factory.call(image, position_provider)
-      logger.info 'Done! Getting region in screenshot...'
+      screenshot = eyes_screenshot_factory.call(image)
+      left_top_image = screenshot.sub_screenshot(region_provider.region, region_provider.coordinate_type)
+      p "#{left_top_image.image.width} x #{left_top_image.image.height}"
+
+      image = left_top_image.image
+      # logger.info 'Done! Getting region in screenshot...'
 
 
 
-      p region_provider.region
-      region_in_screenshot = screenshot.convert_region_location(region_provider.region, region_provider.coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is])
-      p region_in_screenshot
-      logger.info "Done! region in screenshot: #{region_in_screenshot}"
-
-      # Handling a specific case where the region is actually larger than
-      # the screenshot (e.g., when body width/height are set to 100%, and
-      # an internal div is set to value which is larger than the viewport).
-
-      region_in_screenshot.intersect Applitools::Core::Region.new(0,0,image.width, image.height)
-      logger.info "Region after intersect: #{region_in_screenshot}"
-
-      image.crop!(region_in_screenshot.x,
-                 region_in_screenshot.y,
-                 region_in_screenshot.width,
-                 region_in_screenshot.height) unless region_in_screenshot.empty?
+      # p region_provider.region
+      # region_in_screenshot = screenshot.convert_region_location(region_provider.region, region_provider.coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is])
+      # p region_in_screenshot
+      # logger.info "Done! region in screenshot: #{region_in_screenshot}"
+      #
+      # # Handling a specific case where the region is actually larger than
+      # # the screenshot (e.g., when body width/height are set to 100%, and
+      # # an internal div is set to value which is larger than the viewport).
+      #
+      # region_in_screenshot.intersect Applitools::Core::Region.new(0,0,image.width, image.height)
+      # logger.info "Region after intersect: #{region_in_screenshot}"
+      #
+      # image.crop!(region_in_screenshot.x,
+      #            region_in_screenshot.y,
+      #            region_in_screenshot.width,
+      #            region_in_screenshot.height) unless region_in_screenshot.empty?
 
       begin
         entire_size = position_provider.entire_size
@@ -82,10 +86,14 @@ module Applitools::Selenium
       end
 
       part_image_size = Applitools::Core::RectangleSize.new image.width, [image.height - MAX_SCROLL_BAR_SIZE, MIN_SCREENSHOT_PART_HEIGHT].max
+      # part_image_size = Applitools::Core::RectangleSize.new image.width, image.height
       logger.info "Total size: #{entire_size}, image_part_size: #{part_image_size}"
+
+
 
       # Getting the list of sub-regions composing the whole region (we'll
       # take screenshot for each one).
+
 
       entire_page = Applitools::Core::Region.from_location_size Applitools::Core::Location::TOP_LEFT, entire_size
       image_parts = entire_page.sub_regions(part_image_size)
@@ -102,7 +110,7 @@ module Applitools::Selenium
       logger.info "Done!"
 
       last_successful_location = Applitools::Core::Location.new 0, 0
-      last_succesful_part_size = Applitools::Core::RectangleSize.new image.width, image.height
+      last_successful_part_size = Applitools::Core::RectangleSize.new image.width, image.height
 
       original_stitched_state = position_provider.state
 
@@ -125,8 +133,12 @@ module Applitools::Selenium
 
           logger.info 'Done!'
           begin
-            a_screenshot = eyes_screenshot_factory.call(part_image, position_provider).sub_screenshot(part_region, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative])
+            region_to_check = Applitools::Core::Region.from_location_size(part_region.location.offset(region_provider.region.location), part_region.size)
+            a_screenshot = eyes_screenshot_factory.call(part_image).sub_screenshot(region_to_check,
+                Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
+                false)
           rescue Applitools::OutOfBoundsException => e
+            logger.error e.message
             break
           end
 
@@ -156,27 +168,29 @@ module Applitools::Selenium
           stitched_image.replace! a_screenshot.image, part_region.x, part_region.y
           logger.info 'Done!'
 
-          last_successful_location = current_position
-
+          last_successful_location = Applitools::Core::Location.for part_region.x, part_region.y
+          last_successful_part_size = Applitools::Core::RectangleSize.new a_screenshot.image.width, a_screenshot.image.height if a_screenshot
+          p "rrr #{last_successful_part_size} rrr #{last_successful_location}"
         end
       end
 
-      last_succesful_part_size = Applitools::Core::RectangleSize.new part_image.width, part_image.height if part_image
+
 
       logger.info 'Stitching done!'
 
       position_provider.restore_state original_stitched_state
       origin_provider.restore_state original_position
 
-      actual_image_width = last_successful_location.x + last_succesful_part_size.width
-      actual_image_height = last_successful_location.y + last_succesful_part_size.height
+      actual_image_width = last_successful_location.x + last_successful_part_size.width
+      actual_image_height = last_successful_location.y + last_successful_part_size.height
 
       logger.info "Extracted entire size: #{entire_size}"
+      logger.info "Actual stitched size: #{stitched_image.width} x #{stitched_image.height}"
       logger.info "Actual stitched size: #{actual_image_width} x #{actual_image_height}"
 
-      if (actual_image_width < stitched_image.width() || actual_image_height < stitched_image.height)
+      if (actual_image_width < stitched_image.width || actual_image_height < stitched_image.height)
         logger.info 'Trimming unnecessary margins...'
-        # stitched_image.crop!(0,0,actual_image_width,actual_image_height)
+        stitched_image.crop!(0,0,actual_image_width,actual_image_height)
         logger.info 'Done!'
       end
 
