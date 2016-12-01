@@ -71,21 +71,3 @@ require_relative 'applitools/watir_browser'
 require_relative 'applitools/images'
 
 
-# module Applitools
-#   extend self
-#   @initialized = nil
-#
-#   def initialize_applitools
-#     unless @initialized
-#       @initialized = true
-#       binding.pry
-#       if defined? Sauce
-#         require 'applitools/sauce'
-#       elsif defined? Capybara
-#         p "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1"
-#         require 'applitools/capybara'
-#       end
-#     end
-#   end
-# end
-#

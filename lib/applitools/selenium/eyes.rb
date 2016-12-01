@@ -345,7 +345,7 @@ module Applitools::Selenium
                                   wait_before_screenshots: wait_before_screenshots,
                                   eyes_screenshot_factory: eyes_screenshot_factory
 
-          driver.switch_to.frame original_frame
+          driver.switch_to.frame original_frame if driver.frame_chain.size > 0
           Applitools::Selenium::EyesWebDriverScreenshot.new full_page_image, driver: driver
         else
           logger.info 'Screenshot requested...'
@@ -478,10 +478,10 @@ module Applitools::Selenium
         return
       end
 
-      element_region = last_screenshot.intersected_region(element_region,
-                                                          Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
-                                                          Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-      )
+      # element_region = last_screenshot.intersected_region(element_region,
+      #                                                     Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
+      #                                                     Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+      # )
 
       add_mouse_trigger_base(mouse_action, element_region, element_region.middle_offset)
     end

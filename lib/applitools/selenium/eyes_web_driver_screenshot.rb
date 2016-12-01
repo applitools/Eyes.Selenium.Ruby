@@ -11,7 +11,8 @@ module Applitools::Selenium
         [:driver, :screenshot_type, :frame_location_in_screenshot].sort => :initialize_main,
         [:driver, :force_offset].sort => :initialize_main,
         [:driver].sort => :initialize_main,
-        [:driver, :entire_frame_size].sort => :initialize_for_element
+        [:driver, :entire_frame_size].sort => :initialize_for_element,
+        [:driver, :entire_frame_size, :frame_location_in_screenshot].sort => :initialize_for_element,
 
     }.freeze
 
@@ -67,9 +68,10 @@ module Applitools::Selenium
       self.driver = options[:driver]
       self.frame_chain = driver.frame_chain
       self.screenshot_type = SCREENSHOT_TYPES[:entire_frame]
-      self.scroll_position = Applitools::Core::Location.new 0,0
+      self.scroll_position = Applitools::Core::Location.new(0,0)
+      self.scroll_position = Applitools::Core::Location.new(0,0).offset(options[:frame_location_in_screenshot]) if options[:frame_location_in_screenshot].is_a? Applitools::Core::Location
       self.frame_location_in_screenshot = Applitools::Core::Location.new 0,0
-      self.frame_window = Applitools::Core::Region.new(0,0,entire_frame_size.width, entire_frame_size.height)
+      self.frame_window = Applitools::Core::Region.new(0, 0, entire_frame_size.width, entire_frame_size.height)
     end
 
     def initialize_main(options = {})
@@ -93,6 +95,7 @@ module Applitools::Selenium
           frame_size = viewport_size
         end
       end
+
 
       begin
         self.scroll_position = position_provider.current_position
@@ -119,7 +122,7 @@ module Applitools::Selenium
           #     screenshot_type == SCREENSHOT_TYPES[:viewport]
         end
       else
-        self.frame_location_in_screenshot = options[:frame_location_in_screenshot] if options[:frame_location_in_screenshot]
+        self.frame_location_in_screenshot = options[:frame_location_in_screenshot]
       end
 
       self.force_offset = Applitools::Core::Location::TOP_LEFT
@@ -166,8 +169,6 @@ module Applitools::Selenium
         when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
           case to
             when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-              p "2222222222222222222222 #{scroll_position}"
-              p "#{frame_location_in_screenshot}"
               result.offset_negative scroll_position
               result.offset frame_location_in_screenshot
           else
@@ -195,7 +196,6 @@ module Applitools::Selenium
     def intersected_region(region, original_coordinate_types, result_coordinate_types)
       return Applitools::Core::Region::EMPTY if region.empty?
       intersected_region = convert_region_location region, original_coordinate_types, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-
       case original_coordinate_types
         when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
         when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
@@ -224,8 +224,6 @@ module Applitools::Selenium
       region_to_check = Applitools::Core::Region.from_location_size region.location.offset_negative(force_offset), region.size
 
       as_is_subscreenshot_region = intersected_region region_to_check, coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-      p "#{region}"
-      p "+++++++++++++++++++ #{as_is_subscreenshot_region}"
       raise Applitools::OutOfBoundsException.new "Region #{region} (#{coordinate_type}) is out" \
         " of screenshot bounds [#{frame_window}]" if
           as_is_subscreenshot_region.empty? || (throw_if_clipped && !as_is_subscreenshot_region.size == region.size)
@@ -234,9 +232,9 @@ module Applitools::Selenium
         as_is_subscreenshot_region.top, as_is_subscreenshot_region.width,
         as_is_subscreenshot_region.height).to_datastream.to_blob
 
-      # context_as_is_region_location = convert_location as_is_subscreenshot_region.location,
-      #                                                  Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is],
-      #                                                  Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+      context_relative_region_location = convert_location as_is_subscreenshot_region.location,
+                                                        Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is],
+                                                        Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
       #
       #
       # frame_location_in_sub_screenshot = Applitools::Core::Location.new -context_as_is_region_location.x,
@@ -244,7 +242,10 @@ module Applitools::Selenium
       # result = self.class.new sub_screenshot_image, driver: driver, screenshot_type: screenshot_type,
       #                         frame_location_in_screenshot: frame_location_in_sub_screenshot
 
-      result = self.class.new sub_screenshot_image, driver: driver, entire_frame_size: Applitools::Core::RectangleSize.new(sub_screenshot_image.width, sub_screenshot_image.height)
+      result = self.class.new sub_screenshot_image,
+                              driver: driver,
+                              entire_frame_size: Applitools::Core::RectangleSize.new(sub_screenshot_image.width, sub_screenshot_image.height),
+                              frame_location_in_screenshot: context_relative_region_location
 
       logger.info 'Done!'
       result
