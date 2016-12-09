@@ -5,8 +5,7 @@ require 'tempfile'
 module Applitools::Utils
   QUADRANTS_COUNT = 4
   SCALE_METHODS = {
-      speed: :resample_nearest_neighbor,
-      quality: :resample_bilinear,
+    :speed => :resample_nearest_neighbor, :quality => :resample_bilinear
   }.freeze
 
   module ImageUtils
@@ -77,7 +76,7 @@ module Applitools::Utils
       raise Applitools::EyesIllegalArgument.new "Unknown scale method #{scale_method}" unless
           Applitools::Utils::SCALE_METHODS.keys.include? scale_method
       image.send("#{Applitools::Utils::SCALE_METHODS[scale_method]}!",
-                 (image.width.to_f * factor).to_i, (image.height.to_f * factor).to_i)
+        (image.width.to_f * factor).to_i, (image.height.to_f * factor).to_i)
     end
 
     include Applitools::MethodTracer

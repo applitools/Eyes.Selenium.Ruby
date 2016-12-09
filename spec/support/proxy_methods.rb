@@ -1,4 +1,4 @@
-RSpec.shared_examples "proxy method" do |receiver, methods|
+RSpec.shared_examples 'proxy method' do |receiver, methods|
   methods.each do |m|
     it "responds to #{m}" do
       expect(subject).to respond_to(m)

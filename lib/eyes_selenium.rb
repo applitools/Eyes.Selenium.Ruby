@@ -18,13 +18,13 @@ module Applitools
   # @!visibility private
   class EyesNoSuchFrame < EyesError; end
   # @!visibility private
-  class OutOfBoundsException < EyesError; end;
+  class OutOfBoundsException < EyesError; end
   # @!visibility private
-  class EyesDriverOperationException < EyesError; end;
+  class EyesDriverOperationException < EyesError; end
   # @!visibility private
-  class EyesNotOpenException < EyesError; end;
+  class EyesNotOpenException < EyesError; end
   # @!visibility private
-  class EyesCoordinateTypeConversionException < EyesError; end;
+  class EyesCoordinateTypeConversionException < EyesError; end
 
   # @!visibility private
   class AbstractMethodCalled < EyesError
@@ -69,5 +69,3 @@ require_relative 'applitools/selenium_webdriver'
 require_relative 'applitools/appium_driver'
 require_relative 'applitools/watir_browser'
 require_relative 'applitools/images'
-
-
