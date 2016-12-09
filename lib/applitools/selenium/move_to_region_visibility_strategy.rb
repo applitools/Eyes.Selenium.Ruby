@@ -3,6 +3,8 @@ module Applitools::Selenium
   class MoveToRegionVisibilityStrategy
     extend Forwardable
 
+    VISIBILITY_OFFSET = 100
+
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
     attr_accessor :original_position
 
@@ -10,7 +12,13 @@ module Applitools::Selenium
       logger.info 'Getting current position state...'
       self.original_position = position_provider.state
       logger.info 'Done! Setting position...'
-      position_provider.position = location
+      dst_x = location.x - VISIBILITY_OFFSET
+      dst_y = location.y - VISIBILITY_OFFSET
+
+      dst_x = 0 if dst_x < 0
+      dst_y = 0 if dst_y < 0
+
+      position_provider.position = Applitools::Core::Location.new(dst_x, dst_y)
       logger.info 'Done!'
     end
 

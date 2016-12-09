@@ -181,6 +181,40 @@ module Applitools::Selenium
       end
     end
 
+    def check_frame(options = {})
+      options = {timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil}.merge!(options)
+
+      if disabled?
+        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored"
+        return
+      end
+
+      process_in_frame options do |opts|
+        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]})"
+        check_current_frame opts[:timeout], opts[:tag]
+      end
+    end
+
+
+    # @param [hash] options
+    # @option options []
+    def check_region_in_frame(options={})
+      options = {timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil, stitch_content: false}.merge!(options)
+      Applitools::Core::ArgumentGuard.not_nil options[:by], 'options[:by]'
+      Applitools::Core::ArgumentGuard.is_a? options[:by], 'options[:by]', Array
+
+      how_what = options.delete(:by)
+
+      if disabled?
+        logger.info "check_region_in_frame(#{frame_key}: #{options[frame_key]}, by: #{options[:by]}, timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored)"
+      end
+
+      process_in_frame options do |opts|
+        check_region *how_what, tag: opts[:tag], timeout: opts[:timeout], stitch_content: opts[:stitch_content]
+      end
+
+    end
+
     # @!parse def check_region(element, how=nil, what=nil, options = {}); end
 
     # Use this method to perform seamless testing with selenium through eyes driver.
@@ -223,7 +257,7 @@ module Applitools::Selenium
     # @option [Applitools::Selenium::FrameChain] :frame_chain
     # @option [Fixnum] :timeout
     # @option [String] :tag
-    def check_frame(options = {})
+    def check_frame__(options = {})
       options = {timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil}.merge!(options)
       raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option  or :frame_chain option or :frames_path option' unless
           options[:index] || options[:name_or_id] || options[:frame_element] || options[:frame_chain] || options[:frames_path]
@@ -260,8 +294,7 @@ module Applitools::Selenium
 
       logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]})"
       logger.info 'Switching to requested frame...'
-      # driver.switch_to.frame(frame_key => options[frame_key])
-      p frame_options
+
       driver.switch_to.frame frame_options
       logger.info 'Done!'
 
@@ -282,9 +315,51 @@ module Applitools::Selenium
                   :device_pixel_ratio, :stitch_mode, :position_provider,
                   :scale_provider, :tag_for_debug, :region_visibility_strategy, :eyes_screenshot_factory
 
-    def switch_to_parent_frame(options = {})
+    def process_in_frame(options = {})
+      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option  or :frame_chain option or :frames_path option' unless
+          options[:index] || options[:name_or_id] || options[:frame_element] || options[:frame_chain] || options[:frames_path]
+      if (needed_keys = (options.keys & %i(index name_or_id frame_element frame_chain frames_path))).length == 1
+        frame_key = needed_keys.first
+      else
+        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!'/
+                                                      'Only one of :index, :name_or_id or :frame_elenent or :frame_chain or :frames_path is allowed.'
+      end
 
+      frame_or_frames = options[frame_key]
+      if frame_or_frames.respond_to? :pop
+        frame_to_check = frame_or_frames.pop
+        original_frame_chain = driver.frame_chain
+        logger.info 'Switching to parent frame according to frames path...'
+        driver.switch_to.frames(frame_key => frame_or_frames)
+        logger.info 'Done!'
+        case frame_to_check
+          when String
+            frame_options = {name_or_id: frame_to_check}
+          when Applitools::Selenium::Element
+            frame_options = {frame_element: frame_to_check}
+          else
+            raise Applitools::EyesError.new "Unknown frame class: #{frame_to_check.class}"
+        end
+      else
+        frame_options = {frame_key => options[frame_key]}
+      end
+
+      logger.info 'Switching to requested frame...'
+
+      driver.switch_to.frame frame_options
+      logger.info 'Done!'
+
+      yield(options) if block_given?
+
+      logger.info 'Switching back to parent_frame...'
+      driver.switch_to.parent_frame
+      logger.info 'Done!'
+      if original_frame_chain
+        logger.info 'Switching back into original frame...'
+        driver.switch_to.frames frame_chain: original_frame_chain
+      end
     end
+
 
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
