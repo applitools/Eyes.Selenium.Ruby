@@ -16,8 +16,8 @@ module Applitools::Connectivity
     API_SESSIONS_RUNNING = '/api/sessions/running/'.freeze
 
     HTTP_STATUS_CODES = {
-        created: 201,
-        accepted: 202
+      created: 201,
+      accepted: 202
     }.freeze
 
     attr_accessor :server_url, :api_key
@@ -29,9 +29,8 @@ module Applitools::Connectivity
       @endpoint_url = URI.join(@server_url, API_SESSIONS_RUNNING).to_s
     end
 
-
     def set_proxy(uri, user = nil, password = nil)
-      self.proxy= Proxy.new uri, user, password
+      self.proxy = Proxy.new uri, user, password
     end
 
     def match_window(session, data)
@@ -41,10 +40,7 @@ module Applitools::Connectivity
       Applitools::EyesLogger.debug 'Sending match data...'
       res = post(URI.join(endpoint_url, session.id.to_s), content_type: 'application/octet-stream', body: body)
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
-      return Applitools::Core::MatchResult.new Oj.load(res.body)
-      # Oj.load(res.body)['asExpected'].tap do |as_expected|
-      #   Applitools::EyesLogger.debug "Got response! #{as_expected}"
-      # end
+      Applitools::Core::MatchResult.new Oj.load(res.body)
     end
 
     def start_session(session_start_info)
@@ -67,8 +63,8 @@ module Applitools::Connectivity
     private
 
     DEFAULT_HEADERS = {
-        'Accept' => 'application/json',
-        'Content-Type' => 'application/json'
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json'
     }.freeze
 
     LONG_REQUEST_DELAY = 2 # seconds
@@ -115,5 +111,4 @@ module Applitools::Connectivity
 
     include Applitools::MethodTracer
   end
-
 end

@@ -18,7 +18,6 @@ module Applitools::Images
       @screenshot
     end
 
-
     # Creates a new eyes object
     # @example
     #   eyes = Applitools::Images::Eyes.new
@@ -43,7 +42,8 @@ module Applitools::Images
       open_base options
     end
 
-    # Matches the input image with the next expected image. Takes a hash as an argument. Returns +boolean+ as result of matching.
+    # Matches the input image with the next expected image. Takes a hash as an argument. Returns +boolean+
+    # as result of matching.
     # @param [Hash] options
     # @option options [Applitools::Core::Screenshot] :image
     # @option options [String] :image_bytes image in PNG format. Can be obtained as ChunkyPNG::Image.to_blob()
@@ -60,7 +60,7 @@ module Applitools::Images
     # @example Ignore mismatch
     #   eyes.check_image(image: my_image, tag: 'My Test', ignore_mismatch: true)
     def check_image(options)
-      options = {tag: nil, ignore_mismatch: false}.merge options
+      options = { tag: nil, ignore_mismatch: false }.merge options
 
       if disabled?
         logger.info "check_image(image, #{options[:tag]}, #{options[:ignore_mismatch]}): Ignored"
@@ -85,7 +85,8 @@ module Applitools::Images
           nil
         end
       end
-      mr = check_window_base region_provider, options[:tag], options[:ignore_mismatch], Applitools::Core::EyesBase::USE_DEFAULT_TIMEOUT
+      mr = check_window_base region_provider, options[:tag], options[:ignore_mismatch],
+        Applitools::Core::EyesBase::USE_DEFAULT_TIMEOUT
       mr.as_expected?
     end
 
@@ -96,7 +97,8 @@ module Applitools::Images
     # @option options [String] :image_bytes Image in +PNG+ format. Can be obtained as ChunkyPNG::Image.to_blob()
     # @option options [String] :image_path Path to image file
     # @option options [String] :tag An optional tag to be associated with the validation checkpoint.
-    # @option options [Boolean] :ignore_mismatch If set to +true+ the server would ignore a negative result for the visual validation
+    # @option options [Boolean] :ignore_mismatch If set to +true+ the server would ignore a negative
+    #   result for the visual validation
     # @example Image is a file
     #   eyes.check_region(image_path: '~/test/some_screenshot.png', region: my_region, tag: 'My Test')
     # @example Image is a Applitools::Core::Screenshot instance
@@ -104,7 +106,7 @@ module Applitools::Images
     # @example Image is a +String+
     #   eyes.check_region(image_bytes: string_represents_image, tag: 'My Test', region: my_region)
     def check_region(options)
-      options = {tag: nil, ignore_mismatch: false}.merge options
+      options = { tag: nil, ignore_mismatch: false }.merge options
 
       if disabled?
         logger.info "check_region(image, #{options[:tag]}, #{options[:ignore_mismatch]}): Ignored"
@@ -131,13 +133,16 @@ module Applitools::Images
           Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
         end
       end
-      mr = check_window_base region_provider, options[:tag], options[:ignore_mismatch], Applitools::Core::EyesBase::USE_DEFAULT_TIMEOUT
+      mr = check_window_base region_provider, options[:tag], options[:ignore_mismatch],
+        Applitools::Core::EyesBase::USE_DEFAULT_TIMEOUT
       mr.as_expected?
     end
 
     # Adds a mouse trigger
-    # @param [Symbol] action A mouse action. Can be one of  +:click+, +:right_click+, +:double_click+, +:move+, +:down+, +:up+
-    # @param [Applitools::Core::Region] control The control on which the trigger is activated (context relative coordinates).
+    # @param [Symbol] action A mouse action. Can be one of  +:click+, +:right_click+, +:double_click+, +:move+,
+    #   +:down+, +:up+
+    # @param [Applitools::Core::Region] control The control on which the trigger is activated
+    #   (context relative coordinates).
     # @param [Applitools::Core::Location] cursor The cursor's position relative to the control.
     def add_mouse_trigger(action, control, cursor)
       add_mouse_trigger_base action, control, cursor

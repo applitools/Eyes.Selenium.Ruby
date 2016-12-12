@@ -1,16 +1,14 @@
 module Applitools::Images
-  #@!visibility private
+  # @!visibility private
   class EyesImagesScreenshot < ::Applitools::Core::EyesScreenshot
-
     SCREENSHOT_AS_IS = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is].freeze
     CONTEXT_RELATIVE = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative].freeze
 
     def initialize(image, options = {})
       super image
-      if !(location = options[:location]).nil?
-        Applitools::Core::ArgumentGuard.is_a? location, 'options[:location]', Applitools::Core::Location
-        @bounds = Applitools::Core::Region.new location.x, location.y, image.width, image.height
-      end
+      return unless (location = options[:location]).nil?
+      Applitools::Core::ArgumentGuard.is_a? location, 'options[:location]', Applitools::Core::Location
+      @bounds = Applitools::Core::Region.new location.x, location.y, image.width, image.height
     end
 
     def convert_location(location, from, to)
@@ -24,26 +22,22 @@ module Applitools::Images
       return result if from == to
 
       case from
-        when SCREENSHOT_AS_IS
-          if to == CONTEXT_RELATIVE
-            result.offset bounds
-            return result
-          end
-          raise "Coordinate type conversation error: #{from} -> #{to}"
-        when CONTEXT_RELATIVE
-          if to == SCREENSHOT_AS_IS
-            result.offset(Applitools::Core::Location.new -bounds.x, -bounds.y)
-            return result
-          end
-          raise "Coordinate type conversation error: #{from} -> #{to}"
-        else
-          raise "Coordinate type conversation error: #{from} -> #{to}"
+      when SCREENSHOT_AS_IS
+        raise "Coordinate type conversation error: #{from} -> #{to}" unless to == CONTEXT_RELATIVE
+        result.offset bounds
+        return result
+      when CONTEXT_RELATIVE
+        raise "Coordinate type conversation error: #{from} -> #{to}" unless to == SCREENSHOT_AS_IS
+        result.offset(Applitools::Core::Location.new(-bounds.x, -bounds.y))
+        return result
+      else
+        raise "Coordinate type conversation error: #{from} -> #{to}"
       end
     end
 
     def convert_region_location(region, from, to)
       Applitools::Core::ArgumentGuard.not_nil region, 'region'
-      return Core::Region.new(0,0,0,0) if region.empty?
+      return Core::Region.new(0, 0, 0, 0) if region.empty?
 
       Applitools::Core::ArgumentGuard.not_nil from, 'from'
       Applitools::Core::ArgumentGuard.not_nil to, 'to'
@@ -57,14 +51,14 @@ module Applitools::Images
       Applitools::Core::ArgumentGuard.not_nil region, 'region'
       Applitools::Core::ArgumentGuard.not_nil from, 'coordinates Type (from)'
 
-      return Region.new(0,0,0,0) if region.empty?
+      return Region.new(0, 0, 0, 0) if region.empty?
 
       intersected_region = convert_region_location region, from, to
       intersected_region.intersect bounds
       return intersected_region if intersected_region.empty?
 
       intersected_region.location = convert_location intersected_region.location, to, from
-      return intersected_region
+      intersected_region
     end
 
     def location_in_screenshot(location, coordinates_type)
@@ -95,13 +89,14 @@ module Applitools::Images
 
       relative_sub_screenshot_region = convert_region_location(sub_screen_region, SCREENSHOT_AS_IS, CONTEXT_RELATIVE)
 
-      Applitools::Images::EyesImagesScreenshot.new sub_screenshot_image, location: relative_sub_screenshot_region.location
+      Applitools::Images::EyesImagesScreenshot.new sub_screenshot_image,
+        location: relative_sub_screenshot_region.location
     end
 
     private
 
     def bounds
-      @bounds||=Applitools::Core::Region.new(0,0,image.width, image.height)
+      @bounds ||= Applitools::Core::Region.new(0, 0, image.width, image.height)
     end
   end
 end
