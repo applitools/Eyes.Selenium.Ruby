@@ -1,7 +1,6 @@
 module Applitools::Selenium
   # The main API gateway for the SDK
-  class Eyes  < Applitools::Core::EyesBase
-
+  class Eyes < Applitools::Core::EyesBase
     # @!visibility private
     UNKNOWN_DEVICE_PIXEL_RATIO = 0
 
@@ -14,8 +13,8 @@ module Applitools::Selenium
 
     # @!visibility private
     STICH_MODE = {
-        scroll: :SCROLL,
-        css: :CSS
+      :scroll => :SCROLL,
+      :css => :CSS
     }.freeze
 
     extend Forwardable
@@ -23,7 +22,7 @@ module Applitools::Selenium
 
     # @!attribute [rw] force_full_page_screenshot
     #   Forces a full page screenshot (by scrolling and stitching) if the
-    #   browser only ﻿supports viewport screenshots.
+    #   browser only supports viewport screenshots.
     #   @return [boolean] force full page screenshot flag
     # @!attribute [rw] wait_before_screenshots
     #   Sets the time to wait just before taking a screenshot (e.g., to allow
@@ -34,12 +33,12 @@ module Applitools::Selenium
     #   Turns on/off hiding scrollbars before taking a screenshot
     #   @return [boolean] hide_scrollbars flag
     # @!attribute [rw] scroll_to_region
-    #   If set to +true+ browser will scroll to specified region (even it is out of viewport window) when check_region is called
+    #   If set to +true+ browser will scroll to specified region (even it is out of viewport window)
+    #     when check_region is called
     #   @return [boolean] scroll_to_region flag
 
-
     attr_accessor :base_agent_id, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
-                  :wait_before_screenshots, :debug_screenshot
+      :wait_before_screenshots, :debug_screenshot
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -64,14 +63,16 @@ module Applitools::Selenium
 
     # Starts a test
     # @param options [Hash] options
-    # @option options :driver The driver that controls the browser hosting the application under the test. (*Required* option)
+    # @option options :driver The driver that controls the browser hosting the application
+    #   under the test. (*Required* option)
     # @option options [String] :app_name The name of the application under the test. (*Required* option)
     # @option options [String] :test_name The test name (*Required* option)
     # @option options [String | Hash] :viewport_size The required browser's viewport size
     #   (i.e., the visible part of the document's body) or +nil+ to use the current window's viewport.
     # @option options :session_type The type of the test (e.g., standard test / visual performance test).
     #   Default value is 'SEQUENTAL'
-    # @return [Applitools::Selenium::Driver] A wrapped web driver which enables Eyes trigger recording and frame handling
+    # @return [Applitools::Selenium::Driver] A wrapped web driver which enables Eyes
+    #   trigger recording and frame handling
     def open(options = {})
       driver = options.delete(:driver)
       options[:viewport_size] = Applitools::Core::RectangleSize.from_any_argument options[:viewport_size] if
@@ -96,14 +97,12 @@ module Applitools::Selenium
 
       self.device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
 
-      case stitch_mode
-        when :SCROLL
-          self.position_provider = Applitools::Selenium::ScrollPositionProvider.new(driver) #FIXME: what is in the driver?
-        when :CSS
-          self.position_provider = nil
-        else
-          self.position_provider = nil
-      end
+      self.position_provider = case stitch_mode
+                               when :SCROLL
+                                 Applitools::Selenium::ScrollPositionProvider.new(driver)
+                               when :CSS
+                                 nil
+                               end
 
       open_base options
       @driver
@@ -133,22 +132,23 @@ module Applitools::Selenium
         end
       end
 
-      self.eyes_screenshot_factory = ->(image) {
+      self.eyes_screenshot_factory = lambda do |image|
         Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
-      }
+      end
+
       check_window_base region_provider, tag, false, match_timeout
     end
 
-    #@!visibilty private
+    # @!visibilty private
     def title
       return driver.title unless dont_get_title
-    rescue Exception => e
+    rescue StandardError => e
       logger.warn "failed (#{e.message})"
       self.dont_get_title = false
       ''
     end
 
-    #@!visibility private
+    # @!visibility private
     def get_viewport_size(web_driver = driver)
       Applitools::Core::ArgumentGuard.not_nil 'web_driver', web_driver
       Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(driver)
@@ -169,7 +169,8 @@ module Applitools::Selenium
     # @example Check region by element
     #   check_region(element, tag: 'Check a region by element', match_timeout: 3, stitch_content: false)
     # @example Check region by css selector
-    #   check_region(:css, '.form-row .input#e_mail', tag: 'Check a region by element', match_timeout: 3, stitch_content: false)
+    #   check_region(:css, '.form-row .input#e_mail', tag: 'Check a region by element', match_timeout: 3,
+    #   stitch_content: false)
     # @!parse def check_region(element, how=nil, what=nil, options = {}); end
     def check_region(*args)
       options = Applitools::Utils.extract_options! args
@@ -182,37 +183,38 @@ module Applitools::Selenium
     end
 
     def check_frame(options = {})
-      options = {timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil}.merge!(options)
+      options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil }.merge!(options)
 
       if disabled?
-        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored"
+        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, " /
+          "tag: #{options[:tag]}): Ignored"
         return
       end
 
       process_in_frame options do |opts|
-        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]})"
+        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, " /
+          "tag: #{options[:tag]})"
         check_current_frame opts[:timeout], opts[:tag]
       end
     end
 
-
     # @param [hash] options
     # @option options []
-    def check_region_in_frame(options={})
-      options = {timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil, stitch_content: false}.merge!(options)
+    def check_region_in_frame(options = {})
+      options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil, stitch_content: false }.merge!(options)
       Applitools::Core::ArgumentGuard.not_nil options[:by], 'options[:by]'
       Applitools::Core::ArgumentGuard.is_a? options[:by], 'options[:by]', Array
 
       how_what = options.delete(:by)
 
       if disabled?
-        logger.info "check_region_in_frame(#{frame_key}: #{options[frame_key]}, by: #{options[:by]}, timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored)"
+        logger.info "check_region_in_frame(#{frame_key}: #{options[frame_key]}, by: #{options[:by]}, " /
+          "timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored)"
       end
 
       process_in_frame options do |opts|
-        check_region *how_what, tag: opts[:tag], timeout: opts[:timeout], stitch_content: opts[:stitch_content]
+        check_region(*how_what, tag: opts[:tag], timeout: opts[:timeout], stitch_content: opts[:stitch_content])
       end
-
     end
 
     # @!parse def check_region(element, how=nil, what=nil, options = {}); end
@@ -221,7 +223,8 @@ module Applitools::Selenium
     # It yields a block and passes to it an Applitools::Selenium::Driver instance, which wraps standard driver.
     # Using Selenium methods inside the 'test' block will send the messages to Selenium
     # after creating the Eyes triggers for them. Options are similar to {open}
-    # @yieldparam driver [Applitools::Selenium::Driver] Gives a driver to a block, which translates calls to a native Selemium::Driver instance
+    # @yieldparam driver [Applitools::Selenium::Driver] Gives a driver to a block, which translates calls to a native
+    #   Selemium::Driver instance
     # @example
     #   eyes.test(app_name: 'my app', test_name: 'my test') do |driver|
     #      driver.get "http://www.google.com"
@@ -242,7 +245,7 @@ module Applitools::Selenium
 
     # @!visibility private
     def scroll_to_region=(value)
-      if(value)
+      if value
         self.region_visibility_strategy = Applitools::Selenium::MoveToRegionVisibilityStrategy.new
       else
         self.region_visibility_strategy = Applitools::Selenium::NopRegionVisibilityStrategy.new
@@ -258,18 +261,23 @@ module Applitools::Selenium
     # @option [Fixnum] :timeout
     # @option [String] :tag
     def check_frame__(options = {})
-      options = {timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil}.merge!(options)
-      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option  or :frame_chain option or :frames_path option' unless
-          options[:index] || options[:name_or_id] || options[:frame_element] || options[:frame_chain] || options[:frames_path]
+      options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil }.merge!(options)
+      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
+        '  or :frame_chain option or :frames_path option' unless options[:index] ||
+            options[:name_or_id] ||
+            options[:frame_element] ||
+            options[:frame_chain] ||
+            options[:frames_path]
       if (needed_keys = (options.keys & %i(index name_or_id frame_element frame_chain frames_path))).length == 1
         frame_key = needed_keys.first
       else
-        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!'/
-                                                      'Only one of :index, :name_or_id or :frame_elenent or :frame_chain or :frames_path is allowed.'
+        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!' /
+          'Only one of :index, :name_or_id or :frame_elenent or :frame_chain or :frames_path is allowed.'
       end
 
       if disabled?
-        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored"
+        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}," /
+          " tag: #{options[:tag]}): Ignored"
         return
       end
 
@@ -281,18 +289,19 @@ module Applitools::Selenium
         driver.switch_to.frames(frame_key => frame_or_frames)
         logger.info 'Done!'
         case frame_to_check
-          when String
-            frame_options = {name_or_id: frame_to_check}
-          when Applitools::Selenium::Element
-            frame_options = {frame_element: frame_to_check}
+        when String
+          frame_options = { name_or_id: frame_to_check }
+        when Applitools::Selenium::Element
+          frame_options = { frame_element: frame_to_check }
         else
           raise Applitools::EyesError.new "Unknown frame class: #{frame_to_check.class}"
         end
       else
-        frame_options = {frame_key => options[frame_key]}
+        frame_options = { frame_key => options[frame_key] }
       end
 
-      logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, tag: #{options[:tag]})"
+      logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}," /
+        " tag: #{options[:tag]})"
       logger.info 'Switching to requested frame...'
 
       driver.switch_to.frame frame_options
@@ -303,26 +312,30 @@ module Applitools::Selenium
       logger.info 'Switching back to parent_frame...'
       driver.switch_to.parent_frame
       logger.info 'Done!'
-      if original_frame_chain
-        logger.info 'Switching back into original frame...'
-        driver.switch_to.frames frame_chain: original_frame_chain
-      end
+      return unless original_frame_chain
+
+      logger.info 'Switching back into original frame...'
+      driver.switch_to.frames frame_chain: original_frame_chain
     end
 
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
-                  :device_pixel_ratio, :stitch_mode, :position_provider,
-                  :scale_provider, :tag_for_debug, :region_visibility_strategy, :eyes_screenshot_factory
+      :device_pixel_ratio, :stitch_mode, :position_provider, :scale_provider, :tag_for_debug,
+      :region_visibility_strategy, :eyes_screenshot_factory
 
     def process_in_frame(options = {})
-      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option  or :frame_chain option or :frames_path option' unless
-          options[:index] || options[:name_or_id] || options[:frame_element] || options[:frame_chain] || options[:frames_path]
+      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
+        'or :frame_chain option or :frames_path option' unless options[:index] ||
+            options[:name_or_id] ||
+            options[:frame_element] ||
+            options[:frame_chain] ||
+            options[:frames_path]
       if (needed_keys = (options.keys & %i(index name_or_id frame_element frame_chain frames_path))).length == 1
         frame_key = needed_keys.first
       else
-        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!'/
-                                                      'Only one of :index, :name_or_id or :frame_elenent or :frame_chain or :frames_path is allowed.'
+        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!' /
+          'Only one of :index, :name_or_id or :frame_elenent or :frame_chain or :frames_path is allowed.'
       end
 
       frame_or_frames = options[frame_key]
@@ -333,15 +346,15 @@ module Applitools::Selenium
         driver.switch_to.frames(frame_key => frame_or_frames)
         logger.info 'Done!'
         case frame_to_check
-          when String
-            frame_options = {name_or_id: frame_to_check}
-          when Applitools::Selenium::Element
-            frame_options = {frame_element: frame_to_check}
-          else
-            raise Applitools::EyesError.new "Unknown frame class: #{frame_to_check.class}"
+        when String
+          frame_options = { name_or_id: frame_to_check }
+        when Applitools::Selenium::Element
+          frame_options = { frame_element: frame_to_check }
+        else
+          raise Applitools::EyesError.new "Unknown frame class: #{frame_to_check.class}"
         end
       else
-        frame_options = {frame_key => options[frame_key]}
+        frame_options = { frame_key => options[frame_key] }
       end
 
       logger.info 'Switching to requested frame...'
@@ -354,16 +367,16 @@ module Applitools::Selenium
       logger.info 'Switching back to parent_frame...'
       driver.switch_to.parent_frame
       logger.info 'Done!'
-      if original_frame_chain
-        logger.info 'Switching back into original frame...'
-        driver.switch_to.frames frame_chain: original_frame_chain
-      end
-    end
 
+      return unless original_frame_chain
+
+      logger.info 'Switching back into original frame...'
+      driver.switch_to.frames frame_chain: original_frame_chain
+    end
 
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
-          debug_screenshot: debug_screenshot, name_enumerator: screenshot_name_enumerator
+        debug_screenshot: debug_screenshot, name_enumerator: screenshot_name_enumerator
       logger.info 'Getting screenshot (capture_screenshot() has been invoked)'
 
       update_scaling_params
@@ -381,21 +394,22 @@ module Applitools::Selenium
           logger.info 'Check frame/element requested'
           algo = Applitools::Selenium::FullPageCaptureAlgorithm.new
 
-          entire_frame_or_element = algo.get_stiched_region(image_provider: image_provider,
-                                                            region_to_check: region_to_check,
-                                                            origin_provider: position_provider,
-                                                            position_provider: position_provider,
-                                                            scale_provider: scale_provider,
-                                                            cut_provider: nil,
-                                                            wait_before_screenshots: wait_before_screenshots,
-                                                            eyes_screenshot_factory: eyes_screenshot_factory
-                                                           )
+          entire_frame_or_element = algo.get_stiched_region(
+            image_provider: image_provider,
+            region_to_check: region_to_check,
+            origin_provider: position_provider,
+            position_provider: position_provider,
+            scale_provider: scale_provider,
+            cut_provider: nil,
+            wait_before_screenshots: wait_before_screenshots,
+            eyes_screenshot_factory: eyes_screenshot_factory
+          )
 
           logger.info 'Building screenshot object...'
           self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new entire_frame_or_element,
-              driver: driver,
-              entire_frame_size: Applitools::Core::RectangleSize.new(entire_frame_or_element.width,
-                                                                     entire_frame_or_element.height)
+            driver: driver,
+            entire_frame_size: Applitools::Core::RectangleSize.new(entire_frame_or_element.width,
+              entire_frame_or_element.height)
         elsif force_full_page_screenshot
           logger.info 'Full page screenshot requested'
           original_frame = driver.frame_chain
@@ -420,7 +434,7 @@ module Applitools::Selenium
                                   wait_before_screenshots: wait_before_screenshots,
                                   eyes_screenshot_factory: eyes_screenshot_factory
 
-          driver.switch_to.frame original_frame if driver.frame_chain.size > 0
+          driver.switch_to.frame original_frame unless driver.frame_chain.empty?
           Applitools::Selenium::EyesWebDriverScreenshot.new full_page_image, driver: driver
         else
           logger.info 'Screenshot requested...'
@@ -439,7 +453,7 @@ module Applitools::Selenium
       end
     end
 
-    def set_viewport_size(value)
+    def viewport_size=(value)
       raise Applitools::EyesNotOpenException.new 'set_viewport_size: Eyes not open!' unless open?
       original_frame = driver.frame_chain
       driver.switch_to.default_content
@@ -454,6 +468,8 @@ module Applitools::Selenium
       end
     end
 
+    alias set_viewport_size viewport_size=
+
     def get_driver(options)
       # TODO: remove the "browser" related block when possible. It's for backward compatibility.
       if options.key?(:browser)
@@ -465,32 +481,32 @@ module Applitools::Selenium
     end
 
     def update_scaling_params
-      if device_pixel_ratio == UNKNOWN_DEVICE_PIXEL_RATIO
-        logger.info 'Trying to extract device pixel ratio...'
-        begin
-          self.device_pixel_ratio = Applitools::Utils::EyesSeleniumUtils.device_pixel_ratio(driver)
-        rescue Applitools::EyesDriverOperationException => e
-          logger.warn 'Failed to extract device pixel ratio! Using default.'
-          self.device_pixel_ratio = DEFAULT_DEVICE_PIXEL_RATIO
-        end
+      return unless device_pixel_ratio == UNKNOWN_DEVICE_PIXEL_RATIO
 
-        logger.info "Device pixel_ratio: #{device_pixel_ratio}"
-        logger.info 'Setting scale provider...'
-
-        begin
-          self.scale_provider = Applitools::Selenium::ContextBasedScaleProvider.new(position_provider.entire_size,
-            viewport_size, scale_method, device_pixel_ratio)
-        rescue => e
-          logger.info 'Failed to set ContextBasedScaleProvider'
-          logger.info 'Using FixedScaleProvider instead'
-          self.scale_provider = Applitools::Core::FixedScaleProvider.new(1.to_f/device_pixel_ratio)
-        end
-        logger.info 'Done!'
+      logger.info 'Trying to extract device pixel ratio...'
+      begin
+        self.device_pixel_ratio = Applitools::Utils::EyesSeleniumUtils.device_pixel_ratio(driver)
+      rescue Applitools::EyesDriverOperationException
+        logger.warn 'Failed to extract device pixel ratio! Using default.'
+        self.device_pixel_ratio = DEFAULT_DEVICE_PIXEL_RATIO
       end
+
+      logger.info "Device pixel_ratio: #{device_pixel_ratio}"
+      logger.info 'Setting scale provider...'
+
+      begin
+        self.scale_provider = Applitools::Selenium::ContextBasedScaleProvider.new(position_provider.entire_size,
+          viewport_size, scale_method, device_pixel_ratio)
+      rescue StandardError
+        logger.info 'Failed to set ContextBasedScaleProvider'
+        logger.info 'Using FixedScaleProvider instead'
+        self.scale_provider = Applitools::Core::FixedScaleProvider.new(1.to_f / device_pixel_ratio)
+      end
+      logger.info 'Done!'
     end
 
     def _add_text_trigger(control, text)
-      unless(last_screenshot)
+      unless last_screenshot
         logger.info "Ignoring #{text} (no screenshot)"
         return
       end
@@ -510,16 +526,14 @@ module Applitools::Selenium
       end
 
       Applitools::Core::ArgumentGuard.not_nil control, 'control'
-      if control.is_a? Applitools::Core::Region
-        return _add_text_trigger(control, text)
-      elsif control.is_a? Applitools::Selenium::Element
-        pl = control.location
-        ds = control.size
+      return _add_text_trigger(control, text) if control.is_a? Applitools::Core::Region
 
-        element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
+      pl = control.location
+      ds = control.size
 
-        return _add_text_trigger(element_region, text)
-      end
+      element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
+
+      return _add_text_trigger(element_region, text) if control.is_a? Applitools::Selenium::Element
     end
 
     def add_mouse_trigger(mouse_action, element)
@@ -528,7 +542,7 @@ module Applitools::Selenium
         return
       end
 
-      if (element.is_a? Hash)
+      if element.is_a? Hash
         return add_mouse_trigger_by_region_and_location(mouse_action, element[:region], element[:location]) if
             element.key?(:location) && element.key?(:region)
         raise Applitools::EyesIllegalArgument.new 'Element[] doesn\'t contain required keys!'
@@ -542,21 +556,15 @@ module Applitools::Selenium
 
       element_region = Applitools::Core::Region.new(pl.x, pl.y, ds.width, ds.height)
 
-      unless(last_screenshot)
+      unless last_screenshot
         logger.info "Ignoring #{mouse_action} (no screenshot)"
         return
       end
-
 
       unless driver.frame_chain.same_frame_chain? last_screenshot.frame_chain
         logger.info "Ignoring #{mouse_action} (different_frame)"
         return
       end
-
-      # element_region = last_screenshot.intersected_region(element_region,
-      #                                                     Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative],
-      #                                                     Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-      # )
 
       add_mouse_trigger_base(mouse_action, element_region, element_region.middle_offset)
     end
@@ -601,12 +609,12 @@ module Applitools::Selenium
           end
         end
 
-
         self.region_to_check = Object.new.tap do |provider|
-
-          current_frame_size = ->() {
-            Applitools::Core::Region.from_location_size Applitools::Core::Location.new(0,0), driver.frame_chain!.current_frame.size
-          }
+          current_frame_size = lambda do
+            Applitools::Core::Region.from_location_size(
+              Applitools::Core::Location.new(0, 0), driver.frame_chain!.current_frame.size
+            )
+          end
 
           provider.instance_eval do
             define_singleton_method :region do
@@ -618,22 +626,22 @@ module Applitools::Selenium
           end
         end
 
-        self.eyes_screenshot_factory = ->(image) {
+        self.eyes_screenshot_factory = lambda do |image|
           Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
-        }
+        end
 
         check_window_base region_provider, tag, false, match_timeout
       ensure
         driver.overflow = original_overflow unless original_overflow.nil?
       end
-
     end
 
     def app_environment
       app_env = super
       if app_env.os.nil?
         logger.info 'No OS set, checking for mobile OS...'
-        if underlying_driver = Applitools::Utils::EyesSeleniumUtils.mobile_device?
+        underlying_driver = Applitools::Utils::EyesSeleniumUtils.mobile_device?
+        unless underlying_driver.nil?
           logger.info 'Mobile device detected! Checking device type...'
           if Applitools::Utils::EyesSeleniumUtils.android?(underlying_driver)
             logger.info 'Android detected...'
@@ -649,13 +657,13 @@ module Applitools::Selenium
         if platform_name && !platform_name.empty?
           os = platform_name
           platform_version = Applitools::Utils::EyesSeleniumUtils.platform_version(underlying_driver).to_s
-          if !platform_version.empty?
+          unless platform_version.empty?
             major_version = platform_version.split(/\./).first
             os << " #{major_version}"
           end
           logger.info "Setting OS: #{os}"
           app_env.os = os
-          logger.info "Setting scale method for mobile."
+          logger.info 'Setting scale method for mobile.'
           self.scale_method = :quality
         end
       else
@@ -683,12 +691,13 @@ module Applitools::Selenium
 
       match_timeout = options[:match_timeout] || USE_DEFAULT_MATCH_TIMEOUT
 
-      logger.info "check_region(element, #{match_timeout}, #{tag}): Ignored" and return if disabled?
+      logger.info "check_region(element, #{match_timeout}, #{tag}): Ignored" && return if disabled?
       Applitools::Core::ArgumentGuard.not_nil 'options[:element]', element
       logger.info "check_region(element: element, #{match_timeout}, #{tag})"
 
       location_as_point = element.location
-      region_visibility_strategy.move_to_region position_provider, Applitools::Core::Location.new(location_as_point.x, location_as_point.y)
+      region_visibility_strategy.move_to_region position_provider, Applitools::Core::Location.new(location_as_point.x,
+        location_as_point.y)
 
       region_provider = Object.new.tap do |prov|
         prov.instance_eval do
@@ -704,9 +713,9 @@ module Applitools::Selenium
         end
       end
 
-      self.eyes_screenshot_factory = ->(image) {
+      self.eyes_screenshot_factory = lambda do |image|
         Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
-      }
+      end
 
       result = check_window_base region_provider, tag, false, match_timeout
 
@@ -732,17 +741,20 @@ module Applitools::Selenium
       match_timeout = options[:match_timeout] || USE_DEFAULT_MATCH_TIMEOUT
 
       if disabled?
-        logger.info "check_element(#{options.inject([]) {|res, p| res << "#{p.first}: #{p.last}"}.join(', ')}): Ignored"
+        logger.info "check_element(#{options.inject([]) { |res, (k, v)| res << "#{k}: #{v}" }.join(', ')}):" /
+          ' Ignored'
         return
       end
 
       eyes_element = element_or_selector.first if element_or_selector.first.instance_of? Applitools::Selenium::Element
       eyes_element = driver.find_element(*selector) unless eyes_element
       raise Applitools::EyesIllegalArgument.new 'You should pass :selector or :element!' unless eyes_element
-      eyes_element = Applitools::Selenium::Element.new(driver, eyes_element) unless eyes_element.is_a? Applitools::Selenium::Element
+      eyes_element = Applitools::Selenium::Element.new(driver, eyes_element) unless
+         eyes_element.is_a? Applitools::Selenium::Element
 
       location_as_point = eyes_element.location
-      region_visibility_strategy.move_to_region position_provider, Applitools::Core::Location.new(location_as_point.x, location_as_point.y)
+      region_visibility_strategy.move_to_region position_provider,
+        Applitools::Core::Location.new(location_as_point.x, location_as_point.y)
 
       original_overflow = nil
       original_position_provider = position_provider
@@ -794,9 +806,11 @@ module Applitools::Selenium
           end
         end
 
-        self.eyes_screenshot_factory = ->(image) {
-          Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, force_offset: position_provider.state)
-        }
+        self.eyes_screenshot_factory = lambda do |image|
+          Applitools::Selenium::EyesWebDriverScreenshot.new(
+            image, driver: driver, force_offset: position_provider.state
+          )
+        end
 
         check_window_base base_check_region_provider, tag, false, match_timeout
       ensure
@@ -813,8 +827,8 @@ module Applitools::Selenium
       @name_enumerator ||= Enumerator.new do |y|
         counter = 1
         loop do
-          y << "#{tag_for_debug.gsub /\s+/, '_'}__#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{counter}.png"
-          counter = counter + 1;
+          y << "#{tag_for_debug.gsub(/\s+/, '_')}__#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{counter}.png"
+          counter += 1
         end
       end
     end

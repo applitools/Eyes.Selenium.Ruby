@@ -1,6 +1,5 @@
 module Applitools::Selenium
   class Element < SimpleDelegator
-
     JS_GET_COMPUTED_STYLE_FORMATTED_STR = <<-JS.freeze
        var elem = arguments[0];
        var styleProp = '%s';
@@ -14,17 +13,17 @@ module Applitools::Selenium
        };
     JS
 
-    JS_GET_SCROLL_LEFT = "return arguments[0].scrollLeft;".freeze
-    JS_GET_SCROLL_TOP = "return arguments[0].scrollTop;".freeze
-    JS_GET_SCROLL_WIDTH = "return arguments[0].scrollWidth;".freeze
-    JS_GET_SCROLL_HEIGHT = "return arguments[0].scrollHeight;".freeze
+    JS_GET_SCROLL_LEFT = 'return arguments[0].scrollLeft;'.freeze
+    JS_GET_SCROLL_TOP = 'return arguments[0].scrollTop;'.freeze
+    JS_GET_SCROLL_WIDTH = 'return arguments[0].scrollWidth;'.freeze
+    JS_GET_SCROLL_HEIGHT = 'return arguments[0].scrollHeight;'.freeze
 
     JS_SCROLL_TO_FORMATTED_STR = <<-JS.freeze
       arguments[0].scrollLeft = %d;
       arguments[0].scrollTop = %d;
     JS
 
-    JS_GET_OVERFLOW = "return arguments[0].style.overflow;".freeze
+    JS_GET_OVERFLOW = 'return arguments[0].style.overflow;'.freeze
     JS_SET_OVERFLOW_FORMATTED_STR = "arguments[0].style.overflow = '%s'".freeze
 
     TRACE_PREFIX = 'EyesWebElement'.freeze
@@ -108,11 +107,11 @@ module Applitools::Selenium
     end
 
     def overflow
-      driver.execute_script(JS_GET_OVERFLOW, __getobj__).to_s;
+      driver.execute_script(JS_GET_OVERFLOW, __getobj__).to_s
     end
 
     def overflow=(overflow)
-      driver.execute_script(JS_SET_OVERFLOW_FORMATTED_STR % overflow, self);
+      driver.execute_script(JS_SET_OVERFLOW_FORMATTED_STR % overflow, self)
     end
 
     def computed_style(prop_style)
@@ -172,7 +171,7 @@ module Applitools::Selenium
     end
 
     def scroll_to(location)
-      driver.execute_script JS_SCROLL_TO_FORMATTED_STR % [location.x, location.y], self
+      driver.execute_script format(JS_SCROLL_TO_FORMATTED_STR, location.x, location.y), self
     end
 
     private

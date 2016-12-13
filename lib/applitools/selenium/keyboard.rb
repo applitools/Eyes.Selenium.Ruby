@@ -1,5 +1,5 @@
 module Applitools::Selenium
-  #@!visibility private
+  # @!visibility private
   class Keyboard
     attr_reader :keyboard, :driver
 

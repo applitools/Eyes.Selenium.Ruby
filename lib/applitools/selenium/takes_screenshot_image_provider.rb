@@ -1,5 +1,5 @@
 module Applitools::Selenium
-  #@!visibility private
+  # @!visibility private
   class TakesScreenshotImageProvider
     extend Forwardable
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -7,7 +7,7 @@ module Applitools::Selenium
     attr_accessor :driver, :name_enumerator
     def initialize(driver, options = {})
       self.driver = driver
-      options = {debug_screenshot: false}.merge! options
+      options = { debug_screenshot: false }.merge! options
       self.debug_screenshot = options[:debug_screenshot]
       self.name_enumerator = options[:name_enumerator]
     end

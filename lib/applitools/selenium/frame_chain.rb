@@ -1,5 +1,5 @@
 module Applitools::Selenium
-  #@!visibility private
+  # @!visibility private
   class FrameChain
     include Enumerable
 
@@ -10,12 +10,12 @@ module Applitools::Selenium
 
     def each(*args, &block)
       return @frames.collect unless block_given?
-      @frames.each *args, &block
+      @frames.each(*args, &block)
     end
 
     def same_frame_chain?(other)
       return false unless size == other.size
-      all? {|my_elem| my_elem.id == other.next.id }
+      all? { |my_elem| my_elem.id == other.next.id }
     end
 
     def push(frame)
@@ -60,6 +60,6 @@ module Applitools::Selenium
       @frames.last.size
     end
 
-    class NoFramesException < Exception; end
+    class NoFramesException < RuntimeError; end
   end
 end

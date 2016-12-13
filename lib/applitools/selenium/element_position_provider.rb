@@ -1,16 +1,16 @@
 module Applitools::Selenium
-  #@!visibility private
+  # @!visibility private
   class ElementPositionProvider
     extend Forwardable
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
-
 
     def initialize(executor, passed_element)
       Applitools::Core::ArgumentGuard.not_nil 'executor', executor
       Applitools::Core::ArgumentGuard.not_nil 'passed_element', passed_element
       self.driver = executor
       self.element = passed_element
-      self.element = Applitools::Selenium::Element.new(driver, element) unless element.is_a? Applitools::Selenium::Element
+      self.element = Applitools::Selenium::Element.new(driver, element) unless
+          element.is_a? Applitools::Selenium::Element
     end
 
     def current_position

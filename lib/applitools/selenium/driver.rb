@@ -96,13 +96,13 @@ module Applitools::Selenium
     alias set_overflow overflow=
 
     def screenshot_as(format)
-        raise "Invalid format (#{format}) passed! Available formats: :png, :base64" unless %i(base64 png).include? format
-        png_screenshot = driver.screenshot_as(:png)
-        yield png_screenshot if block_given?
-        screenshot = Applitools::Core::Screenshot.new(png_screenshot)
-        self.class.normalize_rotation(self, screenshot, rotation)
-        return Applitools::Utils::ImageUtils.base64_from_png_image(screenshot.restore) if format == :base64
-        screenshot.to_blob
+      raise "Invalid format (#{format}) passed! Available formats: :png, :base64" unless %i(base64 png).include? format
+      png_screenshot = driver.screenshot_as(:png)
+      yield png_screenshot if block_given?
+      screenshot = Applitools::Core::Screenshot.new(png_screenshot)
+      self.class.normalize_rotation(self, screenshot, rotation)
+      return Applitools::Utils::ImageUtils.base64_from_png_image(screenshot.restore) if format == :base64
+      screenshot.to_blob
     end
 
     # # Return a normalized screenshot.
@@ -167,30 +167,31 @@ module Applitools::Selenium
     end
 
     def default_content_viewport_size(force_query = false)
-      logger.info("default_content_viewport_size()");
+      logger.info('default_content_viewport_size()')
       if cached_default_content_viewport_size && !force_query
         logger.info "Using cached viewport_size #{cached_default_content_viewport_size}"
         return cached_default_content_viewport_size
       end
 
       current_frames = frame_chain
-      switch_to.default_content if current_frames.size > 0
+      switch_to.default_content unless current_frames.empty?
       logger.info 'Extracting viewport size...'
       @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(self)
       logger.info "Done! Viewport size is #{@cached_default_content_viewport_size}"
 
-      switch_to.frames(frame_chain: current_frames)  if current_frames.size > 0
+      switch_to.frames(frame_chain: current_frames) unless current_frames.empty?
       @cached_default_content_viewport_size
     end
 
     def switch_to
-      @switch_to ||= Applitools::Selenium::EyesTargetLocator.new(self, driver.switch_to, FrameChangeEventListener.new(self))
+      @switch_to ||= Applitools::Selenium::EyesTargetLocator.new(
+        self, driver.switch_to, FrameChangeEventListener.new(self)
+      )
     end
 
     private
 
     attr_reader :cached_default_content_viewport_size
-
 
     def raises_error
       yield if block_given?
@@ -236,31 +237,34 @@ module Applitools::Selenium
       def will_switch_to_frame(target_type, target_frame)
         logger.info 'will_switch_to_frame()'
         case target_type
-          when :default_content
-            logger.info 'Default content.'
-            parent.frame_chain!.clear
-            return nil
-          when :parent_frame
-            logger.info 'Parent frame.'
-            return parent.frame_chain!.pop
-          when :frame
-            logger.info 'Frame.'
-            frame_location_size = Applitools::Selenium::BorderAwareElementContentLocationProvider.new target_frame
+        when :default_content
+          logger.info 'Default content.'
+          parent.frame_chain!.clear
+          return nil
+        when :parent_frame
+          logger.info 'Parent frame.'
+          return parent.frame_chain!.pop
+        when :frame
+          logger.info 'Frame.'
+          frame_location_size = Applitools::Selenium::BorderAwareElementContentLocationProvider.new target_frame
 
-            return parent.frame_chain!.push Frame.new reference: target_frame, frame_id: '',
-                      location: Applitools::Core::Location.for(frame_location_size.location),
-                      size: Applitools::Core::RectangleSize.for(frame_location_size.size),
-                      parent_scroll_position: Applitools::Selenium::ScrollPositionProvider.new(parent).current_position
-
-            logger.info 'Done!'
-          else
-            raise Applitools::EyesError.new('will_switch_to_frame(): target type is not recognized!')
+          return parent.frame_chain!.push(
+            Applitools::Selenium::Frame.new(
+              reference: target_frame, frame_id: '',
+              location: Applitools::Core::Location.for(frame_location_size.location),
+              size: Applitools::Core::RectangleSize.for(frame_location_size.size),
+              parent_scroll_position: Applitools::Selenium::ScrollPositionProvider.new(parent).current_position
+            )
+          )
+        else
+          raise Applitools::EyesError.new('will_switch_to_frame(): target type is not recognized!')
         end
+        logger.info 'Done!'
       end
 
-      def will_switch_to_window(name_or_handle)
-
-      end
+      # def will_switch_to_window(name_or_handle)
+      #
+      # end
 
       private
 

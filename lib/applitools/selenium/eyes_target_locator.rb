@@ -10,7 +10,7 @@ module Applitools::Selenium
       super(original_target_locator)
       @driver = driver
       @on_will_switch = on_will_switch
-      @scroll_position_provider = Applitools::Selenium::ScrollPositionProvider.new(driver);
+      @scroll_position_provider = Applitools::Selenium::ScrollPositionProvider.new(driver)
     end
 
     # @param [Hash] options
@@ -24,14 +24,14 @@ module Applitools::Selenium
       if (needed_keys = (options.keys & %i(index name_or_id frame_element))).length == 1
         send "frame_by_#{needed_keys.first}", options[needed_keys.first]
       else
-        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!'/
-        'Only :index, :name_or_id or :frame_elenent are allowed.'
+        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!' /
+          'Only :index, :name_or_id or :frame_elenent are allowed.'
       end
     end
 
     def parent_frame
-      logger.info "EyesTargetLocator.parent_frame()"
-      if driver.frame_chain.size != 0
+      logger.info 'EyesTargetLocator.parent_frame()'
+      unless driver.frame_chain.empty?
         on_will_switch.will_switch_to_frame :parent_frame, nil
         logger.info 'Done! Switching to parent_frame...'
         __getobj__.parent_frame
@@ -51,15 +51,15 @@ module Applitools::Selenium
       if (needed_keys = (options.keys & %i(frame_chain frames_path))).length == 1
         send "frames_by_#{needed_keys.first}", options[needed_keys.first]
       else
-        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!'/
-                                                      'Only :frame_index or :frames_path are allowed.'
+        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!' /
+          'Only :frame_index or :frames_path are allowed.'
       end
     end
 
     # A wrapper for the native method +default_content+
     def default_content
       logger.info 'EyesTargetLocator.default_content()'
-      if driver.frame_chain.size != 0
+      unless driver.frame_chain.empty?
         logger.info 'Making preparations...'
         on_will_switch.will_switch_to_frame :default_content, nil
         logger.info 'Done! Switching to default content...'
@@ -86,7 +86,9 @@ module Applitools::Selenium
       logger.info 'Switching to element...'
       element = __getobj__.active_element
 
-      raise  Applitools::EyesError.new 'Not an Selenium::WebDriver::Element!' unless element.is_a? Selenium::WebDriver::Element
+      raise Applitools::EyesError.new(
+        'Not an Selenium::WebDriver::Element!'
+      ) unless element.is_a? Selenium::WebDriver::Element
 
       result = Applitools::Selenium::Element.new driver, element
 
@@ -106,9 +108,9 @@ module Applitools::Selenium
     private
 
     def frame_by_index(index)
-      raise Applitools::EyesInvalidArgument.new 'You should pass Fixnum as :index value!' unless index.is_a? Fixnum
+      raise Applitools::EyesInvalidArgument.new 'You should pass Integer as :index value!' unless index.is_a? Integer
       logger.info "EyesTargetLocator.frame(#{index})"
-      logger.info "Getting frames list..."
+      logger.info 'Getting frames list...'
       frames = driver.find_elements(:css, 'frame, iframe')
       raise Applitools::EyesNoSuchFrame.new "Frame index #{index} is invalid!" if index >= frames.size
 
@@ -119,9 +121,9 @@ module Applitools::Selenium
       on_will_switch.will_switch_to_frame :frame, target_frame
       logger.info 'Done! Switching to frame...'
 
-      #TODO: Looks like switching to frame by index (Fixnum) doesn't work at least for Chrome browser
+      # TODO: Looks like switching to frame by index (Fixnum) doesn't work at least for Chrome browser
       #  Is it better to use __getobj__.frame target_frame instead?
-      #__getobj__.frame index
+      # __getobj__.frame index
       __getobj__.frame target_frame
 
       logger.info 'Done!'
@@ -135,10 +137,10 @@ module Applitools::Selenium
       # is not found.
       logger.info 'Getting frames by name...'
       frames = driver.find_elements :name, name_or_id
-      if frames.size == 0
+      if frames.empty?
         logger.info 'No frames found! Trying by id...'
         frames = driver.find_elements :id, name_or_id
-        raise Applitools::EyesNoSuchFrame.new "No frame with name or id #{name_or_id} exists!"  if frames.size == 0
+        raise Applitools::EyesNoSuchFrame.new "No frame with name or id #{name_or_id} exists!" if frames.empty?
       end
       logger.info 'Done! Making preparations...'
       on_will_switch.will_switch_to_frame(:frame, frames.first).last
@@ -174,7 +176,7 @@ module Applitools::Selenium
     end
 
     def frames_by_frames_path(frames_path)
-      logger.info "EyesTargetLocator.frames(:frames_path => a_chain)"
+      logger.info 'EyesTargetLocator.frames(:frames_path => a_chain)'
       frames_path.each do |frame_name_or_id|
         logger.info 'Switching to frame...'
         frame(name_or_id: frame_name_or_id)

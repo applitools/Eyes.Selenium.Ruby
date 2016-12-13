@@ -101,18 +101,16 @@ module Applitools::Utils
     # @param [Applitools::Selenium::Driver] executor
     # @return [Applitools::Core::Location] instance which indicates current scroll position
     def current_scroll_position(executor)
-        position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
-        Applitools::Core::Location.new position[:left], position[:top]
+      position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
+      Applitools::Core::Location.new position[:left], position[:top]
     end
 
     def scroll_to(executor, point)
-      with_timeout(0.25) {executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top })}
+      with_timeout(0.25) { executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }) }
     end
 
     def extract_viewport_size(executor)
       Applitools::EyesLogger.debug 'extract_viewport_size()'
-      width = nil
-      height = nil
 
       begin
         width, height = executor.execute_script(JS_GET_VIEWPORT_SIZE)
@@ -157,7 +155,7 @@ module Applitools::Utils
     end
 
     def set_overflow(executor, overflow)
-      with_timeout(0.1) { executor.execute_script(JS_SET_OVERFLOW % { overflow:  overflow}) }
+      with_timeout(0.1) { executor.execute_script(JS_SET_OVERFLOW % { overflow: overflow }) }
     end
 
     def set_viewport_size(executor, viewport_size)
@@ -195,15 +193,13 @@ module Applitools::Utils
       raise Applitools::TestFailedError.new 'Failed to set viewport size'
     end
 
-
-
     private
 
     def resize_attempt(driver, required_viewport_size)
       actual_viewport_size = extract_viewport_size(driver)
       Applitools::EyesLogger.info "Actual viewport size #{actual_viewport_size}."
       required_browser_size = Applitools::Core::RectangleSize.for(driver.manage.window.size) - actual_viewport_size +
-          required_viewport_size
+        required_viewport_size
 
       retries_left = VERIFY_RETRIES
 
@@ -219,9 +215,9 @@ module Applitools::Utils
       false
     end
 
-    def with_timeout(timeout, &block)
+    def with_timeout(timeout, &_block)
       raise 'You have to pass block to method with_timeout' unless block_given?
-      yield.tap {sleep timeout}
+      yield.tap { sleep timeout }
     end
   end
 end

@@ -43,7 +43,9 @@ module Applitools::Utils
   end
 
   def symbolize_keys(hash)
-    hash.inject({}) {|memo, pair| memo[pair.first.to_sym] = pair.last; memo }
+    hash.each_with_object({}) do |(k, v), memo|
+      memo[k.to_sym] = v
+    end
   end
 
   def extract_options!(array)

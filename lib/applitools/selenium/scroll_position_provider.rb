@@ -1,5 +1,5 @@
 module Applitools::Selenium
-  #@!visibility private
+  # @!visibility private
   class ScrollPositionProvider
     extend Forwardable
 
@@ -9,18 +9,13 @@ module Applitools::Selenium
       self.executor = executor
     end
 
-    ##
     # The scroll position of the current frame
-    #
-    #
-    #
-
     def current_position
       logger.info 'current_position()'
       result = Applitools::Utils::EyesSeleniumUtils.current_scroll_position(executor)
       logger.info "Current position: #{result}"
       result
-    rescue Applitools::EyesDriverOperationException => e
+    rescue Applitools::EyesDriverOperationException
       raise 'Failed to extract current scroll position!'
     end
 
@@ -35,7 +30,7 @@ module Applitools::Selenium
     def position=(value)
       logger.info "Scrolling to #{value}"
       Applitools::Utils::EyesSeleniumUtils.scroll_to(executor, value)
-      logger.info("Done scrolling!");
+      logger.info 'Done scrolling!'
     end
 
     alias scroll_to position=
@@ -47,7 +42,7 @@ module Applitools::Selenium
     end
 
     private
-    attr_accessor :executor
 
+    attr_accessor :executor
   end
 end

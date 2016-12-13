@@ -157,25 +157,25 @@ module Applitools::Images
 
     private
 
-    def get_viewport_size
+    def viewport_size
       viewport_size
     end
 
-    def set_viewport_size(value)
+    def viewport_size=(value)
       Applitools::Core::ArgumentGuard.not_nil 'value', value
       @viewport_size = Applitools::Core::RectangleSize.for value
     end
 
+    alias get_viewport_size viewport_size
+    alias set_viewport_size viewport_size=
+
     def get_image_from_options(options)
-      unless !options[:image].nil? && options[:image].is_a?(Applitools::Core::Screenshot)
-        image = case
-                  when !options[:image_path].nil? && !options[:image_path].empty?
-                    Applitools::Core::Screenshot.new ChunkyPNG::Datastream.from_file(options[:image_path]).to_s
-                  when options[:image_bytes].nil? && !options[:image_bytes].empty?
-                    Applitools::Core::Screenshot.new options[:image_bytes]
-                  else
-                    nil
-                end
+      if options[:image].nil? && !options[:image].is_a?(Applitools::Core::Screenshot)
+        if !options[:image_path].nil? && !options[:image_path].empty?
+          image = Applitools::Core::Screenshot.new ChunkyPNG::Datastream.from_file(options[:image_path]).to_s
+        elsif options[:image_bytes].nil? && !options[:image_bytes].empty?
+          image = Applitools::Core::Screenshot.new options[:image_bytes]
+        end
       else
         image = options[:image]
       end
@@ -184,6 +184,5 @@ module Applitools::Images
 
       image
     end
-
   end
 end
