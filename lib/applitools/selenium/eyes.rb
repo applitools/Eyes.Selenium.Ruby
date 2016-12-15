@@ -185,15 +185,15 @@ module Applitools::Selenium
     def check_frame(options = {})
       options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil }.merge!(options)
 
-      if disabled?
-        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, " /
-          "tag: #{options[:tag]}): Ignored"
-        return
-      end
+      process_in_frame options do |opts, frame_key|
+        if disabled?
+          logger.info "check_frame(#{frame_key}: #{opts[frame_key]}, timeout: #{opts[:timeout]}, " \
+            "tag: #{opts[:tag]}): Ignored"
+          return
+        end
 
-      process_in_frame options do |opts|
-        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}, " /
-          "tag: #{options[:tag]})"
+        logger.info "check_frame(#{frame_key}: #{opts[frame_key]}, timeout: #{opts[:timeout]}, " \
+          "tag: #{opts[:tag]})"
         check_current_frame opts[:timeout], opts[:tag]
       end
     end
@@ -207,12 +207,13 @@ module Applitools::Selenium
 
       how_what = options.delete(:by)
 
-      if disabled?
-        logger.info "check_region_in_frame(#{frame_key}: #{options[frame_key]}, by: #{options[:by]}, " /
-          "timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored)"
-      end
+      process_in_frame options do |opts, frame_key|
+        if disabled?
+          logger.info "check_region_in_frame(#{frame_key}: #{options[frame_key]}, by: #{options[:by]}, " \
+                          "timeout: #{options[:timeout]}, tag: #{options[:tag]}): Ignored)"
+          return
+        end
 
-      process_in_frame options do |opts|
         check_region(*how_what, tag: opts[:tag], timeout: opts[:timeout], stitch_content: opts[:stitch_content])
       end
     end
@@ -268,19 +269,19 @@ module Applitools::Selenium
           options[:frame_element] ||
           options[:frame_chain] ||
           options[:frames_path]
-        raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
+        raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' \
           '  or :frame_chain option or :frames_path option'
       end
 
       if (needed_keys = (options.keys & %i(index name_or_id frame_element frame_chain frames_path))).length == 1
         frame_key = needed_keys.first
       else
-        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!' /
+        raise Applitools::EyesIllegalArgument.new 'You\'ve passed some extra keys!' \
           'Only one of :index, :name_or_id or :frame_elenent or :frame_chain or :frames_path is allowed.'
       end
 
       if disabled?
-        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}," /
+        logger.info "check_frame(#{frame_key}: #{options[frame_key]}, timeout: #{options[:timeout]}," \
           " tag: #{options[:tag]}): Ignored"
         return
       end
@@ -369,7 +370,7 @@ module Applitools::Selenium
       driver.switch_to.frame frame_options
       logger.info 'Done!'
 
-      yield(options) if block_given?
+      yield(options, frame_key) if block_given?
 
       logger.info 'Switching back to parent_frame...'
       driver.switch_to.parent_frame
@@ -448,7 +449,6 @@ module Applitools::Selenium
           image = image_provider.take_screenshot
           scale_provider.scale_image(image) if scale_provider
           cut_provider.cut(image) if cut_provider
-          # self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new image, driver: driver
           self.screenshot = eyes_screenshot_factory.call(image)
         end
       ensure
@@ -460,7 +460,7 @@ module Applitools::Selenium
       end
     end
 
-    def viewport_size=(value)
+    def vp_size=(value)
       raise Applitools::EyesNotOpenException.new 'set_viewport_size: Eyes not open!' unless open?
       original_frame = driver.frame_chain
       driver.switch_to.default_content
@@ -475,7 +475,7 @@ module Applitools::Selenium
       end
     end
 
-    alias set_viewport_size viewport_size=
+    alias set_viewport_size vp_size=
 
     def get_driver(options)
       # TODO: remove the "browser" related block when possible. It's for backward compatibility.

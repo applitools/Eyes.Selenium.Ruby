@@ -216,7 +216,7 @@ module Applitools::Selenium
       return intersected_region if intersected_region.empty?
       convert_region_location(
         intersected_region,
-        pplitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is],
+        Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is],
         result_coordinate_types
       )
     end

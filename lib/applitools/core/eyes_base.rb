@@ -145,7 +145,6 @@ module Applitools::Core
       self.session_type = options[:session_type]
 
       self.open = true
-
     rescue Applitools::EyesError => e
       logger.error e.message
       raise e

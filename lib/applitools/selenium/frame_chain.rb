@@ -39,6 +39,10 @@ module Applitools::Selenium
       @frames.size
     end
 
+    def empty?
+      @frames.empty?
+    end
+
     def current_frame_offset
       @frames.reduce(Applitools::Core::Location.new(0, 0)) do |result, frame|
         result.offset frame.location
