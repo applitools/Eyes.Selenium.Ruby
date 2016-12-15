@@ -157,17 +157,17 @@ module Applitools::Images
 
     private
 
-    def viewport_size
+    def vp_size
       viewport_size
     end
 
-    def viewport_size=(value)
+    def vp_size=(value)
       Applitools::Core::ArgumentGuard.not_nil 'value', value
       @viewport_size = Applitools::Core::RectangleSize.for value
     end
 
-    alias get_viewport_size viewport_size
-    alias set_viewport_size viewport_size=
+    alias get_viewport_size vp_size
+    alias set_viewport_size vp_size=
 
     def get_image_from_options(options)
       if options[:image].nil? && !options[:image].is_a?(Applitools::Core::Screenshot)
