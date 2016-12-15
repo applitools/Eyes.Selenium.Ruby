@@ -19,9 +19,8 @@ module Applitools::Selenium
     end
 
     def push(frame)
-      raise 'frame must be instance of Applitools::Selenium::Frame!' \
-        " (passed #{frame.class})" unless frame.is_a? Applitools::Selenium::Frame
-      @frames.push frame
+      return @frames.push(frame) if frame.is_a? Applitools::Selenium::Frame
+      raise "frame must be instance of Applitools::Selenium::Frame! (passed #{frame.class})"
     end
 
     def pop

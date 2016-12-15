@@ -53,7 +53,7 @@ module Applitools::Core
 
     def intersecting?(other)
       ((left <= other.left && other.left <= right) || (other.left <= left && left <= other.right)) &&
-          ((top <= other.top && other.top <= bottom) || (other.top <= top && top <= other.bottom))
+        ((top <= other.top && other.top <= bottom) || (other.top <= top && top <= other.bottom))
     end
 
     def intersect(other)
@@ -63,10 +63,10 @@ module Applitools::Core
         return
       end
 
-      i_left = (left >= other.left) ? left : other.left
-      i_right = (right <= other.right) ? right : other.right
-      i_top = (top >= other.top) ? top : other.top
-      i_bottom = (bottom <= other.bottom) ? bottom : other.bottom
+      i_left = left >= other.left ? left : other.left
+      i_right = right <= other.right ? right : other.right
+      i_top = top >= other.top ? top : other.top
+      i_bottom = bottom <= other.bottom ? bottom : other.bottom
 
       @left = i_left
       @top = i_top
@@ -91,10 +91,10 @@ module Applitools::Core
 
     def to_hash
       {
-          left: left,
-          top: top,
-          height: height,
-          width: width
+        left: left,
+        top: top,
+        height: height,
+        width: width
       }
     end
 
@@ -103,7 +103,7 @@ module Applitools::Core
     end
 
     def size_equals?(region)
-      self.width == region.width && self.height == region.height
+      width == region.width && height == region.height
     end
 
     class << self
@@ -121,9 +121,11 @@ module Applitools::Core
         sub_region_width = container_region.width if sub_region_width > container_region.width
         sub_region_height = container_region.height if sub_region_height > container_region.height
 
-        return Enumerator(1) do |y|
-          y << sub_region
-        end if sub_region_width == container_region.width && sub_region_height == sub_region_height
+        if sub_region_width == container_region.width && sub_region_height == container_region.height
+          return Enumerator(1) do |y|
+            y << sub_region
+          end
+        end
 
         current_top = container_region.top
         bottom = container_region.top + container_region.height - 1
@@ -135,13 +137,12 @@ module Applitools::Core
             while current_left <= right
               current_left = (rught - sub_region_width) + 1 if current_left + sub_region_width > right
               y << new(current_left, current_top, sub_region_width, sub_region_height)
-              current_left = current_left + sub_region_width
+              current_left += sub_region_width
             end
-            current_top = current_top + sub_region_height
+            current_top += sub_region_height
           end
         end
       end
-
 
       def sub_regions_with_varying_size(container_region, sub_region)
         Applitools::Core::ArgumentGuard.not_nil container_region, 'container_region'
@@ -157,7 +158,7 @@ module Applitools::Core
         Enumerator.new do |y|
           while current_top < bottom
             current_bottom = current_top + sub_region.height
-            current_bottom = bottom if (current_bottom > bottom)
+            current_bottom = bottom if current_bottom > bottom
             current_left = container_region.left
             while current_left < right
               current_right = current_left + sub_region.width
@@ -168,9 +169,9 @@ module Applitools::Core
 
               y << new(current_left, current_top, current_width, current_height)
 
-              current_left = current_left + sub_region.width
+              current_left += sub_region.width
             end
-            current_top = current_top + sub_region.height
+            current_top += sub_region.height
           end
         end
       end

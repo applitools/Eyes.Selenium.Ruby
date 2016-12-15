@@ -18,7 +18,9 @@ module Applitools::Core
       ArgumentGuard.not_nil app_output_provider, 'app_output_provider'
       ArgumentGuard.greater_than_or_equal_to_zero retry_timeout, 'retry_timeout'
 
-      raise Applitools::EyesIllegalArgument.new "MatchWindowTask.new(): app_output_provider doesn't respond to :app_output" unless app_output_provider.respond_to? :app_output
+      return if app_output_provider.respond_to? :app_output
+      raise Applitools::EyesIllegalArgument.new 'MatchWindowTask.new(): app_output_provider doesn\'t' /
+        ' respond to :app_output'
     end
 
     def match_window(options = {})
@@ -35,37 +37,37 @@ module Applitools::Core
       logger.info "retry_timeout = #{retry_timeout}"
       elapsed_time_start = Time.now
 
-      if retry_timeout == 0 || should_match_window_run_once_on_timeout
+      if retry_timeout.zero? || should_match_window_run_once_on_timeout
         sleep retry_timeout if should_match_window_run_once_on_timeout
         app_output = app_output_provider.app_output region_provider, last_screenshot
         match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag,
-          ignore_mismatch: ignore_mismatch;
+          ignore_mismatch: ignore_mismatch
       else
         app_output = app_output_provider.app_output region_provider, last_screenshot
         start = Time.now
-        match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mismatch: true;
+        match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mismatch: true
         retry_time = Time.now - start
 
-        while retry_time < retry_timeout && !match_result.as_expected? do
+        while retry_time < retry_timeout && !match_result.as_expected?
           sleep MATCH_INTERVAL
           app_output = app_output_provider.app_output region_provider, last_screenshot
-          match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mismatch: true;
+          match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag, ignore_mismatch: true
           retry_time = Time.now - start
         end
 
         unless match_result.as_expected?
           app_output = app_output_provider.app_output region_provider, last_screenshot
           match_result = perform_match user_inputs: user_inputs, app_output: app_output, tag: tag,
-            ignore_mismatch: ignore_mismatch;
+            ignore_mismatch: ignore_mismatch
         end
       end
 
-      elapsed_time = (Time.now - elapsed_time_start)/1000
+      elapsed_time = (Time.now - elapsed_time_start) / 1000
 
-      logger.info "Completed in #{format("%.2f", elapsed_time)} seconds"
+      logger.info "Completed in #{format('%.2f', elapsed_time)} seconds"
 
       match_result.screenshot = app_output.screenshot
-      return match_result
+      match_result
     end
 
     private
@@ -78,8 +80,7 @@ module Applitools::Core
       data = Applitools::Core::MatchWindowData.new user_inputs, app_output, tag, ignore_mismatch,
         tag: tag, user_inputs: user_inputs, ignore_mismatch: ignore_mismatch, ignore_match: false,
         force_mistmatch: false, force_match: false
-      return Applitools::Connectivity::ServerConnector.match_window running_session, data
+      Applitools::Connectivity::ServerConnector.match_window running_session, data
     end
-
   end
 end

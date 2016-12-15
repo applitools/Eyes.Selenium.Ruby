@@ -24,12 +24,12 @@ module Applitools::Core
     def convert_region_location(region, from, to)
       Applitools::Core::ArgumentGuard.not_nil region, 'region'
       Applitools::Core::ArgumentGuard.is_a? region, 'region', Applitools::Core::Region
-      return Region.new(0,0,0,0) if region.empty?
+      return Region.new(0, 0, 0, 0) if region.empty?
       Applitools::Core::ArgumentGuard.not_nil from, 'from'
       Applitools::Core::ArgumentGuard.not_nil to, 'to'
 
       updated_location = convert_location(region.location, from, to)
       Region.new updated_location.x, updated_location.y, region.width, region.height
     end
-   end
+  end
 end

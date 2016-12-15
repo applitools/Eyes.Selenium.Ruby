@@ -9,9 +9,9 @@ module Applitools::Core
 
     def to_hash
       {
-          id: @id,
-          name: @name,
-          started_at: @started_at.iso8601
+        id: @id,
+        name: @name,
+        started_at: @started_at.iso8601
       }
     end
   end

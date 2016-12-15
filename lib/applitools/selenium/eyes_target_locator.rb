@@ -86,9 +86,11 @@ module Applitools::Selenium
       logger.info 'Switching to element...'
       element = __getobj__.active_element
 
-      raise Applitools::EyesError.new(
-        'Not an Selenium::WebDriver::Element!'
-      ) unless element.is_a? Selenium::WebDriver::Element
+      unless element.is_a? Selenium::WebDriver::Element
+        raise Applitools::EyesError.new(
+          'Not an Selenium::WebDriver::Element!'
+        )
+      end
 
       result = Applitools::Selenium::Element.new driver, element
 

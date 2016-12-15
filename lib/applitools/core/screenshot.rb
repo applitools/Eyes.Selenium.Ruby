@@ -38,6 +38,10 @@ module Applitools::Core
       end
     end
 
+    def respond_to_missing?(method_name, include_private = false)
+      super
+    end
+
     def restore
       ChunkyPNG::Image.from_datastream @datastream
     end

@@ -181,9 +181,10 @@ module Applitools::Utils
 
       browser_size_calculation_count = 0
       while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
-        raise Applitools::TestFailedError.new 'Failed to set browser size!' \
-          " (current size: #{Applitools::Core::RectangleSize.for(executor.manage.window.size)})" unless
-            resize_attempt(executor, viewport_size)
+        unless resize_attempt(executor, viewport_size)
+          raise Applitools::TestFailedError.new 'Failed to set browser size!' \
+            " (current size: #{Applitools::Core::RectangleSize.for(executor.manage.window.size)})"
+        end
         browser_size_calculation_count += 1
         if viewport_size == extract_viewport_size(executor)
           Applitools::EyesLogger.info "Actual viewport size #{viewport_size}."

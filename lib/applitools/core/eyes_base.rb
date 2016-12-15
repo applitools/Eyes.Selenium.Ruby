@@ -6,13 +6,13 @@ module Applitools::Core
     extend Forwardable
     extend Applitools::Core::Helpers
 
-    DEFAULT_MATCH_TIMEOUT = 2 #seconds
+    DEFAULT_MATCH_TIMEOUT = 2 # seconds
     USE_DEFAULT_TIMEOUT = -1
 
     SCREENSHOT_AS_IS = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is].freeze
     CONTEXT_RELATIVE = Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative].freeze
 
-    MATCH_LEVEL  = {
+    MATCH_LEVEL = {
       none: 'None',
       layout: 'Layout',
       layout2: 'Layout2',
@@ -21,14 +21,13 @@ module Applitools::Core
       exact: 'Exact'
     }.freeze
 
-
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
-    def_delegators 'Applitools::Connectivity::ServerConnector', :api_key, :api_key=, :server_url, :server_url=, :set_proxy,
-                   :proxy, :proxy=
+    def_delegators 'Applitools::Connectivity::ServerConnector', :api_key, :api_key=, :server_url, :server_url=,
+      :set_proxy, :proxy, :proxy=
 
     attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
-        attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings, :scale_ratio, :scale_method,
-        :host_os, :host_app, :base_line_name, :position_provider, :viewport_size
+    attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings,
+      :scale_ratio, :scale_method, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size
 
     abstract_attr_accessor :base_agent_id, :inferred_environment
     abstract_method :capture_screenshot, true
@@ -52,27 +51,14 @@ module Applitools::Core
       get_app_output_method = ->(r, s) { get_app_output_with_screenshot r, s }
 
       app_output_provider.instance_eval do
-        define_singleton_method :app_output do |r,s|
-          get_app_output_method.call(r,s)
+        define_singleton_method :app_output do |r, s|
+          get_app_output_method.call(r, s)
         end
       end
 
-      # self.default_match_settings = new Applitools::Core::ImageMatchSettings();
       self.default_match_settings = MATCH_LEVEL[:exact]
 
-      # scaleProviderHandler = new SimplePropertyHandler<>();
-      # scaleProviderHandler.set(new NullScaleProvider());
-      # cutProviderHandler = new SimplePropertyHandler<>();
-      # cutProviderHandler.set(new NullCutProvider());
-      #
-      # positionProvider = new InvalidPositionProvider();
       self.scale_method = :speed
-      #
-      # defaultMatchSettings = new ImageMatchSettings();
-      # failureReports = FailureReports.ON_CLOSE;
-      # userInputs = new ArrayDeque<>();s
-
-
     end
 
     def full_agent_id
@@ -110,7 +96,7 @@ module Applitools::Core
       clear_user_inputs
 
       if running_session.nil?
-        logger.info "Closed"
+        logger.info 'Closed'
         return
       end
 
@@ -132,7 +118,7 @@ module Applitools::Core
       end
 
       Applitools::Core::ArgumentGuard.hash options, 'open_base parameter', [:test_name]
-      default_options = {session_type: 'SEQUENTAL'}
+      default_options = { session_type: 'SEQUENTAL' }
       options = default_options.merge options
 
       if app_name.nil?
@@ -143,25 +129,20 @@ module Applitools::Core
       end
 
       Applitools::Core::ArgumentGuard.not_nil options[:test_name], 'options[:test_name]'
-      self.test_name = options[:test_name];
+      self.test_name = options[:test_name]
       logger.info "Agent = #{full_agent_id}"
       logger.info "openBase(app_name: #{options[:app_name]}, test_name: #{options[:test_name]}," \
           " viewport_size: #{options[:viewport_size]})"
 
-      raise Applitools::EyesError.new 'API key is missing! Please set it using api_key=' if self.api_key.nil?
+      raise Applitools::EyesError.new 'API key is missing! Please set it using api_key=' if api_key.nil?
 
       if open?
         abort_if_not_closed
         raise Applitools::EyesError.new 'A test is already running'
       end
 
-
-
       self.viewport_size = options[:viewport_size]
       self.session_type = options[:session_type]
-
-      # scaleProviderHandler.set(new NullScaleProvider());
-      # setScaleMethod(ScaleMethod.getDefault());
 
       self.open = true
 
@@ -171,10 +152,9 @@ module Applitools::Core
     end
 
     def check_window_base(region_provider, tag, ignore_mismatch, retry_timeout)
-
       if disabled?
         logger.info "#{__method__} Ignored"
-        result = Applitools::Core::MatchResults.new()
+        result = Applitools::Core::MatchResults.new
         result.as_expected = true
         return result
       end
@@ -190,17 +170,24 @@ module Applitools::Core
         logger.info 'No running session, calling start session..'
         start_session
         logger.info 'Done!'
-        @match_window_task = Applitools::Core::MatchWindowTask.new logger, running_session, match_timeout, app_output_provider
+        @match_window_task = Applitools::Core::MatchWindowTask.new(
+          logger,
+          running_session,
+          match_timeout,
+          app_output_provider
+        )
       end
 
       logger.info 'Calling match_window...'
-      result = @match_window_task.match_window user_inputs: user_inputs,
-                                              last_screenshot: last_screenshot,
-                                              region_provider: region_provider,
-                                              tag: tag,
-                                              should_match_window_run_once_on_timeout: should_match_window_run_once_on_timeout,
-                                              ignore_mismatch: ignore_mismatch,
-                                              retry_timeout: retry_timeout
+      result = @match_window_task.match_window(
+        user_inputs: user_inputs,
+        last_screenshot: last_screenshot,
+        region_provider: region_provider,
+        tag: tag,
+        should_match_window_run_once_on_timeout: should_match_window_run_once_on_timeout,
+        ignore_mismatch: ignore_mismatch,
+        retry_timeout: retry_timeout
+      )
       logger.info 'match_window done!'
 
       if result.as_expected?
@@ -212,7 +199,7 @@ module Applitools::Core
           self.last_screenshot = result.screenshot
         end
 
-        self.should_match_window_run_once_on_timeout = true;
+        self.should_match_window_run_once_on_timeout = true
 
         logger.info "Mistmatch! #{tag}" unless running_session.new_session?
 
@@ -230,7 +217,6 @@ module Applitools::Core
     # @param [Boolean] throw_exception If set to +true+ eyes will trow [Applitools::TestFailedError] exception
 
     def close(throw_exception = false)
-
       if disabled?
         logger.info "#{__method__} Ignored"
         return
@@ -283,7 +269,7 @@ module Applitools::Core
         return results
       end
 
-      logger.info "--- Test passed"
+      logger.info '--- Test passed'
       return results
     ensure
       self.running_session = nil
@@ -293,8 +279,10 @@ module Applitools::Core
     private
 
     attr_accessor :running_session, :last_screenshot, :current_app_name, :test_name, :session_type,
-                  :scale_provider, :cut_provider, :default_match_settings,
-                  :session_start_info, :should_match_window_run_once_on_timeout, :app_output_provider
+      :scale_provider, :cut_provider, :default_match_settings, :session_start_info,
+      :should_match_window_run_once_on_timeout, :app_output_provider
+
+    attr_reader :user_inputs
 
     private :full_agent_id, :full_agent_id=
 
@@ -311,19 +299,14 @@ module Applitools::Core
       @user_inputs.clear
     end
 
-    def user_inputs
-      @user_inputs
-    end
-
     def add_user_input(trigger)
-
       if disabled?
         logger.info "#{__method__} Ignored"
         return
       end
 
-      Applitools::Core::ArgumentGuard.not_nil(trigger, "trigger");
-      @user_inputs.add(trigger);
+      Applitools::Core::ArgumentGuard.not_nil(trigger, 'trigger')
+      @user_inputs.add(trigger)
     end
 
     def add_text_trigger_base(control, text)
@@ -387,8 +370,8 @@ module Applitools::Core
         cursor_in_screenshot.offset Applitools::Core::Location.new(-l.x, -l.y)
       end
 
-      trigger = Applitools::Core::MouseTrigger.new action, control_screenshot_intersect,  cursor_in_screenshot
-      add_user_input trigger;
+      trigger = Applitools::Core::MouseTrigger.new action, control_screenshot_intersect, cursor_in_screenshot
+      add_user_input trigger
 
       logger.info "Added #{trigger}"
     end
@@ -426,13 +409,13 @@ module Applitools::Core
 
       logger.info "Server session ID is #{running_session.id}"
       test_info = "'#{test_name}' of '#{app_name}' #{app_env}"
-       if (running_session.new_session?)
-         logger.info "--- New test started - #{test_info}"
-         self.should_match_window_run_once_on_timeout = true
-       else
-         logger.info "--- Test started - #{test_info}"
-         self.should_match_window_run_once_on_timeout = false
-       end
+      if running_session.new_session?
+        logger.info "--- New test started - #{test_info}"
+        self.should_match_window_run_once_on_timeout = true
+      else
+        logger.info "--- Test started - #{test_info}"
+        self.should_match_window_run_once_on_timeout = false
+      end
     end
 
     def get_app_output_with_screenshot(region_provider, last_screenshot)
@@ -450,27 +433,27 @@ module Applitools::Core
       logger.info 'Done! Getting title...'
       a_title = title
       logger.info 'Done!'
-      Applitools::Core::AppOutputWithScreenshot.new Applitools::Core::AppOutput.new(a_title, compress_result),
-          screenshot
+      Applitools::Core::AppOutputWithScreenshot.new(
+        Applitools::Core::AppOutput.new(a_title, compress_result),
+        screenshot
+      )
     end
 
-    def compress_screenshot64(screenshot, last_screenshot)
-      return screenshot #it is a stub
+    def compress_screenshot64(screenshot, _last_screenshot)
+      screenshot # it is a stub
     end
 
     class UserInputArray < Array
       def add(trigger)
-        raise Applitools::EyesIllegalArgument.new 'trigger must be kind of Trigger!' unless trigger.kind_of? Trigger
+        raise Applitools::EyesIllegalArgument.new 'trigger must be kind of Trigger!' unless trigger.is_a? Trigger
         self << trigger
       end
 
       def to_hash
-        self.map do |trigger|
+        map do |trigger|
           trigger.to_hash if trigger.respond_to? :to_hash
         end.compact
       end
     end
-
   end
 end
-

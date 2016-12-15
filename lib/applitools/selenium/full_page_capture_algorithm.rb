@@ -131,8 +131,11 @@ module Applitools::Selenium
         logger.info 'Done!'
 
         last_successful_location = Applitools::Core::Location.for part_region.x, part_region.y
-        last_successful_part_size = Applitools::Core::RectangleSize.new a_screenshot.image.width,
-          a_screenshot.image.height if a_screenshot
+        next unless a_screenshot
+        last_successful_part_size = Applitools::Core::RectangleSize.new(
+          a_screenshot.image.width,
+          a_screenshot.image.height
+        )
       end
 
       logger.info 'Stitching done!'

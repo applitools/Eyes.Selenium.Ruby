@@ -262,12 +262,16 @@ module Applitools::Selenium
     # @option [String] :tag
     def check_frame__(options = {})
       options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil }.merge!(options)
-      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
-        '  or :frame_chain option or :frames_path option' unless options[:index] ||
-            options[:name_or_id] ||
-            options[:frame_element] ||
-            options[:frame_chain] ||
-            options[:frames_path]
+
+      unless options[:index] ||
+          options[:name_or_id] ||
+          options[:frame_element] ||
+          options[:frame_chain] ||
+          options[:frames_path]
+        raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
+          '  or :frame_chain option or :frames_path option'
+      end
+
       if (needed_keys = (options.keys & %i(index name_or_id frame_element frame_chain frames_path))).length == 1
         frame_key = needed_keys.first
       else
@@ -325,12 +329,15 @@ module Applitools::Selenium
       :region_visibility_strategy, :eyes_screenshot_factory
 
     def process_in_frame(options = {})
-      raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
-        'or :frame_chain option or :frames_path option' unless options[:index] ||
-            options[:name_or_id] ||
-            options[:frame_element] ||
-            options[:frame_chain] ||
-            options[:frames_path]
+      unless options[:index] ||
+          options[:name_or_id] ||
+          options[:frame_element] ||
+          options[:frame_chain] ||
+          options[:frames_path]
+        raise Applitools::EyesIllegalArgument.new 'You must pass :index or :name_or_id or :frame_element option' /
+          'or :frame_chain option or :frames_path option'
+      end
+
       if (needed_keys = (options.keys & %i(index name_or_id frame_element frame_chain frames_path))).length == 1
         frame_key = needed_keys.first
       else

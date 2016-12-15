@@ -27,12 +27,12 @@ module Applitools::Selenium
             image.is_a? Applitools::Core::Screenshot
 
         options = args.first
-        _new(image).tap do |obj|
+        if options.is_a? Hash
+          result = _new(image)
           callback = INIT_CALLBACKS[options.keys.sort]
-          return obj.send callback, options if obj.respond_to? callback
+          return result.tap { |o| o.send callback, options } if result.respond_to? callback
           raise Applitools::EyesIllegalArgument.new 'Can\'t find an appropriate initializer!'
-        end if options.is_a? Hash
-
+        end
         raise Applitools::EyesIllegalArgument.new "#{self.class}.initialize(): Hash is expected as an argument!"
       end
 
@@ -202,6 +202,7 @@ module Applitools::Selenium
       )
       case original_coordinate_types
       when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_as_is]
+        nil
       when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
         intersected_region.intersect frame_window
       when Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
@@ -224,9 +225,11 @@ module Applitools::Selenium
       location = convert_location(
         location, coordinate_type, Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
       )
-      raise Applitools::OutOfBoundsException.new(
-        "Location #{location} (#{coordinate_type}) is not visible in screenshot!"
-      ) unless frame_window.contains?(location.x, location.y)
+      unless frame_window.contains?(location.x, location.y)
+        raise Applitools::OutOfBoundsException.new(
+          "Location #{location} (#{coordinate_type}) is not visible in screenshot!"
+        )
+      end
       location
     end
 
@@ -241,9 +244,11 @@ module Applitools::Selenium
 
       as_is_subscreenshot_region = intersected_region region_to_check, coordinate_type,
         Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is]
-      raise Applitools::OutOfBoundsException.new "Region #{region} (#{coordinate_type}) is out" \
-        " of screenshot bounds [#{frame_window}]" if
-          as_is_subscreenshot_region.empty? || (throw_if_clipped && !as_is_subscreenshot_region.size == region.size)
+
+      if as_is_subscreenshot_region.empty? || (throw_if_clipped && !as_is_subscreenshot_region.size == region.size)
+        raise Applitools::OutOfBoundsException.new "Region #{region} (#{coordinate_type}) is out" \
+          " of screenshot bounds [#{frame_window}]"
+      end
 
       sub_screenshot_image = Applitools::Core::Screenshot.new image.crop(as_is_subscreenshot_region.left,
         as_is_subscreenshot_region.top, as_is_subscreenshot_region.width,

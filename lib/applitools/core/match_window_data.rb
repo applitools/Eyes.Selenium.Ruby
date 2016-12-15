@@ -2,7 +2,7 @@ module Applitools::Core
   class MatchWindowData
     attr_accessor :app_output, :user_inputs, :tag, :options, :ignore_mismatch
 
-    def initialize(user_inputs, app_output, tag, ignore_mismatch, options={})
+    def initialize(user_inputs, app_output, tag, ignore_mismatch, options = {})
       self.user_inputs = user_inputs
       self.app_output = app_output
       self.tag = tag
@@ -27,8 +27,7 @@ module Applitools::Core
     end
 
     def to_s
-
+      to_hash
     end
-
   end
 end

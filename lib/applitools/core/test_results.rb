@@ -3,7 +3,6 @@ module Applitools::Core
     attr_accessor :is_new, :url
     attr_reader :steps, :matches, :mismatches, :missing
 
-    #FIXME: why don't we use symbol for hash keys?
     def initialize(results = {})
       @steps = results.fetch('steps', 0)
       @matches = results.fetch('matches', 0)
@@ -44,9 +43,8 @@ module Applitools::Core
       is_new_str = ''
       is_new_str = is_new ? 'New test' : 'Existing test' unless is_new.nil?
 
-      "#{is_new_str} [ steps: #{steps}, matches: #{matches}, mismatches: #{mismatches}, missing: #{missing} ], "\
+      "#{is_new_str} [ steps: #{steps}, matches: #{matches}, mismatches: #{mismatches}, missing: #{missing} ], " \
         "URL: #{url}"
     end
-
   end
 end

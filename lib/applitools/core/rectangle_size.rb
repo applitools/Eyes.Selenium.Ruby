@@ -9,15 +9,17 @@ module Applitools::Core
         nil
       end
 
-      alias for from_any_argument
+      alias_method :for, :from_any_argument
 
       def from_string(value)
-        width, height = value.split /x/
+        width, height = value.split(/x/)
         new width, height
       end
+
       def from_hash(value)
         new value[:width], value[:height]
       end
+
       def from_struct(value)
         new value.width, value.height
       end
@@ -39,6 +41,6 @@ module Applitools::Core
       self
     end
 
-    alias to_hash to_h
+    alias_method :to_hash, :to_h
   end
 end

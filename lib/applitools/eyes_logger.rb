@@ -3,11 +3,9 @@ require 'forwardable'
 
 module Applitools::EyesLogger
   class NullLogger < Logger
-    def initialize(*_args)
-    end
+    def initialize(*_args); end
 
-    def add(*_args, &_block)
-    end
+    def add(*_args, &_block); end
   end
 
   extend Forwardable

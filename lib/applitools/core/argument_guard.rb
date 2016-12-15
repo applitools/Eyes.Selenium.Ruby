@@ -5,16 +5,16 @@ module Applitools::Core
       raise Applitools::EyesIllegalArgument.new "#{param_name} is nil!" if param.nil?
     end
 
-    def hash(param, param_name, required_fields=[])
-      unless param.is_a? Hash
-        error_message = "#{param_name} expected to be a Hash"
-        end_of_message = required_fields.any? ? " containing keys #{required_fields.join(', ')}." : "."
-        error_message << end_of_message
-        raise Applitools::EyesIllegalArgument.new error_message
-      else
+    def hash(param, param_name, required_fields = [])
+      if param.is_a? Hash
         missed_keys = required_fields - param.keys
         error_message = "Expected #{param_name} to include keys #{missed_keys.join ', '}"
         raise Applitools::EyesIllegalArgument.new error_message if missed_keys.any?
+      else
+        error_message = "#{param_name} expected to be a Hash"
+        end_of_message = required_fields.any? ? " containing keys #{required_fields.join(', ')}." : '.'
+        error_message << end_of_message
+        raise Applitools::EyesIllegalArgument.new error_message
       end
     end
 
@@ -27,8 +27,9 @@ module Applitools::Core
     end
 
     def is_a?(param, param_name, klass)
+      return true if param.is_a? klass
       raise Applitools::EyesIllegalArgument.new "Expected #{param_name} to be" \
-        " instance of #{klass}" unless param.is_a? klass
+        " instance of #{klass}"
     end
   end
 end

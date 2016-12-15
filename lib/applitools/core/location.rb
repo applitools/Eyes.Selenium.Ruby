@@ -1,7 +1,6 @@
 require 'applitools/core/region'
 module Applitools::Core
   class Location
-
     class << self
       def from_any_attribute(*args)
         if args.size == 2
@@ -26,7 +25,7 @@ module Applitools::Core
       end
 
       def from_string(value)
-        x, y = value.split /x/
+        x, y = value.split(/x/)
         new x, y
       end
 

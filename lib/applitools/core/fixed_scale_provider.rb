@@ -1,7 +1,6 @@
 module Applitools::Core
-  #@!visibility private
+  # @!visibility private
   class FixedScaleProvider
-
     attr_reader :scale_ratio, :scale_method
     def initialize(scale_ratio, method = :speed)
       @scale_ratio = scale_ratio
