@@ -37,6 +37,16 @@ describe 'passthrough methods' do
         expect(link).not_to be_nil
         expect(link).to be_a(Applitools::Selenium::Element)
       end
+
+      # From the Selenium tests
+      # @see https://github.com/SeleniumHQ/selenium/blob/7e2cca5/rb/spec/integration/selenium/webdriver/element_spec.rb#L192
+      it 'should know when two elements are equal' do
+        body = @driver.find_element(tag_name: 'body')
+        xbody = @driver.find_element(xpath: '//body')
+
+        expect(body).to eq(xbody)
+        expect(body).to eql(xbody)
+      end
     end
 
     context 'all elements' do

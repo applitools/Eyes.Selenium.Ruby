@@ -59,6 +59,7 @@ module Applitools::Selenium
         super other
       end
     end
+
     alias eql? ==
 
     def send_keys(*args)
