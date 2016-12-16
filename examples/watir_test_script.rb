@@ -1,7 +1,6 @@
-require_relative '../lib/eyes_selenium'
-
-require 'logger'
 require 'watir-webdriver'
+require 'eyes_selenium'
+require 'logger'
 
 require 'openssl'
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
