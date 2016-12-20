@@ -1,6 +1,6 @@
 require 'rspec'
 require 'sauce'
-require 'eyes_selenium'
+require_relative '../lib/eyes_selenium'
 
 Sauce.config do |config|
   config[:browsers] = [
@@ -12,7 +12,7 @@ end
 
 describe 'A Saucy Example Group', sauce: true do
   let!(:eyes) do
-    Applitools::Eyes.new.tap do |eyes|
+    Applitools::Selenium::Eyes.new.tap do |eyes|
       eyes.api_key = ENV['APPLITOOLS_API_KEY']
       eyes.log_handler = Logger.new(STDOUT)
     end

@@ -1,6 +1,6 @@
 require 'rspec'
 require 'capybara/rspec'
-require 'eyes_selenium'
+require_relative '../lib/eyes_selenium'
 require 'applitools/capybara'
 
 ##
@@ -30,7 +30,7 @@ end
 
 describe 'Capybara Example', :type => :feature, :js => true do
   let(:eyes) do
-    Applitools::Eyes.new.tap do |eyes|
+    Applitools::Selenium::Eyes.new.tap do |eyes|
       eyes.api_key = ENV['APPLITOOLS_API_KEY']
       eyes.log_handler = Logger.new(STDOUT)
     end

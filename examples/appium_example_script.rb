@@ -1,7 +1,7 @@
 require 'logger'
 require 'appium_lib'
 
-require 'eyes_selenium'
+require_relative '../lib/eyes_selenium'
 
 # Based on Appium example: https://github.com/appium/appium/blob/master/sample-code/examples/ruby/
 
@@ -35,14 +35,14 @@ def appium_opts
   }
 end
 
-eyes = Applitools::Eyes.new
+eyes = Applitools::Selenium::Eyes.new
 eyes.log_handler = Logger.new(STDOUT)
 eyes.api_key = ENV['APPLITOOLS_API_KEY']
 
 begin
   # driver = Selenium::WebDriver.for(:remote, :url => 'http://localhost:4723/wd/hub', :desired_capabilities => ios_caps)
   # driver = Appium::Driver.new({caps: android_caps, appium_lib: appium_opts})
-  driver = Appium::Driver.new(caps: ios_caps, appium_lib: appium_opts)
+  driver = Appium::Driver.new(caps: android_caps, appium_lib: appium_opts)
   driver.start_driver
   # driver.driver.rotate :landscape
   puts "Screen size: #{driver.driver.manage.window.size}"
