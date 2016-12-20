@@ -42,6 +42,14 @@ module Applitools::Images
       open_base options
     end
 
+    # Opens eyes using passed options, yields the block and then closes eyes session.
+    # Use Applitools::Images::Eyes method inside the block to perform the test. If the block throws an exception,
+    # eyes session will be closed correctly.
+    # @example
+    #  eyes.test(app_name: 'Eyes.Java', test_name: 'home2') do
+    #    eyes.check_image(image_path: './images/viber-home.png')
+    #    eyes.check_image(image_path: './images/viber-bada.png')
+    #  end
     def test(options = {}, &_block)
       open(options)
       yield
