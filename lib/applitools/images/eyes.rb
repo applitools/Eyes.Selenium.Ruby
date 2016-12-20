@@ -42,6 +42,14 @@ module Applitools::Images
       open_base options
     end
 
+    def test(options = {}, &_block)
+      open(options)
+      yield
+      close
+    ensure
+      abort_if_not_closed
+    end
+
     # Matches the input image with the next expected image. Takes a hash as an argument. Returns +boolean+
     # as result of matching.
     # @param [Hash] options

@@ -51,7 +51,7 @@ module Applitools::Images
       Applitools::Core::ArgumentGuard.not_nil region, 'region'
       Applitools::Core::ArgumentGuard.not_nil from, 'coordinates Type (from)'
 
-      return Region.new(0, 0, 0, 0) if region.empty?
+      return Applitools::Core::Region.new(0, 0, 0, 0) if region.empty?
 
       intersected_region = convert_region_location region, from, to
       intersected_region.intersect bounds
