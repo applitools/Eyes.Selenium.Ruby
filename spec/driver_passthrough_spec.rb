@@ -1,8 +1,9 @@
 require 'spec_helper'
+require 'pry'
 
 describe 'passthrough methods' do
   let(:static_file) { "file://#{File.dirname(__FILE__)}/fixtures/static_test_file.html" }
-  let(:eyes) { Applitools::Eyes.new }
+  let(:eyes) { Applitools::Selenium::Eyes.new }
   let(:web_driver) { Selenium::WebDriver.for :phantomjs }
 
   before do |example|
@@ -15,7 +16,6 @@ describe 'passthrough methods' do
 
   after do
     eyes.close
-
     @driver.quit
   end
 

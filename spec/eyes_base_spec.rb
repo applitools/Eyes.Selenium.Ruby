@@ -37,8 +37,6 @@ describe Applitools::Core::EyesBase do
     :batch=,
     :failure_reports,
     :failure_reports=,
-    :default_match_settings,
-    :default_match_settings=,
     :open?,
     :log_handler,
     :log_handler=,
@@ -46,9 +44,7 @@ describe Applitools::Core::EyesBase do
     :scale_ratio=,
     :scale_method,
     :scale_method=,
-    :image_cut=,
     :close,
-    :close_response_time,
     :abort_if_not_closed,
     :host_os,
     :host_os=,
@@ -65,7 +61,11 @@ describe Applitools::Core::EyesBase do
   it_should_behave_like 'has private method', [
     :clear_user_inputs,
     :user_inputs,
-    :start_session
+    :start_session,
+    :base_agent_id,
+    :default_match_settings,
+    :default_match_settings=
+    # :close_response_time
   ]
 
   it_should_behave_like 'proxy method', Applitools::Connectivity::ServerConnector, [
@@ -79,6 +79,8 @@ describe Applitools::Core::EyesBase do
   ]
 
   it_should_behave_like 'proxy method', Applitools::EyesLogger, [:logger, :log_handler, :log_handler=]
+
+  it_should_behave_like 'has abstract method', [:base_agent_id]
 
   it 'initializes variables' do
     expect(subject.send(:disabled?)).to eq false
@@ -123,7 +125,12 @@ describe Applitools::Core::EyesBase do
   end
 
   context 'open_base()' do
+    before do
+      allow(subject).to receive(:base_agent_id).and_return nil
+    end
+
     it_behaves_like 'can be disabled', :open_base, [:test_name => :test_name]
+
     context 'when api_key present' do
       before do
         expect(subject).to receive(:api_key).and_return :value
@@ -159,6 +166,7 @@ describe Applitools::Core::EyesBase do
     end
 
     it 'throws exception without API key' do
+      subject.api_key = nil
       expect { subject.open_base(:app_name => :test, :test_name => :test) }.to raise_error(Applitools::EyesError,
         'API key is missing! Please set it using api_key=')
     end
@@ -312,6 +320,7 @@ describe Applitools::Core::EyesBase do
         Applitools::Core::Session.new(:session_id, :session_url, true)
       )
       expect(subject).to receive(:viewport_size).and_return nil
+      expect(subject).to receive(:get_viewport_size).and_return Applitools::Core::RectangleSize.new(1024, 768)
       expect(subject).to receive(:inferred_environment).and_return nil
       expect(subject).to receive(:base_agent_id).and_return nil
       subject.send :start_session
