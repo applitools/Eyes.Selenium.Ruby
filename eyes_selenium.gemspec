@@ -20,14 +20,17 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'cmdparse', ['= 2.0.2']
     spec.add_development_dependency 'net-ssh', ['<= 3.0.0']
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
+    spec.add_development_dependency 'appium_lib'
   end,
   RUBY_2_0_0 => proc do |spec|
     spec.add_development_dependency 'rack', ['~> 1.6.0']
     spec.add_development_dependency 'rubocop'
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
+    spec.add_development_dependency 'appium_lib', ['= 9.0.0']
   end,
   RUBY_2_2_2 => proc do |spec|
     spec.add_development_dependency 'rubocop'
+    spec.add_development_dependency 'appium_lib'
   end
 }.freeze
 
@@ -58,7 +61,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'sauce'
   spec.add_development_dependency 'rspec', '>= 3'
   spec.add_development_dependency 'watir-webdriver'
-  spec.add_development_dependency 'appium_lib'
   EYES_GEM_SPECS[RUBY_KEY].call spec
 
   # Exclude debugging support on Travis CI, due to its incompatibility with jruby and older rubies.
