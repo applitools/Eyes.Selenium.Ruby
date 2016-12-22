@@ -1,14 +1,6 @@
 require 'rspec'
-require 'sauce'
+require_relative './sauce_driver'
 require_relative '../lib/eyes_selenium'
-
-Sauce.config do |config|
-  config[:browsers] = [
-    ['OS X 10.10', 'chrome', '39.0']
-  ]
-  config[:start_tunnel] = false
-  # config[:sauce_connect_4_executable] = '/path/to/sauce-connect/bin/sc'
-end
 
 describe 'A Saucy Example Group', sauce: true do
   let!(:eyes) do
@@ -19,7 +11,7 @@ describe 'A Saucy Example Group', sauce: true do
   end
 
   it 'Simple test' do
-    eyes.test(app_name: 'Ruby SDK', test_name: 'Sauce plain test', driver: selenium,
+    eyes.test(app_name: 'Ruby SDK', test_name: 'Sauce plain test', driver: SauceDriver.new_driver,
               viewport_size: { width: 800, height: 600 }) do |driver|
       driver.get 'http://github.com'
       eyes.check_window('homepage')
