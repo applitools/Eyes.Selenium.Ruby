@@ -1,21 +1,14 @@
 require 'rspec'
 require 'capybara/rspec'
-require 'sauce'
-require 'sauce/capybara'
+require_relative './sauce_driver'
 require_relative '../lib/eyes_selenium'
+require 'applitools/capybara'
 
-Sauce.config do |config|
-  config[:browsers] = [
-    ['OS X 10.10', 'chrome', '39.0']
-  ]
-  config[:start_tunnel] = false
-  # config[:sauce_connect_4_executable] = '/path/to/sauce-connect/bin/sc'
-end
-
-Capybara.configure do |c|
-  c.javascript_driver = :sauce
-  c.default_driver = :sauce
-end
+Applitools.register_capybara_driver(
+  :browser => :remote,
+  :url => SauceDriver.sauce_endpoint,
+  :desired_capabilities => SauceDriver.caps
+)
 
 describe 'A Saucy Example Group', :type => :feature, :sauce => true do
   let!(:eyes) do
