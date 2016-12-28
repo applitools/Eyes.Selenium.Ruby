@@ -600,47 +600,49 @@ module Applitools::Selenium
     def check_current_frame(match_timeout, tag)
       logger.info "check_current_frame(#{match_timeout}, #{tag})"
       self.check_frame_or_element = true
-      original_overflow = nil
-      begin
-        original_overflow = driver.hide_scrollbars
-        driver.overflow = 'hidden'
 
-        region_provider = Object.new.tap do |provider|
-          provider.instance_eval do
-            define_singleton_method :region do
-              Applitools::Core::Region::EMPTY
-            end
-            define_singleton_method :coordinate_type do
-              nil
-            end
+      region_provider = Object.new.tap do |provider|
+        provider.instance_eval do
+          define_singleton_method :region do
+            Applitools::Core::Region::EMPTY
+          end
+          define_singleton_method :coordinate_type do
+            nil
           end
         end
-
-        self.region_to_check = Object.new.tap do |provider|
-          current_frame_size = lambda do
-            Applitools::Core::Region.from_location_size(
-              Applitools::Core::Location.new(0, 0), driver.frame_chain!.current_frame.size
-            )
-          end
-
-          provider.instance_eval do
-            define_singleton_method :region do
-              current_frame_size.call
-            end
-            define_singleton_method :coordinate_type do
-              Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-            end
-          end
-        end
-
-        self.eyes_screenshot_factory = lambda do |image|
-          Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
-        end
-
-        check_window_base region_provider, tag, false, match_timeout
-      ensure
-        driver.overflow = original_overflow unless original_overflow.nil?
       end
+
+      self.region_to_check = Object.new.tap do |provider|
+        current_frame_size = lambda do
+          frame_region = Applitools::Core::Region.from_location_size(
+            Applitools::Core::Location.new(0, 0), driver.frame_chain!.current_frame.size
+          )
+          begin
+            frame_region.intersect Applitools::Core::Region.from_location_size(
+              Applitools::Core::Location.new(0, 0),
+              Applitools::Utils::EyesSeleniumUtils.entire_page_size(driver)
+            )
+            frame_region
+          ensure
+            frame_region
+          end
+        end
+
+        provider.instance_eval do
+          define_singleton_method :region do
+            current_frame_size.call
+          end
+          define_singleton_method :coordinate_type do
+            Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
+          end
+        end
+      end
+
+      self.eyes_screenshot_factory = lambda do |image|
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+      end
+
+      check_window_base region_provider, tag, false, match_timeout
     end
 
     def app_environment
