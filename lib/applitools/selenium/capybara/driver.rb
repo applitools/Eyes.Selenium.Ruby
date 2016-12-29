@@ -1,5 +1,6 @@
 if defined? Capybara::Selenium::Driver
   module Applitools::Selenium::Capybara
+    # @!visibility private
     class Driver < Capybara::Selenium::Driver
       def driver_for_eyes(eyes)
         browser eyes: eyes

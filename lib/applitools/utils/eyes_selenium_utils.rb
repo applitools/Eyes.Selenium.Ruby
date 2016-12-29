@@ -2,6 +2,7 @@ module Applitools::Utils
   module EyesSeleniumUtils
     extend self
 
+    # @!visibility private
     JS_GET_VIEWPORT_SIZE = <<-JS.freeze
        return (function() {
          var height = undefined;
@@ -23,14 +24,17 @@ module Applitools::Utils
          }());
     JS
 
+    # @!visibility private
     JS_GET_USER_AGENT = <<-JS.freeze
       return navigator.userAgent;
     JS
 
+    # @!visibility private
     JS_GET_DEVICE_PIXEL_RATIO = <<-JS.freeze
       return window.devicePixelRatio;
     JS
 
+    # @!visibility private
     JS_GET_PAGE_METRICS = <<-JS.freeze
       return {
         scrollWidth: document.documentElement.scrollWidth,
@@ -42,6 +46,7 @@ module Applitools::Utils
       };
     JS
 
+    # @!visibility private
     JS_GET_CURRENT_SCROLL_POSITION = <<-JS.freeze
       return (function() {
         var doc = document.documentElement;
@@ -52,14 +57,17 @@ module Applitools::Utils
       }());
     JS
 
+    # @!visibility private
     JS_SCROLL_TO = <<-JS.freeze
       window.scrollTo(%{left}, %{top});
     JS
 
+    # @!visibility private
     JS_GET_CURRENT_TRANSFORM = <<-JS.freeze
       return document.body.style.transform;
     JS
 
+    # @!visibility private
     JS_SET_TRANSFORM = <<-JS.freeze
       return (function() {
         var originalTransform = document.body.style.transform;
@@ -68,6 +76,7 @@ module Applitools::Utils
       }());
     JS
 
+    # @!visibility private
     JS_SET_OVERFLOW = <<-JS.freeze
       return (function() {
         var origOF = document.documentElement.style.overflow;
@@ -76,39 +85,55 @@ module Applitools::Utils
       }());
     JS
 
+    # @!visibility private
     OVERFLOW_HIDDEN = 'hidden'.freeze
+
     BROWSER_SIZE_CALCULATION_RETRIES = 3
+
+    # Number of attemts to set browser size
     VERIFY_RETRIES = 3
+
+    # A time delay (in seconds) before next attempt to set browser size
     VERIFY_SLEEP_PERIOD = 1
 
+    # true if test is running on mobile device
     def mobile_device?
       return $driver if $driver && $driver.is_a?(Appium::Driver)
       nil
     end
 
+    # true if test is running on Android device
     def android?(driver)
       driver.respond_to?(:appium_device) && driver.appium_device == :android
     end
 
+    # true if test is running on iOS device
     def ios?(driver)
       driver.respond_to?(:appium_device) && driver.appium_device == :ios
     end
 
+    # @param [Applitools::Selenium::Driver] driver
     def platform_version(driver)
       driver.respond_to?(:caps) && driver.caps[:platformVersion]
     end
 
     # @param [Applitools::Selenium::Driver] executor
-    # @return [Applitools::Core::Location] instance which indicates current scroll position
+    # @return [Applitools::Core::Location] {Applitools::Core::Location} instance which indicates current scroll
+    #   position
     def current_scroll_position(executor)
       position = Applitools::Utils.symbolize_keys executor.execute_script(JS_GET_CURRENT_SCROLL_POSITION).to_hash
       Applitools::Core::Location.new position[:left], position[:top]
     end
 
+    # scrolls browser to position specified by point.
+    # @param [Applitools::Selenium::Driver] executor
+    # @param [Applitools::Core::Location] point position to scroll to. It can be any object,
+    #   having left and top properties
     def scroll_to(executor, point)
       with_timeout(0.25) { executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }) }
     end
 
+    # @param [Applitools::Selenium::Driver] executor
     def extract_viewport_size(executor)
       Applitools::EyesLogger.debug 'extract_viewport_size()'
 
@@ -131,6 +156,7 @@ module Applitools::Utils
       result
     end
 
+    # @param [Applitools::Selenium::Driver] executor
     def entire_page_size(executor)
       metrics = page_metrics(executor)
       max_document_element_height = [metrics[:client_height], metrics[:scroll_height]].max
@@ -142,22 +168,28 @@ module Applitools::Utils
       Applitools::Core::RectangleSize.new(total_width, total_height)
     end
 
+    # @param [Applitools::Selenium::Driver] executor
     def device_pixel_ratio(executor)
       executor.execute_script(JS_GET_DEVICE_PIXEL_RATIO)
     end
 
+    # @param [Applitools::Selenium::Driver] executor
     def page_metrics(executor)
       Applitools::Utils.underscore_hash_keys(executor.execute_script(JS_GET_PAGE_METRICS))
     end
 
+    # @param [Applitools::Selenium::Driver] executor
     def hide_scrollbars(executor)
       set_overflow executor, OVERFLOW_HIDDEN
     end
 
+    # @param [Applitools::Selenium::Driver] executor
     def set_overflow(executor, overflow)
       with_timeout(0.1) { executor.execute_script(JS_SET_OVERFLOW % { overflow: overflow }) }
     end
 
+    # @param [Applitools::Selenium::Driver] executor
+    # @param [Applitools::Core::RectangleSize] viewport_size
     def set_viewport_size(executor, viewport_size)
       Applitools::Core::ArgumentGuard.not_nil 'viewport_size', viewport_size
       Applitools::EyesLogger.info "Set viewport size #{viewport_size}"

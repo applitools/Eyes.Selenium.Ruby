@@ -139,7 +139,7 @@ module Applitools::Selenium
       check_window_base region_provider, tag, false, match_timeout
     end
 
-    # @!visibilty private
+    # @!visibility private
     def title
       return driver.title unless dont_get_title
     rescue StandardError => e
