@@ -63,6 +63,7 @@ Applitools.require_dir 'connectivity'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
 
+require_relative 'applitools/chunky_png_patch'
 require_relative 'applitools/version'
 require_relative 'applitools/eyes_logger'
 require_relative 'applitools/selenium_webdriver'
