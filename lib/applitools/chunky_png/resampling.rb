@@ -60,34 +60,31 @@ module Applitools::ChunkyPNG
       threads = {}
       t = data[:t]
       [:r, :g, :b, :a].each do |chan|
-        threads[chan] = Thread.new do
-          c0 = ChunkyPNG::Color.send(chan, data[:x0])
-          c1 = ChunkyPNG::Color.send(chan, data[:x1])
-          c2 = ChunkyPNG::Color.send(chan, data[:x2])
-          c3 = ChunkyPNG::Color.send(chan, data[:x3])
+        c0 = ChunkyPNG::Color.send(chan, data[:x0])
+        c1 = ChunkyPNG::Color.send(chan, data[:x1])
+        c2 = ChunkyPNG::Color.send(chan, data[:x2])
+        c3 = ChunkyPNG::Color.send(chan, data[:x3])
 
-          # a = -0.5*c0 + 1.5*c1 - 1.5*c2 + 0.5*c3
-          # b = c0 - 2.5*c1 + 2*c2 - 0.5*c3
-          # c = 0.5*c2 - 0.5*c0
-          # d = c1
+        # a = -0.5*c0 + 1.5*c1 - 1.5*c2 + 0.5*c3
+        # b = c0 - 2.5*c1 + 2*c2 - 0.5*c3
+        # c = 0.5*c2 - 0.5*c0
+        # d = c1
 
-          a = -ChunkyPNG::Color.int8_mult(c0, 128)+ChunkyPNG::Color.int8_mult(c1, 384)-
-              ChunkyPNG::Color.int8_mult(c2, 384)+ChunkyPNG::Color.int8_mult(c3, 128)
-          b = c0 - ChunkyPNG::Color.int8_mult(c1, 640) + (c2 << 1) - ChunkyPNG::Color.int8_mult(c3, 128)
-          c = ChunkyPNG::Color.int8_mult(c2, 128) - ChunkyPNG::Color.int8_mult(c0, 128)
-          d = c1
+        a = -ChunkyPNG::Color.int8_mult(c0, 128)+ChunkyPNG::Color.int8_mult(c1, 384)-
+            ChunkyPNG::Color.int8_mult(c2, 384)+ChunkyPNG::Color.int8_mult(c3, 128)
+        b = c0 - ChunkyPNG::Color.int8_mult(c1, 640) + (c2 << 1) - ChunkyPNG::Color.int8_mult(c3, 128)
+        c = ChunkyPNG::Color.int8_mult(c2, 128) - ChunkyPNG::Color.int8_mult(c0, 128)
+        d = c1
 
-          # a = c3 - c2 - c0 + c1
-          # b = c0 - c1 - a
-          # c = c2 - c0
-          # d = c1
+        # a = c3 - c2 - c0 + c1
+        # b = c0 - c1 - a
+        # c = c2 - c0
+        # d = c1
 
-          # puts "#{a} #{b} #{c} #{d} #{t}=> #{(a*t**3 + b*t**2 + c*t + d)}"
-          [0,[255, (a*t**3 + b*t**2 + c*t + d).to_i].min].max
-          # result[chan] = 255
-        end
+        # puts "#{a} #{b} #{c} #{d} #{t}=> #{(a*t**3 + b*t**2 + c*t + d)}"
+        result[chan] = [0,[255, (a*t**3 + b*t**2 + c*t + d).to_i].min].max
       end
-      ChunkyPNG::Color.rgba(threads[:r].value, threads[:g].value, threads[:b].value, threads[:a].value)
+      ChunkyPNG::Color.rgba(result[:r], result[:g], result[:b], result[:a])
     end
 
     def imaginable_point(point1, point2)
