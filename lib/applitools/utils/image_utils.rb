@@ -1,4 +1,5 @@
-require 'oily_png'
+# require 'oily_png'
+require 'chunky_png'
 require 'base64'
 require 'tempfile'
 

@@ -1,23 +1,42 @@
 require 'pry'
 module Applitools::ChunkyPNG
   module Resampling
+
     INTERPOLATION_DATA = Struct.new("InterpolationData", :index, :x0,:x1,:x2,:x3, :t)
+    MERGE_DATA = Struct.new("MergeData", :index, :pixels)
 
     def resample_bicubic!(dst_width, dst_height)
-      points = bicubic_x_points(dst_width)
+      w_m = [1, width / dst_width].max
+      h_m = [1, height / dst_height].max
+
+      dst_width2 = dst_width*w_m
+      dst_height2 = dst_height*h_m
+
+      points = bicubic_x_points(dst_width2)
       pixels = Array.new(points.size)
 
       points.each do |interpolation_data|
         pixels[interpolation_data[:index]] = interpolate_cubic(interpolation_data)
       end
-      replace_canvas!(dst_width, height, pixels)
+      replace_canvas!(dst_width2, height, pixels)
 
-      points = bicubic_y_points(dst_height)
+      points = bicubic_y_points(dst_height2)
       pixels = Array.new(points.size)
 
       points.each do |interpolation_data|
         pixels[interpolation_data[:index]] = interpolate_cubic(interpolation_data)
       end
+      replace_canvas!(dst_width2,dst_height2, pixels)
+
+      return self unless w_m*h_m > 1
+
+      points = scale_points(dst_width, dst_height, w_m, h_m)
+      pixels = Array.new(points.size)
+
+      points.each do |merge_data|
+        pixels[merge_data[:index]] = merge_pixels(merge_data[:pixels], w_m*h_m)
+      end
+
       replace_canvas!(dst_width,dst_height, pixels)
     end
 
@@ -55,9 +74,47 @@ module Applitools::ChunkyPNG
       end
     end
 
+    def scale_points(dst_width, dst_height, w_m, h_m)
+      Enumerator.new(dst_width*dst_height) do |enum|
+        for i in 0..dst_height-1
+          for j in 0..dst_width-1
+            pixels_to_merge = []
+            for y in 0..h_m-1
+              y_pos = i*h_m + y
+              for x in 0..w_m-1
+                x_pos = j*w_m + x
+                pixels_to_merge << get_pixel(x_pos, y_pos)
+              end
+            end
+            index = i*dst_width + j
+            enum << MERGE_DATA.new(index, pixels_to_merge)
+          end
+        end
+      end
+    end
+
+    def merge_pixels(pixels, m)
+      merged_data = pixels.inject({r: 0, g: 0, b: 0, a: 0, real_colors: 0}) do |result, pixel|
+        unless ChunkyPNG::Color.fully_transparent?(pixel)
+          result[:real_colors] += 1
+          [:r,:g,:b].each do |ch|
+            result[ch] += ChunkyPNG::Color.send(ch, pixel)
+          end
+        end
+        result[:a] += ChunkyPNG::Color.a(pixel)
+        result
+      end
+
+      r = merged_data[:real_colors] > 0 ? merged_data[:r] / merged_data[:real_colors] : 0
+      g = merged_data[:real_colors] > 0 ? merged_data[:g] / merged_data[:real_colors] : 0
+      b = merged_data[:real_colors] > 0 ? merged_data[:b] / merged_data[:real_colors] : 0
+      a = merged_data[:a] / m
+
+      ChunkyPNG::Color.rgba(r, g, b, a)
+    end
+
     def interpolate_cubic(data)
       result = {}
-      threads = {}
       t = data[:t]
       [:r, :g, :b, :a].each do |chan|
         c0 = ChunkyPNG::Color.send(chan, data[:x0])
@@ -65,23 +122,11 @@ module Applitools::ChunkyPNG
         c2 = ChunkyPNG::Color.send(chan, data[:x2])
         c3 = ChunkyPNG::Color.send(chan, data[:x3])
 
-        # a = -0.5*c0 + 1.5*c1 - 1.5*c2 + 0.5*c3
-        # b = c0 - 2.5*c1 + 2*c2 - 0.5*c3
-        # c = 0.5*c2 - 0.5*c0
-        # d = c1
-
-        a = -ChunkyPNG::Color.int8_mult(c0, 128)+ChunkyPNG::Color.int8_mult(c1, 384)-
-            ChunkyPNG::Color.int8_mult(c2, 384)+ChunkyPNG::Color.int8_mult(c3, 128)
-        b = c0 - ChunkyPNG::Color.int8_mult(c1, 640) + (c2 << 1) - ChunkyPNG::Color.int8_mult(c3, 128)
-        c = ChunkyPNG::Color.int8_mult(c2, 128) - ChunkyPNG::Color.int8_mult(c0, 128)
+        a = -0.5*c0 + 1.5*c1 - 1.5*c2 + 0.5*c3
+        b = c0 - 2.5*c1 + 2*c2 - 0.5*c3
+        c = 0.5*c2 - 0.5*c0
         d = c1
 
-        # a = c3 - c2 - c0 + c1
-        # b = c0 - c1 - a
-        # c = c2 - c0
-        # d = c1
-
-        # puts "#{a} #{b} #{c} #{d} #{t}=> #{(a*t**3 + b*t**2 + c*t + d)}"
         result[chan] = [0,[255, (a*t**3 + b*t**2 + c*t + d).to_i].min].max
       end
       ChunkyPNG::Color.rgba(result[:r], result[:g], result[:b], result[:a])
