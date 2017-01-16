@@ -14,13 +14,13 @@ module Applitools::Selenium
 
     def take_screenshot
       logger.info 'Getting screenshot...'
-      if debug_screenshot
-        screenshot = driver.screenshot_as(:png) do |raw_screenshot|
-          save_debug_screenshot(raw_screenshot)
-        end
-      else
-        screenshot = driver.screenshot_as(:png)
-      end
+      screenshot = if debug_screenshot
+                     driver.screenshot_as(:png) do |raw_screenshot|
+                       save_debug_screenshot(raw_screenshot)
+                     end
+                   else
+                     driver.screenshot_as(:png)
+                   end
       logger.info 'Done getting screenshot! Creating Applitools::Core::Screenshot...'
       Applitools::Core::Screenshot.new screenshot
     end

@@ -108,7 +108,7 @@ module Applitools::Selenium
     end
 
     def scroll_to(point)
-      execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }, 0.25)
+      execute_script(format(JS_SCROLL_TO, left: point.left, top: point.top), 0.25)
     end
 
     def current_transform
@@ -117,12 +117,12 @@ module Applitools::Selenium
 
     # rubocop:disable Style/AccessorMethodName
     def set_transform(transform)
-      execute_script(JS_SET_TRANSFORM % { transform: transform }, 0.25)
+      execute_script(format(JS_SET_TRANSFORM, transform: transform), 0.25)
     end
 
     ## Set the overflow value for document element and return the original overflow value.
     def set_overflow(overflow)
-      execute_script(JS_SET_OVERFLOW % { overflow: overflow }, 0.1)
+      execute_script(format(JS_SET_OVERFLOW, overflow: overflow), 0.1)
     end
     # rubocop:enable Style/AccessorMethodName
 

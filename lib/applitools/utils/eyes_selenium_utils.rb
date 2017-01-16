@@ -130,7 +130,7 @@ module Applitools::Utils
     # @param [Applitools::Core::Location] point position to scroll to. It can be any object,
     #   having left and top properties
     def scroll_to(executor, point)
-      with_timeout(0.25) { executor.execute_script(JS_SCROLL_TO % { left: point.left, top: point.top }) }
+      with_timeout(0.25) { executor.execute_script format(JS_SCROLL_TO, left: point.left, top: point.top) }
     end
 
     # @param [Applitools::Selenium::Driver] executor
@@ -185,7 +185,7 @@ module Applitools::Utils
 
     # @param [Applitools::Selenium::Driver] executor
     def set_overflow(executor, overflow)
-      with_timeout(0.1) { executor.execute_script(JS_SET_OVERFLOW % { overflow: overflow }) }
+      with_timeout(0.1) { executor.execute_script format(JS_SET_OVERFLOW, overflow: overflow) }
     end
 
     # @param [Applitools::Selenium::Driver] executor
