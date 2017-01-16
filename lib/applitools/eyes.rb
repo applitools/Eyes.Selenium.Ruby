@@ -74,7 +74,7 @@ class Applitools::Eyes
   #                            the default value.
   # +debug_screenshot+:: +boolean+ If true saves every taken screenshot in current folder. File name has following
   #                      format: +TAG_YYYY_MM_DD_HH_MI__N.png+, where +TAG+ - the tag specified for the test,
-  #                      +YYYY_MM_DD_HH_MI+ - date && time, +N+ - screenshot number (makes sence only when
+  #                      +YYYY_MM_DD_HH_MI+ - date && time, +N+ - screenshot number (makes sense only when
   #                      +force_fullpage_screenshot+ is true). Default value is false
 
   attr_reader :app_name, :test_name, :is_open, :viewport_size, :driver, :passed_driver
