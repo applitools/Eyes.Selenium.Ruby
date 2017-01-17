@@ -36,12 +36,6 @@ module Applitools::Selenium
     #   If set to +true+ browser will scroll to specified region (even it is out of viewport window)
     #     when check_region is called
     #   @return [boolean] scroll_to_region flag
-    # @!attribute [rw] debug_screenshot
-    #   If true saves every taken screenshot in current folder. File name has following
-    #   format: +TAG_YYYY_MM_DD_HH_MI__N.png+, where +TAG+ - the tag specified for the test,
-    #   +YYYY_MM_DD_HH_MI+ - date && time, +N+ - screenshot number (makes sense only when
-    #   +force_fullpage_screenshot+ is true). Default value is false
-    #   @return [boolean]
 
     attr_accessor :base_agent_id, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
       :wait_before_screenshots, :debug_screenshot
@@ -97,7 +91,7 @@ module Applitools::Selenium
         unless driver.is_a?(Applitools::Selenium::Driver)
           logger.warn("Unrecognized driver type: (#{driver.class.name})!")
           is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
-          @driver = Applitools::Selenium::Driver.new(self, :driver => driver, :is_mobile_device => is_mobile_device)
+          @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
         end
       end
 
@@ -139,7 +133,7 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, :driver => driver)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
       end
 
       check_window_base region_provider, tag, false, match_timeout
@@ -189,7 +183,7 @@ module Applitools::Selenium
     end
 
     def check_frame(options = {})
-      options = { :timeout => USE_DEFAULT_MATCH_TIMEOUT, :tag => nil }.merge!(options)
+      options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil }.merge!(options)
 
       process_in_frame options do |opts, frame_key|
         if disabled?
@@ -207,7 +201,7 @@ module Applitools::Selenium
     # @param [hash] options
     # @option options []
     def check_region_in_frame(options = {})
-      options = { :timeout => USE_DEFAULT_MATCH_TIMEOUT, :tag => nil, :stitch_content => false }.merge!(options)
+      options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil, stitch_content: false }.merge!(options)
       Applitools::Core::ArgumentGuard.not_nil options[:by], 'options[:by]'
       Applitools::Core::ArgumentGuard.is_a? options[:by], 'options[:by]', Array
 
@@ -220,8 +214,7 @@ module Applitools::Selenium
           return
         end
 
-        check_region(*how_what, :tag => opts[:tag],
-          :timeout => opts[:timeout], :stitch_content => opts[:stitch_content])
+        check_region(*how_what, tag: opts[:tag], timeout: opts[:timeout], stitch_content: opts[:stitch_content])
       end
     end
 
@@ -269,7 +262,7 @@ module Applitools::Selenium
     # @option [Fixnum] :timeout
     # @option [String] :tag
     def check_frame__(options = {})
-      options = { :timeout => USE_DEFAULT_MATCH_TIMEOUT, :tag => nil }.merge!(options)
+      options = { timeout: USE_DEFAULT_MATCH_TIMEOUT, tag: nil }.merge!(options)
 
       unless options[:index] ||
           options[:name_or_id] ||
@@ -302,9 +295,9 @@ module Applitools::Selenium
         logger.info 'Done!'
         case frame_to_check
         when String
-          frame_options = { :name_or_id => frame_to_check }
+          frame_options = { name_or_id: frame_to_check }
         when Applitools::Selenium::Element
-          frame_options = { :frame_element => frame_to_check }
+          frame_options = { frame_element: frame_to_check }
         else
           raise Applitools::EyesError.new "Unknown frame class: #{frame_to_check.class}"
         end
@@ -327,7 +320,7 @@ module Applitools::Selenium
       return unless original_frame_chain
 
       logger.info 'Switching back into original frame...'
-      driver.switch_to.frames :frame_chain => original_frame_chain
+      driver.switch_to.frames frame_chain: original_frame_chain
     end
 
     private
@@ -362,9 +355,9 @@ module Applitools::Selenium
         logger.info 'Done!'
         case frame_to_check
         when String
-          frame_options = { :name_or_id => frame_to_check }
+          frame_options = { name_or_id: frame_to_check }
         when Applitools::Selenium::Element
-          frame_options = { :frame_element => frame_to_check }
+          frame_options = { frame_element: frame_to_check }
         else
           raise Applitools::EyesError.new "Unknown frame class: #{frame_to_check.class}"
         end
@@ -386,12 +379,12 @@ module Applitools::Selenium
       return unless original_frame_chain
 
       logger.info 'Switching back into original frame...'
-      driver.switch_to.frames :frame_chain => original_frame_chain
+      driver.switch_to.frames frame_chain: original_frame_chain
     end
 
     def capture_screenshot
       image_provider = Applitools::Selenium::TakesScreenshotImageProvider.new driver,
-        :debug_screenshot => debug_screenshot, :name_enumerator => screenshot_name_enumerator
+        debug_screenshot: debug_screenshot, name_enumerator: screenshot_name_enumerator
       logger.info 'Getting screenshot (capture_screenshot() has been invoked)'
 
       update_scaling_params
@@ -410,20 +403,20 @@ module Applitools::Selenium
           algo = Applitools::Selenium::FullPageCaptureAlgorithm.new
 
           entire_frame_or_element = algo.get_stiched_region(
-            :image_provider => image_provider,
-            :region_to_check => region_to_check,
-            :origin_provider => position_provider,
-            :position_provider => position_provider,
-            :scale_provider => scale_provider,
-            :cut_provider => nil,
-            :wait_before_screenshots => wait_before_screenshots,
-            :eyes_screenshot_factory => eyes_screenshot_factory
+            image_provider: image_provider,
+            region_to_check: region_to_check,
+            origin_provider: position_provider,
+            position_provider: position_provider,
+            scale_provider: scale_provider,
+            cut_provider: nil,
+            wait_before_screenshots: wait_before_screenshots,
+            eyes_screenshot_factory: eyes_screenshot_factory
           )
 
           logger.info 'Building screenshot object...'
           self.screenshot = Applitools::Selenium::EyesWebDriverScreenshot.new entire_frame_or_element,
-            :driver => driver,
-            :entire_frame_size => Applitools::Core::RectangleSize.new(entire_frame_or_element.width,
+            driver: driver,
+            entire_frame_size: Applitools::Core::RectangleSize.new(entire_frame_or_element.width,
               entire_frame_or_element.height)
         elsif force_full_page_screenshot
           logger.info 'Full page screenshot requested'
@@ -440,17 +433,17 @@ module Applitools::Selenium
               nil
             end
           end
-          full_page_image = algo.get_stiched_region :image_provider => image_provider,
-                                  :region_to_check => region_provider,
-                                  :origin_provider => Applitools::Selenium::ScrollPositionProvider.new(driver),
-                                  :position_provider => position_provider,
-                                  :scale_provider => scale_provider,
-                                  :cut_provider => nil,
-                                  :wait_before_screenshots => wait_before_screenshots,
-                                  :eyes_screenshot_factory => eyes_screenshot_factory
+          full_page_image = algo.get_stiched_region image_provider: image_provider,
+                                  region_to_check: region_provider,
+                                  origin_provider: Applitools::Selenium::ScrollPositionProvider.new(driver),
+                                  position_provider: position_provider,
+                                  scale_provider: scale_provider,
+                                  cut_provider: nil,
+                                  wait_before_screenshots: wait_before_screenshots,
+                                  eyes_screenshot_factory: eyes_screenshot_factory
 
           driver.switch_to.frame original_frame unless driver.frame_chain.empty?
-          Applitools::Selenium::EyesWebDriverScreenshot.new full_page_image, :driver => driver
+          Applitools::Selenium::EyesWebDriverScreenshot.new full_page_image, driver: driver
         else
           logger.info 'Screenshot requested...'
           image = image_provider.take_screenshot
@@ -478,7 +471,7 @@ module Applitools::Selenium
         logger.error e.message
         raise Applitools::TestFailedError.new 'Failed to set viewport size!'
       ensure
-        driver.switch_to.frames(:frame_chain => original_frame)
+        driver.switch_to.frames(frame_chain: original_frame)
       end
     end
 
@@ -646,7 +639,7 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, :driver => driver)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
       end
 
       check_window_base region_provider, tag, false, match_timeout
@@ -730,7 +723,7 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, :driver => driver)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
       end
 
       result = check_window_base region_provider, tag, false, match_timeout
@@ -824,7 +817,7 @@ module Applitools::Selenium
 
         self.eyes_screenshot_factory = lambda do |image|
           Applitools::Selenium::EyesWebDriverScreenshot.new(
-            image, :driver => driver, :force_offset => position_provider.state
+            image, driver: driver, force_offset: position_provider.state
           )
         end
 

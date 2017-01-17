@@ -16,8 +16,8 @@ module Applitools::Connectivity
     API_SESSIONS_RUNNING = '/api/sessions/running/'.freeze
 
     HTTP_STATUS_CODES = {
-      :created => 201,
-      :accepted => 202
+      created: 201,
+      accepted: 202
     }.freeze
 
     attr_accessor :server_url, :api_key
@@ -38,13 +38,13 @@ module Applitools::Connectivity
       json_data = Oj.dump(Applitools::Utils.camelcase_hash_keys(data.to_hash)).force_encoding('BINARY')
       body = [json_data.length].pack('L>') + json_data + data.screenshot
       Applitools::EyesLogger.debug 'Sending match data...'
-      res = post(URI.join(endpoint_url, session.id.to_s), :content_type => 'application/octet-stream', :body => body)
+      res = post(URI.join(endpoint_url, session.id.to_s), content_type: 'application/octet-stream', body: body)
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
       Applitools::Core::MatchResult.new Oj.load(res.body)
     end
 
     def start_session(session_start_info)
-      res = post(endpoint_url, :body => Oj.dump(:startInfo =>
+      res = post(endpoint_url, body: Oj.dump(startInfo:
                                                  Applitools::Utils.camelcase_hash_keys(session_start_info.to_hash)))
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
@@ -53,8 +53,7 @@ module Applitools::Connectivity
     end
 
     def stop_session(session, aborted = nil, save = false)
-      res = long_delete(URI.join(endpoint_url, session.id.to_s),
-        :query => { :aborted => aborted, :updateBaseline => save })
+      res = long_delete(URI.join(endpoint_url, session.id.to_s), query: { aborted: aborted, updateBaseline: save })
       raise Applitools::EyesError.new("Request failed: #{res.status}") unless res.success?
 
       response = Oj.load(res.body)
@@ -83,11 +82,11 @@ module Applitools::Connectivity
     end
 
     def request(url, method, options = {})
-      Faraday::Connection.new(url, :ssl => { :ca_file => SSL_CERT }, :proxy => @proxy || nil).send(method) do |req|
+      Faraday::Connection.new(url, ssl: { ca_file: SSL_CERT }, proxy: @proxy || nil).send(method) do |req|
         req.options.timeout = DEFAULT_TIMEOUT
         req.headers = DEFAULT_HEADERS.merge(options[:headers] || {})
         req.headers['Content-Type'] = options[:content_type] if options.key?(:content_type)
-        req.params = { :apiKey => api_key }.merge(options[:query] || {})
+        req.params = { apiKey: api_key }.merge(options[:query] || {})
         req.body = options[:body]
       end
     end

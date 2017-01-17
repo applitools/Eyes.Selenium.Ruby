@@ -37,7 +37,7 @@ module Applitools::Selenium
       end
 
       def calc_frame_location_in_screenshot(frame_chain, screenshot_type, logger)
-        frame_chain = Applitools::Selenium::FrameChain.new :other => frame_chain
+        frame_chain = Applitools::Selenium::FrameChain.new other: frame_chain
         logger.info 'Getting first frame...'
         first_frame = frame_chain.shift
         logger.info 'Done!'
@@ -192,7 +192,7 @@ module Applitools::Selenium
     end
 
     def frame_chain
-      Applitools::Selenium::FrameChain.new :other => @frame_chain
+      Applitools::Selenium::FrameChain.new other: @frame_chain
     end
 
     def intersected_region(region, original_coordinate_types, result_coordinate_types)
@@ -257,10 +257,9 @@ module Applitools::Selenium
       context_relative_region_location = convert_location as_is_subscreenshot_region.location,
         Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:screenshot_as_is],
         Applitools::Core::EyesScreenshot::COORDINATE_TYPES[:context_relative]
-      result = self.class.new sub_screenshot_image, :driver => driver,
-        :entire_frame_size => Applitools::Core::RectangleSize.new(
-          sub_screenshot_image.width, sub_screenshot_image.height
-        ), :frame_location_in_screenshot => context_relative_region_location
+      result = self.class.new sub_screenshot_image, driver: driver,
+        entire_frame_size: Applitools::Core::RectangleSize.new(sub_screenshot_image.width, sub_screenshot_image.height),
+        frame_location_in_screenshot: context_relative_region_location
       logger.info 'Done!'
       result
     end

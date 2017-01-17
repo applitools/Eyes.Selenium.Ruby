@@ -10,79 +10,73 @@ RSpec.shared_examples 'can be disabled' do |method_name, arguments|
   end
 end
 
-PUBLIC_METHODS = [
-  :agent_id,
-  :agent_id=,
-  :api_key,
-  :api_key=,
-  :server_url,
-  :server_url=,
-  :proxy, :proxy=,
-  :disabled?,
-  :disabled=,
-  :app_name,
-  :app_name=,
-  :branch_name,
-  :branch_name=,
-  :parent_branch_name,
-  :parent_branch_name=,
-  :match_timeout,
-  :match_timeout=,
-  :save_new_tests,
-  :save_new_tests=,
-  :save_failed_tests,
-  :save_failed_tests=,
-  :batch,
-  :batch=,
-  :failure_reports,
-  :failure_reports=,
-  :open?,
-  :log_handler,
-  :log_handler=,
-  :scale_ratio,
-  :scale_ratio=,
-  :scale_method,
-  :scale_method=,
-  :close,
-  :abort_if_not_closed,
-  :host_os,
-  :host_os=,
-  :host_app,
-  :host_app=,
-  :base_line_name,
-  :base_line_name=,
-  :position_provider,
-  :position_provider=,
-  :open_base,
-  :check_window_base
-].freeze
-
-PRIVATE_METHODS = [
-  :clear_user_inputs,
-  :user_inputs,
-  :start_session,
-  :base_agent_id,
-  :default_match_settings,
-  :default_match_settings=
-  #:close_response_time
-].freeze
-
-SK_PROXIED_METHODS = [
-  :api_key,
-  :api_key=,
-  :server_url,
-  :server_url=,
-  :proxy,
-  :proxy=,
-  :set_proxy
-].freeze
-
 describe Applitools::Core::EyesBase do
-  it_should_behave_like 'responds to method', PUBLIC_METHODS
+  it_should_behave_like 'responds to method', [
+    :agent_id,
+    :agent_id=,
+    :api_key,
+    :api_key=,
+    :server_url,
+    :server_url=,
+    :proxy, :proxy=,
+    :disabled?,
+    :disabled=,
+    :app_name,
+    :app_name=,
+    :branch_name,
+    :branch_name=,
+    :parent_branch_name,
+    :parent_branch_name=,
+    :match_timeout,
+    :match_timeout=,
+    :save_new_tests,
+    :save_new_tests=,
+    :save_failed_tests,
+    :save_failed_tests=,
+    :batch,
+    :batch=,
+    :failure_reports,
+    :failure_reports=,
+    :open?,
+    :log_handler,
+    :log_handler=,
+    :scale_ratio,
+    :scale_ratio=,
+    :scale_method,
+    :scale_method=,
+    :close,
+    :abort_if_not_closed,
+    :host_os,
+    :host_os=,
+    :host_app,
+    :host_app=,
+    :base_line_name,
+    :base_line_name=,
+    :position_provider,
+    :position_provider=,
+    :open_base,
+    :check_window_base
+  ]
 
-  it_should_behave_like 'has private method', PRIVATE_METHODS
+  it_should_behave_like 'has private method', [
+    :clear_user_inputs,
+    :user_inputs,
+    :start_session,
+    :base_agent_id,
+    :default_match_settings,
+    :default_match_settings=
+    # :close_response_time
+  ]
 
-  it_should_behave_like 'proxy method', Applitools::Connectivity::ServerConnector, SK_PROXIED_METHODS
+  it_should_behave_like 'proxy method', Applitools::Connectivity::ServerConnector, [
+    :api_key,
+    :api_key=,
+    :server_url,
+    :server_url=,
+    :proxy,
+    :proxy=,
+    :set_proxy
+  ]
 
   it_should_behave_like 'proxy method', Applitools::EyesLogger, [:logger, :log_handler, :log_handler=]
 
