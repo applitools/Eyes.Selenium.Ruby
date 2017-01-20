@@ -1,9 +1,5 @@
-require 'pry'
 module Applitools::ChunkyPNG
   module Resampling
-
-    INTERPOLATION_DATA = Struct.new("InterpolationData", :index, :x0,:x1,:x2,:x3, :t)
-    MERGE_DATA = Struct.new("MergeData", :index, :pixels)
 
     def resample_bicubic!(dst_width, dst_height)
       w_m = [1, width / dst_width].max
@@ -34,7 +30,7 @@ module Applitools::ChunkyPNG
       pixels = Array.new(points.size)
 
       points.each do |merge_data|
-        pixels[merge_data[:index]] = merge_pixels(merge_data[:pixels], w_m*h_m)
+        pixels[merge_data[0]] = merge_pixels(merge_data)
       end
 
       replace_canvas!(dst_width,dst_height, pixels)
@@ -76,14 +72,6 @@ module Applitools::ChunkyPNG
 
           index_y = dst_dimension*y
           for x in 0..dst_dimension-1
-            # pos = (x*step).to_i
-            # t = x*step - pos
-
-            # x0 = pos > 0 ? line[pos-1] : imaginable_point(line[pos], line[pos+1])
-            # x1 = line[pos]
-            # x2 = line[pos+1]
-            # x3 = pos < src_dimension - 2 ? line[pos+2] : imaginable_point(line[pos+1], line[pos])
-
             index = direction ? y_bounds*x + y : index_y + x
             enum << ([index,residues[x]] + line_with_bounds.last(src_dimension + 3 - steps[x]).first(4))
           end
@@ -105,13 +93,14 @@ module Applitools::ChunkyPNG
               end
             end
             index = i*dst_width + j
-            enum << MERGE_DATA.new(index, pixels_to_merge)
+            enum << ([index] + pixels_to_merge)
           end
         end
       end
     end
 
-    def merge_pixels(pixels, m)
+    def merge_pixels(merge_data)
+      pixels = merge_data[1..merge_data.size]
       merged_data = pixels.inject({r: 0, g: 0, b: 0, a: 0, real_colors: 0}) do |result, pixel|
         unless ChunkyPNG::Color.fully_transparent?(pixel)
           result[:real_colors] += 1
@@ -126,7 +115,7 @@ module Applitools::ChunkyPNG
       r = merged_data[:real_colors] > 0 ? merged_data[:r] / merged_data[:real_colors] : 0
       g = merged_data[:real_colors] > 0 ? merged_data[:g] / merged_data[:real_colors] : 0
       b = merged_data[:real_colors] > 0 ? merged_data[:b] / merged_data[:real_colors] : 0
-      a = merged_data[:a] / m
+      a = merged_data[:a] / pixels.size
 
       ChunkyPNG::Color.rgba(r, g, b, a)
     end

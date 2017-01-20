@@ -57,14 +57,13 @@ end
 require_relative 'applitools/method_tracer'
 require_relative 'applitools/extensions'
 require_relative 'applitools/version'
+require_relative 'applitools/chunky_png_patch'
 
 Applitools.require_dir 'core'
 Applitools.require_dir 'connectivity'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
 
-require_relative 'applitools/chunky_png_patch'
-require_relative 'applitools/version'
 require_relative 'applitools/eyes_logger'
 require_relative 'applitools/selenium_webdriver'
 require_relative 'applitools/appium_driver'

@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'chunky_png'
 
 RSpec.describe Applitools::Core::EyesScreenshot do
   describe 'initializer' do
