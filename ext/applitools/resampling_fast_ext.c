@@ -27,16 +27,16 @@ VALUE c_interpolate_cubic(VALUE self, VALUE data) {
 };
 
 BYTE interpolate_char(double t, BYTE c0, BYTE c1, BYTE c2, BYTE c3) {
-  double a,b,c,d,res;
-  a = -0.5*c0 + 1.5*c1 - 1.5*c2 + 0.5*c3;
-  b = c0 - 2.5*c1 + 2*c2 - 0.5*c3;
-  c = 0.5*c2 - 0.5*c0;
+  double a, b, c, d, res;
+  a = - 0.5 * c0 + 1.5 * c1 - 1.5 * c2 + 0.5 * c3;
+  b = c0 - 2.5 * c1 + 2 * c2 - 0.5 * c3;
+  c = 0.5 * c2 - 0.5 * c0;
   d = c1;
-  res = a*t*t*t + b*t*t + c*t + d +0.5d;
-  if(res<0) {
+  res = a * t * t * t + b * t * t + c * t + d + 0.5d;
+  if(res < 0) {
     res = 0;
   } else if(res > 255) {
-  res = 255;
+    res = 255;
   };
   return (BYTE)(res);
 };
