@@ -1,29 +1,29 @@
 #include "resampling_fast_ext.h"
 
 void Init_resampling_fast() {
-VALUE Applitools = rb_define_module("Applitools");
-VALUE Resampling = rb_define_module_under(Applitools, "ResamplingFast");
-rb_define_method(Resampling, "interpolate_cubic", c_interpolate_cubic, 1);
-rb_define_method(Resampling, "merge_pixels", c_merge_pixels, 1);
+  VALUE Applitools = rb_define_module("Applitools");
+  VALUE Resampling = rb_define_module_under(Applitools, "ResamplingFast");
+  rb_define_method(Resampling, "interpolate_cubic", c_interpolate_cubic, 1);
+  rb_define_method(Resampling, "merge_pixels", c_merge_pixels, 1);
 };
 
 
 VALUE c_interpolate_cubic(VALUE self, VALUE data) {
- double t = NUM2DBL(rb_ary_entry(data, 1));
- BYTE  new_r, new_g, new_b, new_a;
- VALUE p0, p1, p2, p3;
+  double t = NUM2DBL(rb_ary_entry(data, 1));
+  BYTE  new_r, new_g, new_b, new_a;
+  VALUE p0, p1, p2, p3;
 
- p0 = NUM2UINT(rb_ary_entry(data, 2));
- p1 = NUM2UINT(rb_ary_entry(data, 3));
- p2 = NUM2UINT(rb_ary_entry(data, 4));
- p3 = NUM2UINT(rb_ary_entry(data, 5));
+  p0 = NUM2UINT(rb_ary_entry(data, 2));
+  p1 = NUM2UINT(rb_ary_entry(data, 3));
+  p2 = NUM2UINT(rb_ary_entry(data, 4));
+  p3 = NUM2UINT(rb_ary_entry(data, 5));
 
- new_r = interpolate_char(t, R_BYTE(p0), R_BYTE(p1), R_BYTE(p2), R_BYTE(p3));
- new_g = interpolate_char(t, G_BYTE(p0), G_BYTE(p1), G_BYTE(p2), G_BYTE(p3));
- new_b = interpolate_char(t, B_BYTE(p0), B_BYTE(p1), B_BYTE(p2), B_BYTE(p3));
- new_a = interpolate_char(t, A_BYTE(p0), A_BYTE(p1), A_BYTE(p2), A_BYTE(p3));
+  new_r = interpolate_char(t, R_BYTE(p0), R_BYTE(p1), R_BYTE(p2), R_BYTE(p3));
+  new_g = interpolate_char(t, G_BYTE(p0), G_BYTE(p1), G_BYTE(p2), G_BYTE(p3));
+  new_b = interpolate_char(t, B_BYTE(p0), B_BYTE(p1), B_BYTE(p2), B_BYTE(p3));
+  new_a = interpolate_char(t, A_BYTE(p0), A_BYTE(p1), A_BYTE(p2), A_BYTE(p3));
 
- return UINT2NUM(BUILD_PIXEL(new_r, new_g, new_b, new_a));
+  return UINT2NUM(BUILD_PIXEL(new_r, new_g, new_b, new_a));
 };
 
 BYTE interpolate_char(double t, BYTE c0, BYTE c1, BYTE c2, BYTE c3) {
