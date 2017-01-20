@@ -6,7 +6,7 @@ module Applitools::Utils
   QUADRANTS_COUNT = 4
   # @!visibility private
   SCALE_METHODS = {
-    :speed => :resample_nearest_neighbor, :quality => :resample_bilinear
+    :speed => :resample_nearest_neighbor, :quality => :resample_bicubic
   }.freeze
 
   module ImageUtils

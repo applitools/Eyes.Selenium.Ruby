@@ -6,4 +6,3 @@ ChunkyPNG::Canvas.class_eval do
   include Applitools::ChunkyPNG::Resampling
   include Applitools::ResamplingFast
 end
-

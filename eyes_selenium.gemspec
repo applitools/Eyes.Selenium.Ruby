@@ -54,8 +54,8 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
 
-  spec.extensions    = ["ext/applitools/extconf.rb"]
-  spec.require_paths = ['lib', "ext"]
+  spec.extensions    = ['ext/applitools/extconf.rb']
+  spec.require_paths = %w(lib ext)
 
   spec.add_dependency 'oily_png', '~> 1.2'
   spec.add_dependency 'chunky_png', '= 1.3.6'

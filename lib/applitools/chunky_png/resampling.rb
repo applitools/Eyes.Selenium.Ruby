@@ -1,12 +1,11 @@
 module Applitools::ChunkyPNG
   module Resampling
-
     def resample_bicubic!(dst_width, dst_height)
       w_m = [1, width / dst_width].max
       h_m = [1, height / dst_height].max
 
-      dst_width2 = dst_width*w_m
-      dst_height2 = dst_height*h_m
+      dst_width2 = dst_width * w_m
+      dst_height2 = dst_height * h_m
 
       points = bicubic_x_points(dst_width2)
       pixels = Array.new(points.size)
@@ -22,9 +21,9 @@ module Applitools::ChunkyPNG
       points.each do |interpolation_data|
         pixels[interpolation_data[0]] = interpolate_cubic(interpolation_data)
       end
-      replace_canvas!(dst_width2,dst_height2, pixels)
+      replace_canvas!(dst_width2, dst_height2, pixels)
 
-      return self unless w_m*h_m > 1
+      return self unless w_m * h_m > 1
 
       points = scale_points(dst_width, dst_height, w_m, h_m)
       pixels = Array.new(points.size)
@@ -33,7 +32,7 @@ module Applitools::ChunkyPNG
         pixels[merge_data[0]] = merge_pixels(merge_data)
       end
 
-      replace_canvas!(dst_width,dst_height, pixels)
+      replace_canvas!(dst_width, dst_height, pixels)
     end
 
     def resample_bicubic(new_width, new_height)
@@ -49,50 +48,49 @@ module Applitools::ChunkyPNG
     end
 
     def bicubic_points(src_dimension, dst_dimension, direction, y_start_position = 0)
-      step = (src_dimension-1).to_f / dst_dimension
+      step = (src_dimension - 1).to_f / dst_dimension
       y_bounds = direction ? width : height
-      raise ArgumentError.new "Start position value is invalid!" unless y_start_position < y_bounds
-      pixels_size = (y_bounds - y_start_position)*dst_dimension
+      raise ArgumentError.new 'Start position value is invalid!' unless y_start_position < y_bounds
+      pixels_size = (y_bounds - y_start_position) * dst_dimension
 
       steps = Array.new(dst_dimension)
       residues = Array.new(dst_dimension)
 
-      for i in 0..dst_dimension-1
-        steps[i] = (i*step).to_i
-        residues[i] = i*step - steps[i]
+      (0..dst_dimension - 1).each do |i|
+        steps[i] = (i * step).to_i
+        residues[i] = i * step - steps[i]
       end
       Enumerator.new(pixels_size) do |enum|
-        for y in y_start_position..y_bounds-1
+        (y_start_position..y_bounds - 1).each do |y|
           line = (direction ? column(y) : row(y))
 
           line_with_bounds = [imaginable_point(line[0], line[1])] + line + [
-              imaginable_point(line[src_dimension-2], line[src_dimension-3]),
-              imaginable_point(line[src_dimension-1], line[src_dimension-2])
+            imaginable_point(line[src_dimension - 2], line[src_dimension - 3]),
+            imaginable_point(line[src_dimension - 1], line[src_dimension - 2])
           ]
 
-          index_y = dst_dimension*y
-          for x in 0..dst_dimension-1
-            index = direction ? y_bounds*x + y : index_y + x
-            enum << ([index,residues[x]] + line_with_bounds.last(src_dimension + 3 - steps[x]).first(4))
+          index_y = dst_dimension * y
+          (0..dst_dimension - 1).each do |x|
+            index = direction ? y_bounds * x + y : index_y + x
+            enum << ([index, residues[x]] + line_with_bounds.last(src_dimension + 3 - steps[x]).first(4))
           end
         end
       end
     end
 
-
     def scale_points(dst_width, dst_height, w_m, h_m)
-      Enumerator.new(dst_width*dst_height) do |enum|
-        for i in 0..dst_height-1
-          for j in 0..dst_width-1
+      Enumerator.new(dst_width * dst_height) do |enum|
+        (0..dst_height - 1).each do |i|
+          (0..dst_width - 1).each do |j|
             pixels_to_merge = []
-            for y in 0..h_m-1
-              y_pos = i*h_m + y
-              for x in 0..w_m-1
-                x_pos = j*w_m + x
+            (0..h_m - 1).each do |y|
+              y_pos = i * h_m + y
+              (0..w_m - 1).each do |x|
+                x_pos = j * w_m + x
                 pixels_to_merge << get_pixel(x_pos, y_pos)
               end
             end
-            index = i*dst_width + j
+            index = i * dst_width + j
             enum << ([index] + pixels_to_merge)
           end
         end
@@ -101,10 +99,10 @@ module Applitools::ChunkyPNG
 
     def merge_pixels(merge_data)
       pixels = merge_data[1..merge_data.size]
-      merged_data = pixels.inject({r: 0, g: 0, b: 0, a: 0, real_colors: 0}) do |result, pixel|
+      merged_data = pixels.each_with_object(r: 0, g: 0, b: 0, a: 0, real_colors: 0) do |pixel, result|
         unless ChunkyPNG::Color.fully_transparent?(pixel)
           result[:real_colors] += 1
-          [:r,:g,:b].each do |ch|
+          [:r, :g, :b].each do |ch|
             result[ch] += ChunkyPNG::Color.send(ch, pixel)
           end
         end
@@ -129,12 +127,12 @@ module Applitools::ChunkyPNG
         c2 = ChunkyPNG::Color.send(chan, data[4])
         c3 = ChunkyPNG::Color.send(chan, data[5])
 
-        a = -0.5*c0 + 1.5*c1 - 1.5*c2 + 0.5*c3
-        b = c0 - 2.5*c1 + 2*c2 - 0.5*c3
-        c = 0.5*c2 - 0.5*c0
+        a = -0.5 * c0 + 1.5 * c1 - 1.5 * c2 + 0.5 * c3
+        b = c0 - 2.5 * c1 + 2 * c2 - 0.5 * c3
+        c = 0.5 * c2 - 0.5 * c0
         d = c1
 
-        result[chan] = [0,[255, (a*t**3 + b*t**2 + c*t + d).to_i].min].max
+        result[chan] = [0, [255, (a * t**3 + b * t**2 + c * t + d).to_i].min].max
       end
       ChunkyPNG::Color.rgba(result[:r], result[:g], result[:b], result[:a])
     end
@@ -146,6 +144,5 @@ module Applitools::ChunkyPNG
       a = [0, [255, ChunkyPNG::Color.a(point1) << 1].min - ChunkyPNG::Color.a(point2)].max
       ChunkyPNG::Color.rgba(r, g, b, a)
     end
-
   end
 end
