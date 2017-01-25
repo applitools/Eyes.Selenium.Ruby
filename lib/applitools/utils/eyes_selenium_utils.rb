@@ -289,26 +289,6 @@ module Applitools::Utils
 
     private
 
-    def resize_attempt(driver, required_viewport_size)
-      actual_viewport_size = extract_viewport_size(driver)
-      Applitools::EyesLogger.info "Actual viewport size #{actual_viewport_size}."
-      required_browser_size = Applitools::Core::RectangleSize.for(driver.manage.window.size) - actual_viewport_size +
-        required_viewport_size
-
-      retries_left = VERIFY_RETRIES
-
-      until retries_left.zero?
-        return true if Applitools::Core::RectangleSize.for(driver.manage.window.size) == required_browser_size
-        Applitools::EyesLogger.info "Trying to set browser size to #{required_browser_size}."
-        driver.manage.window.size = required_browser_size
-        sleep VERIFY_SLEEP_PERIOD
-        Applitools::EyesLogger.info "Required browser size #{required_browser_size}, " \
-          "Current browser size #{Applitools::Core::RectangleSize.for(driver.manage.window.size)}"
-        retries_left -= 1
-      end
-      false
-    end
-
     def with_timeout(timeout, &_block)
       raise 'You have to pass block to method with_timeout' unless block_given?
       yield.tap { sleep timeout }
