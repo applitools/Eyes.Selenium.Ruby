@@ -96,6 +96,10 @@ module Applitools::Utils
     # A time delay (in seconds) before next attempt to set browser size
     VERIFY_SLEEP_PERIOD = 1
 
+    # Maximum different (in pixels) between calculated browser size and real browser size when it tries to achieve
+    # target size incrementally
+    MAX_DIFF = 3
+
     # true if test is running on mobile device
     def mobile_device?
       return $driver if $driver && $driver.is_a?(Appium::Driver)
@@ -194,6 +198,16 @@ module Applitools::Utils
       Applitools::Core::ArgumentGuard.not_nil 'viewport_size', viewport_size
       Applitools::EyesLogger.info "Set viewport size #{viewport_size}"
 
+      required_size = Applitools::Core::RectangleSize.from_any_argument viewport_size
+      actual_viewport_size = Applitools::Core::RectangleSize.from_any_argument(extract_viewport_size(executor))
+
+      Applitools::EyesLogger.info "Initial viewport size: #{actual_viewport_size}"
+
+      if actual_viewport_size == required_size
+        Applitools::EyesLogger.info 'Required size is already set.'
+        return
+      end
+
       # Before resizing the window, set its position to the upper left corner (otherwise, there might not be enough
       # "space" below/next to it and the operation won't be successful).
       begin
@@ -202,51 +216,78 @@ module Applitools::Utils
         Applitools::EyesLogger.error e.message << '\n Continue...'
       end
 
+      set_browser_size_by_viewport_size(executor, actual_viewport_size, required_size)
+
       actual_viewport_size = extract_viewport_size(executor)
+      return if actual_viewport_size == required_size
 
-      Applitools::EyesLogger.info "Initial viewport size: #{actual_viewport_size}"
+      # Additional attempt. This Solves the "maximized browser" bug
+      # (border size for maximized browser sometimes different than
+      # non-maximized, so the original browser size calculation is
+      # wrong).
 
-      if actual_viewport_size == viewport_size
-        Applitools::EyesLogger.info 'Required size is already set.'
-        return
+      Applitools::EyesLogger.info 'Trying workaround for maximization...'
+
+      set_browser_size_by_viewport_size(executor, actual_viewport_size, required_size)
+
+      actual_viewport_size = extract_viewport_size(executor)
+      Applitools::EyesLogger.info "Current viewport size: #{actual_viewport_size}"
+      return if actual_viewport_size == required_size
+
+      width_diff = actual_viewport_size.width - required_size.width
+      width_step = width_diff.zero? ? 1 : -1
+      height_diff = actual_viewport_size.height - required_size.height
+      height_step = height_diff.zero? ? 1 : -1
+
+      browser_size = Applitools::Core::RectangleSize.from_any_argument(executor.manage.window.size)
+
+      current_width_change = 0
+      current_height_change = 0
+
+      if width_diff.abs <= MAX_DIFF && height_diff <= MAX_DIFF
+        Applitools::EyesLogger.info 'Trying  workaround for zoom...'
+        while current_width_change.abs <= width_diff || current_height_change.abs <= height_diff
+          current_width_change += width_step if current_width_change.abs <= width_diff.abs &&
+              actual_viewport_size.width != required_size.width
+
+          current_height_change += height_step if current_height_change.abs <= height_diff.abs &&
+              actual_viewport_size.height != required_size.height
+
+          set_browser_size executor,
+            browser_size + Applitools::Core::RectangleSize.new(current_width_change, current_height_change)
+
+          actual_viewport_size = Applitools::Core::RectangleSize.from_any_argument extract_viewport_size(executor)
+          Applitools::EyesLogger.info "Current viewport size: #{actual_viewport_size}"
+          return if actual_viewport_size == required_size
+        end
+        Applitools::EyesLogger.error 'Zoom workaround failed.'
       end
 
-      browser_size_calculation_count = 0
-      while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
-        unless resize_attempt(executor, viewport_size)
-          raise Applitools::TestFailedError.new 'Failed to set browser size!' \
-            " (current size: #{Applitools::Core::RectangleSize.for(executor.manage.window.size)})"
-        end
-        browser_size_calculation_count += 1
-        if viewport_size == extract_viewport_size(executor)
-          Applitools::EyesLogger.info "Actual viewport size #{viewport_size}."
-          return
-        end
-      end
       raise Applitools::TestFailedError.new 'Failed to set viewport size'
     end
 
-    private
-
-    def resize_attempt(driver, required_viewport_size)
-      actual_viewport_size = extract_viewport_size(driver)
-      Applitools::EyesLogger.info "Actual viewport size #{actual_viewport_size}."
-      required_browser_size = Applitools::Core::RectangleSize.for(driver.manage.window.size) - actual_viewport_size +
-        required_viewport_size
-
+    def set_browser_size(executor, required_size)
       retries_left = VERIFY_RETRIES
-
-      until retries_left.zero?
-        return true if Applitools::Core::RectangleSize.for(driver.manage.window.size) == required_browser_size
-        Applitools::EyesLogger.info "Trying to set browser size to #{required_browser_size}."
-        driver.manage.window.size = required_browser_size
+      current_size = Applitools::Core::RectangleSize.new(0, 0)
+      while retries_left > 0 && current_size != required_size
+        Applitools::EyesLogger.info "Trying to set browser size to #{required_size}"
+        executor.manage.window.size = required_size
         sleep VERIFY_SLEEP_PERIOD
-        Applitools::EyesLogger.info "Required browser size #{required_browser_size}, " \
-          "Current browser size #{Applitools::Core::RectangleSize.for(driver.manage.window.size)}"
+        current_size = Applitools::Core::RectangleSize.from_any_argument(executor.manage.window.size)
+        Applitools::EyesLogger.info "Current browser size: #{required_size}"
         retries_left -= 1
       end
-      false
+      current_size == required_size
     end
+
+    def set_browser_size_by_viewport_size(executor, actual_viewport_size, required_size)
+      browser_size = Applitools::Core::RectangleSize.from_any_argument(executor.manage.window.size)
+      Applitools::EyesLogger.info "Current browser size: #{browser_size}"
+      required_browser_size = browser_size + required_size - actual_viewport_size
+      set_browser_size(executor, required_browser_size)
+    end
+
+    private
 
     def with_timeout(timeout, &_block)
       raise 'You have to pass block to method with_timeout' unless block_given?
