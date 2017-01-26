@@ -1,13 +1,13 @@
 require 'base64'
 require 'tempfile'
 
+require 'pry'
+
 module Applitools::Utils
   # @!visibility private
   QUADRANTS_COUNT = 4
-  # @!visibility private
-  SCALE_METHODS = {
-    :speed => :resample_nearest_neighbor, :quality => :resample_bicubic
-  }.freeze
+
+  RESAMPLE_INCREMENTALLY_FRACTION = 2
 
   module ImageUtils
     extend self
@@ -62,14 +62,68 @@ module Applitools::Utils
     # Scales image by given +scale factor+ by modifying given image
     # @param [Applitools::Core::Screenshot] image An image to scale. (The source image will be modified
     #   by invoking the method)
-    # @param [Symbol] scale_method Can be +:speed+ or +:quality+. For further information see ChunkyPNG documentation.
-    # @param [Float] factor Scale factor.
+    # @param [Float] scale_ratio Scale factor.
     # @return [Applitools::Core::Screenshot]
-    def scale!(image, scale_method, factor)
-      raise Applitools::EyesIllegalArgument.new "Unknown scale method #{scale_method}" unless
-          Applitools::Utils::SCALE_METHODS.keys.include? scale_method
-      image.send("#{Applitools::Utils::SCALE_METHODS[scale_method]}!",
-        (image.width.to_f * factor).to_i, (image.height.to_f * factor).to_i)
+    def scale!(image, scale_ratio)
+      return image if scale_ratio == 1
+      image_ratio = image.width.to_f / image.height.to_f
+      scale_width = (image.width * scale_ratio).ceil
+      scale_height = (scale_width / image_ratio).ceil
+      resize_image!(image, scale_width, scale_height)
+    end
+
+    def scale(image, scale_ratio)
+      scale!(image.dup, scale_ratio)
+    end
+
+    def resize_image!(image, new_width, new_height)
+      Applitools::Core::ArgumentGuard.not_nil(new_width, 'new_width')
+      Applitools::Core::ArgumentGuard.not_nil(new_height, 'new_height')
+      Applitools::Core::ArgumentGuard.not_nil(image, 'image')
+      Applitools::Core::ArgumentGuard.is_a?(image, 'image', Applitools::Core::Screenshot)
+
+      raise Applitools::EyesIllegalArgument.new "Invalid width: #{new_width}" if new_width <= 0
+      raise Applitools::EyesIllegalArgument.new "Invalid height: #{new_height}" if new_height <= 0
+
+      return image if image.width == new_width && image.height == new_height
+
+      if new_width > image.width || new_height > image.height
+        image.resample_bicubic!(new_width, new_height)
+      else
+        scale_image_incrementally!(image, new_width, new_height)
+      end
+    end
+
+    def resize_image(image, new_width, new_height)
+      resize_image!(image.dup, new_width, new_height)
+    end
+
+    def scale_image_incrementally!(image, new_width, new_height)
+      current_width = image.width
+      current_height = image.height
+
+      while current_width != new_width || current_height != new_height
+        prev_current_width = current_width
+        prev_current_height = current_height
+        if current_width > new_width
+          current_width -= (current_width / RESAMPLE_INCREMENTALLY_FRACTION)
+          current_width = new_width if current_width < new_width
+        end
+
+        if current_height > new_height
+          current_height -= (current_height / RESAMPLE_INCREMENTALLY_FRACTION)
+          current_height = new_height if current_height < new_height
+        end
+
+        return image if prev_current_width == current_width && prev_current_height == current_height
+        Applitools::EyesLogger.debug "Incremental dimensions: #{current_width} x #{current_height}"
+        image.resample_bicubic!(current_width, current_height)
+      end
+      image
+    end
+
+    def scale_image_incrementally(image, new_width, new_height)
+      scale_image_incrementally!(image.dup, new_width, new_height)
     end
 
     include Applitools::MethodTracer

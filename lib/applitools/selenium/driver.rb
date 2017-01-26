@@ -326,7 +326,7 @@ module Applitools::Selenium
         return if driver.mobile_device?
 
         normalization_factor = driver.browser.image_normalization_factor(image)
-        Applitools::Utils::ImageUtils.scale!(image, :speed, normalization_factor) unless normalization_factor == 1
+        Applitools::Utils::ImageUtils.scale!(image, normalization_factor) unless normalization_factor == 1
       end
     end
   end

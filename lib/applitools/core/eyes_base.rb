@@ -27,7 +27,7 @@ module Applitools::Core
 
     attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
     attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings,
-      :scale_ratio, :scale_method, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size
+      :scale_ratio, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size
 
     abstract_attr_accessor :base_agent_id, :inferred_environment
     abstract_method :capture_screenshot, true
@@ -57,8 +57,6 @@ module Applitools::Core
       end
 
       self.default_match_settings = MATCH_LEVEL[:exact]
-
-      self.scale_method = :speed
     end
 
     def full_agent_id

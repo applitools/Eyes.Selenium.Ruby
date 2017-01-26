@@ -235,9 +235,9 @@ module Applitools::Utils
       return if actual_viewport_size == required_size
 
       width_diff = actual_viewport_size.width - required_size.width
-      width_step = width_diff.zero? ? 1 : -1
+      width_step = width_diff > 0 ? -1 : 1
       height_diff = actual_viewport_size.height - required_size.height
-      height_step = height_diff.zero? ? 1 : -1
+      height_step = height_diff > 0 ? -1 : 1
 
       browser_size = Applitools::Core::RectangleSize.from_any_argument(executor.manage.window.size)
 
@@ -246,15 +246,13 @@ module Applitools::Utils
 
       if width_diff.abs <= MAX_DIFF && height_diff <= MAX_DIFF
         Applitools::EyesLogger.info 'Trying  workaround for zoom...'
-        while current_width_change.abs <= width_diff || current_height_change.abs <= height_diff
-          current_width_change += width_step if current_width_change.abs <= width_diff.abs &&
-              actual_viewport_size.width != required_size.width
+        while current_width_change.abs <= width_diff && current_height_change.abs <= height_diff
 
-          current_height_change += height_step if current_height_change.abs <= height_diff.abs &&
-              actual_viewport_size.height != required_size.height
+          current_width_change += width_step if actual_viewport_size.width != required_size.width
+          current_height_change += height_step if actual_viewport_size.height != required_size.height
 
           set_browser_size executor,
-            browser_size + Applitools::Core::RectangleSize.new(current_width_change, current_height_change)
+            browser_size.dup + Applitools::Core::RectangleSize.new(current_width_change, current_height_change)
 
           actual_viewport_size = Applitools::Core::RectangleSize.from_any_argument extract_viewport_size(executor)
           Applitools::EyesLogger.info "Current viewport size: #{actual_viewport_size}"

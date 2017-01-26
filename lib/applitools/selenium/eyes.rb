@@ -503,7 +503,7 @@ module Applitools::Selenium
 
       begin
         self.scale_provider = Applitools::Selenium::ContextBasedScaleProvider.new(position_provider.entire_size,
-          viewport_size, scale_method, device_pixel_ratio)
+          viewport_size, device_pixel_ratio)
       rescue StandardError
         logger.info 'Failed to set ContextBasedScaleProvider'
         logger.info 'Using FixedScaleProvider instead'
@@ -672,8 +672,6 @@ module Applitools::Selenium
           end
           logger.info "Setting OS: #{os}"
           app_env.os = os
-          logger.info 'Setting scale method for mobile.'
-          self.scale_method = :quality
         end
       else
         logger.info 'No mobile OS detected.'
