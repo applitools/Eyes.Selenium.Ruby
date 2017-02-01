@@ -20,5 +20,10 @@ module Applitools::Poltergeist
       size = window_size(current_window_handle)
       Applitools::Base::Dimension.new(size[0], size[1])
     end
+
+    # Method changes opened window size in a way how original Applitools::Selenium::Driver does.
+    def size=(new_size)
+      resize(new_size.width, new_size.height)
+    end
   end
 end
