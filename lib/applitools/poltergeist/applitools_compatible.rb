@@ -1,17 +1,21 @@
+# This module is used for compatibility with Applitools API.
+# Should be extended by Poltergeist driver instance.
 module Applitools::Poltergeist
   module ApplitoolsCompatible
+
+    # Implementation of `screenshot_as` method for PhantomJS.
+    # Realisation uses Poltergeist binding to `renderBase64` PhantomJS method.
     def screenshot_as(fmt)
       Base64.decode64(browser.render_base64(fmt))
     end
 
-    def manage
-      self
+    # Poltergeist driver does not have `manage` and `window` methods.
+    # In Applitools these methods are used in a chain to get size by `size` method call.
+    ['manage', 'window'].each do |method_name|
+      define_method(method_name) { self }
     end
 
-    def window
-      self
-    end
-
+    # Method provides opened window size in Applitools format.
     def size
       size = window_size(current_window_handle)
       Applitools::Base::Dimension.new(size[0], size[1])
