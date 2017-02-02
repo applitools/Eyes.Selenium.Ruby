@@ -2,7 +2,6 @@
 # Should be extended by Poltergeist driver instance.
 module Applitools::Poltergeist
   module ApplitoolsCompatible
-
     # Implementation of `screenshot_as` method for PhantomJS.
     # Realisation uses Poltergeist binding to `renderBase64` PhantomJS method.
     def screenshot_as(fmt)
@@ -11,7 +10,7 @@ module Applitools::Poltergeist
 
     # Poltergeist driver does not have `manage` and `window` methods.
     # In Applitools these methods are used in a chain to get size by `size` method call.
-    ['manage', 'window'].each do |method_name|
+    %w(manage window).each do |method_name|
       define_method(method_name) { self }
     end
 
