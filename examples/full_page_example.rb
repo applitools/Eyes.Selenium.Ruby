@@ -3,11 +3,9 @@ require 'capybara/rspec'
 require_relative '../lib/eyes_selenium'
 require 'applitools/capybara'
 
-
 Applitools.register_capybara_driver :browser => :chrome
 
 describe 'Full page example (scrolling)', :type => :feature, :js => true do
-
   let(:eyes) do
     Applitools::Selenium::Eyes.new.tap do |eyes|
       eyes.api_key = ENV['APPLITOOLS_API_KEY']
@@ -15,7 +13,7 @@ describe 'Full page example (scrolling)', :type => :feature, :js => true do
     end
   end
 
-  it "Full page test" do
+  it 'Full page test' do
     begin
       eyes.force_full_page_screenshot = true
       eyes.test(app_name: 'Ruby SDK',
@@ -23,14 +21,13 @@ describe 'Full page example (scrolling)', :type => :feature, :js => true do
 
         visit 'https://github.com'
         eyes.check_window('Entire index page')
-
       end
     ensure
       eyes.abort_if_not_closed
     end
   end
 
-  it "The other full page test" do
+  it 'The other full page test' do
     begin
       eyes.force_full_page_screenshot = true
 

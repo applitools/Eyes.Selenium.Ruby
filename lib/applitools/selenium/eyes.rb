@@ -40,7 +40,6 @@ module Applitools::Selenium
     #   Whether or not to perform CSS transition.
     #   @return [boolean] use_css_transition flag
 
-
     attr_accessor :base_agent_id, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
       :wait_before_screenshots, :debug_screenshot, :use_css_transition
     attr_reader :driver
@@ -144,7 +143,9 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, force_offset: position_provider.force_offset)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(
+          image, driver: driver, force_offset: position_provider.force_offset
+        )
       end
 
       check_window_base region_provider, tag, false, match_timeout
@@ -650,7 +651,9 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, force_offset: position_provider.force_offset)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(
+          image, driver: driver, force_offset: position_provider.force_offset
+        )
       end
 
       check_window_base region_provider, tag, false, match_timeout
@@ -866,10 +869,10 @@ module Applitools::Selenium
     class << self
       def position_provider(stitch_mode, driver)
         case stitch_mode
-          when :SCROLL
-            Applitools::Selenium::ScrollPositionProvider.new(driver)
-          when :CSS
-            Applitools::Selenium::CssTranslatePositionProvider.new(driver)
+        when :SCROLL
+          Applitools::Selenium::ScrollPositionProvider.new(driver)
+        when :CSS
+          Applitools::Selenium::CssTranslatePositionProvider.new(driver)
         end
       end
     end

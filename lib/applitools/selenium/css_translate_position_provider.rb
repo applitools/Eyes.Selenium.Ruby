@@ -19,13 +19,13 @@ module Applitools::Selenium
     end
 
     def restore_state(value)
-      transforms = value.values.select {|el| !el.empty? }
+      transforms = value.values.select { |el| !el.empty? }
       Applitools::Utils::EyesSeleniumUtils.set_transforms(executor, value)
       if transforms.empty?
         self.last_state_position = Applitools::Core::Location::TOP_LEFT
       else
-        positions = transforms.map {|s| get_position_from_transform(s)}
-        positions.each {|p| raise Applitools::EyesError.new "Got different css positions!" unless p == positions[0]}
+        positions = transforms.map { |s| get_position_from_transform(s) }
+        positions.each { |p| raise Applitools::EyesError.new 'Got different css positions!' unless p == positions[0] }
         self.last_state_position = positions[0]
       end
     end

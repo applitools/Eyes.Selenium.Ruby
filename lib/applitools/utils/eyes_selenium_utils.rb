@@ -198,27 +198,26 @@ module Applitools::Utils
     end
 
     def current_frame_content_entire_size(executor)
-      begin
-        dimensions = executor.execute_script(JS_GET_CONTENT_ENTIRE_SIZE)
-        Applitools::Core::RectangleSize.new(dimensions.first.to_i, dimensions.last.to_i)
-      rescue => e
-        raise Applitools::EyesDriverOperationException.new 'Failed to extract entire size!'
-      end
+      dimensions = executor.execute_script(JS_GET_CONTENT_ENTIRE_SIZE)
+      Applitools::Core::RectangleSize.new(dimensions.first.to_i, dimensions.last.to_i)
+    rescue
+      raise Applitools::EyesDriverOperationException.new 'Failed to extract entire size!'
     end
 
     def current_transforms(executor)
-      script = "return { #{JS_TRANSFORM_KEYS.map {|tk| "'#{tk}': #{JS_GET_TRANSFORM_VALUE % {key: tk}}"}.join(', ')} };"
+      script =
+        "return { #{JS_TRANSFORM_KEYS.map { |tk| "'#{tk}': #{JS_GET_TRANSFORM_VALUE % { key: tk }}" }.join(', ')} };"
       executor.execute_script(script)
     end
 
     def set_current_transforms(executor, transform)
       value = {}
-      JS_TRANSFORM_KEYS.map {|tk| value[tk] = transform}
+      JS_TRANSFORM_KEYS.map { |tk| value[tk] = transform }
       set_transforms(executor, value)
     end
 
     def set_transforms(executor, value)
-      script = value.keys.map {|k| "#{JS_SET_TRANSFORM_VALUE % {key: k, value: value[k]}}"}.join('; ')
+      script = value.keys.map { |k| JS_SET_TRANSFORM_VALUE % { key: k, value: value[k] } }.join('; ')
       executor.execute_script(script)
     end
 
