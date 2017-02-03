@@ -99,6 +99,8 @@ module Applitools::Selenium
 
       logger.info 'Getting the rest of the image parts...'
 
+      nn = 0
+
       image_parts.each_with_index do |part_region, i|
         next unless i > 0
         logger.info "Taking screenshot for #{part_region}"
@@ -110,8 +112,8 @@ module Applitools::Selenium
         logger.info 'Getting image...'
 
         part_image = image_provider.take_screenshot
-        part_image = scale_provider.scale_image part_image if scale_provider
-        part_image = cut_provider.cut part_image if cut_provider
+        # part_image = scale_provider.scale_image part_image if scale_provider
+        # part_image = cut_provider.cut part_image if cut_provider
 
         logger.info 'Done!'
         begin
@@ -126,6 +128,10 @@ module Applitools::Selenium
         end
 
         logger.info 'Stitching part into the image container...'
+
+
+        ChunkyPNG::Image.from_string(a_screenshot.image.to_blob).save("qwerty#{nn}.png")
+        nn+=1
 
         stitched_image.replace! a_screenshot.image, part_region.x, part_region.y
         logger.info 'Done!'

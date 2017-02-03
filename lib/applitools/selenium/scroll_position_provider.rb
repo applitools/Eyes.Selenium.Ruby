@@ -41,6 +41,10 @@ module Applitools::Selenium
       result
     end
 
+    def force_offset
+      Applitools::Core::Location.new(0, 0)
+    end
+
     private
 
     attr_accessor :executor

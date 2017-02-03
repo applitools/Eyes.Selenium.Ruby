@@ -10,6 +10,7 @@ module Applitools::Selenium
       [:driver, :screenshot_type, :frame_location_in_screenshot].sort => :initialize_main,
       [:driver, :force_offset].sort => :initialize_main,
       [:driver].sort => :initialize_main,
+      [:driver, :position_provider].sort => :initialize_main,
       [:driver, :entire_frame_size].sort => :initialize_for_element,
       [:driver, :entire_frame_size, :frame_location_in_screenshot].sort => :initialize_for_element
     }.freeze
@@ -84,7 +85,8 @@ module Applitools::Selenium
       Applitools::Core::ArgumentGuard.not_nil options[:driver], 'options[:driver]'
 
       self.driver = options[:driver]
-      self.position_provider = Applitools::Selenium::ScrollPositionProvider.new driver
+      self.position_provider = Applitools::Selenium::ScrollPositionProvider.new driver if
+          options[:position_provider].nil?
 
       viewport_size = driver.default_content_viewport_size
 

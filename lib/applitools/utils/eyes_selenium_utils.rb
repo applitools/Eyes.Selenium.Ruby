@@ -47,6 +47,21 @@ module Applitools::Utils
     JS
 
     # @!visibility private
+    JS_GET_CONTENT_ENTIRE_SIZE = <<-JS.freeze
+        var scrollWidth = document.documentElement.scrollWidth;
+        var bodyScrollWidth = document.body.scrollWidth;
+        var totalWidth = Math.max(scrollWidth, bodyScrollWidth);
+        var clientHeight = document.documentElement.clientHeight;
+        var bodyClientHeight = document.body.clientHeight;
+        var scrollHeight = document.documentElement.scrollHeight;
+        var bodyScrollHeight = document.body.scrollHeight;
+        var maxDocElementHeight = Math.max(clientHeight, scrollHeight);
+        var maxBodyHeight = Math.max(bodyClientHeight, bodyScrollHeight);
+        var totalHeight = Math.max(maxDocElementHeight, maxBodyHeight);
+        return [totalWidth, totalHeight];
+    JS
+
+    # @!visibility private
     JS_GET_CURRENT_SCROLL_POSITION = <<-JS.freeze
       return (function() {
         var doc = document.documentElement;
@@ -84,6 +99,16 @@ module Applitools::Utils
         return origOF;
       }());
     JS
+
+    JS_GET_TRANSFORM_VALUE = <<-JS.freeze
+      document.documentElement.style['%{key}']
+    JS
+
+    JS_SET_TRANSFORM_VALUE = <<-JS.freeze
+      document.documentElement.style['%{key}'] = '%{value}'
+    JS
+
+    JS_TRANSFORM_KEYS = ['transform', '-webkit-transform'].freeze
 
     # @!visibility private
     OVERFLOW_HIDDEN = 'hidden'.freeze
@@ -170,6 +195,35 @@ module Applitools::Utils
       total_height = [max_document_element_height, max_body_height].max
 
       Applitools::Core::RectangleSize.new(total_width, total_height)
+    end
+
+    def current_frame_content_entire_size(executor)
+      begin
+        dimensions = executor.execute_script(JS_GET_CONTENT_ENTIRE_SIZE)
+        Applitools::Core::RectangleSize.new(dimensions.first.to_i, dimensions.last.to_i)
+      rescue => e
+        raise Applitools::EyesDriverOperationException.new 'Failed to extract entire size!'
+      end
+    end
+
+    def current_transforms(executor)
+      script = "return { #{JS_TRANSFORM_KEYS.map {|tk| "'#{tk}': #{JS_GET_TRANSFORM_VALUE % {key: tk}}"}.join(', ')} };"
+      executor.execute_script(script)
+    end
+
+    def set_current_transforms(executor, transform)
+      value = {}
+      JS_TRANSFORM_KEYS.map {|tk| value[tk] = transform}
+      set_transforms(executor, value)
+    end
+
+    def set_transforms(executor, value)
+      script = value.keys.map {|k| "#{JS_SET_TRANSFORM_VALUE % {key: k, value: value[k]}}"}.join('; ')
+      executor.execute_script(script)
+    end
+
+    def translate_to(executor, location)
+      set_current_transforms(executor, "translate(-#{location.x}px, -#{location.y}px)")
     end
 
     # @param [Applitools::Selenium::Driver] executor

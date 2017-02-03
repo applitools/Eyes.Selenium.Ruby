@@ -36,9 +36,13 @@ module Applitools::Selenium
     #   If set to +true+ browser will scroll to specified region (even it is out of viewport window)
     #     when check_region is called
     #   @return [boolean] scroll_to_region flag
+    # @!attribute [rw] use_css_transition
+    #   Whether or not to perform CSS transition.
+    #   @return [boolean] use_css_transition flag
+
 
     attr_accessor :base_agent_id, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
-      :wait_before_screenshots, :debug_screenshot
+      :wait_before_screenshots, :debug_screenshot, :use_css_transition
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -97,15 +101,22 @@ module Applitools::Selenium
 
       self.device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
 
-      self.position_provider = case stitch_mode
-                               when :SCROLL
-                                 Applitools::Selenium::ScrollPositionProvider.new(driver)
-                               when :CSS
-                                 nil
-                               end
+      self.position_provider = self.class.position_provider(stitch_mode, driver)
 
       open_base options
       @driver
+    end
+
+    def use_css_transition=(value)
+      self.stitch_mode = value ? STICH_MODE[:css] : STICH_MODE[:scroll]
+      self.position_provider = self.class.position_provider(stitch_mode, driver) unless driver.nil?
+      # if stitch_mode == STICH_MODE[:css]
+      #   @css_transition_original_hide_scrollbars = hide_scrollbars
+      #   self.hide_scrollbars = true
+      # else
+      #   self.hide_scrollbars = @css_transition_original_hide_scrollbars || false
+      # end
+      value
     end
 
     # Takes a snapshot of the application under test and matches it with the expected output.
@@ -133,7 +144,7 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, force_offset: position_provider.force_offset)
       end
 
       check_window_base region_provider, tag, false, match_timeout
@@ -639,7 +650,7 @@ module Applitools::Selenium
       end
 
       self.eyes_screenshot_factory = lambda do |image|
-        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver)
+        Applitools::Selenium::EyesWebDriverScreenshot.new(image, driver: driver, force_offset: position_provider.force_offset)
       end
 
       check_window_base region_provider, tag, false, match_timeout
@@ -850,6 +861,17 @@ module Applitools::Selenium
       user_agent = driver.user_agent
       return "useragent: #{user_agent}" if user_agent && !user_agent.empty?
       nil
+    end
+
+    class << self
+      def position_provider(stitch_mode, driver)
+        case stitch_mode
+          when :SCROLL
+            Applitools::Selenium::ScrollPositionProvider.new(driver)
+          when :CSS
+            Applitools::Selenium::CssTranslatePositionProvider.new(driver)
+        end
+      end
     end
   end
 end
