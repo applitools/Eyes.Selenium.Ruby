@@ -109,12 +109,12 @@ module Applitools::Selenium
     def use_css_transition=(value)
       self.stitch_mode = value ? STICH_MODE[:css] : STICH_MODE[:scroll]
       self.position_provider = self.class.position_provider(stitch_mode, driver) unless driver.nil?
-      # if stitch_mode == STICH_MODE[:css]
-      #   @css_transition_original_hide_scrollbars = hide_scrollbars
-      #   self.hide_scrollbars = true
-      # else
-      #   self.hide_scrollbars = @css_transition_original_hide_scrollbars || false
-      # end
+      if stitch_mode == STICH_MODE[:css]
+        @css_transition_original_hide_scrollbars = hide_scrollbars
+        self.hide_scrollbars = true
+      else
+        self.hide_scrollbars = @css_transition_original_hide_scrollbars || false
+      end
       value
     end
 
