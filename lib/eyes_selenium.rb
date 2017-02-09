@@ -63,6 +63,7 @@ Applitools.require_dir 'core'
 Applitools.require_dir 'connectivity'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
+Applitools.require_dir 'poltergeist'
 
 require_relative 'applitools/eyes_logger'
 require_relative 'applitools/selenium_webdriver'

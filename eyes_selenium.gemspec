@@ -57,6 +57,7 @@ Gem::Specification.new do |spec|
   spec.extensions    = ['ext/applitools/extconf.rb']
   spec.require_paths = %w(lib ext)
 
+  spec.add_dependency 'poltergeist', '~> 1.9'
   spec.add_dependency 'oily_png', '~> 1.2'
   spec.add_dependency 'chunky_png', '= 1.3.6'
   spec.add_dependency 'faraday'
