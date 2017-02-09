@@ -30,6 +30,7 @@ require_relative 'applitools/version'
 Applitools.require_dir 'base'
 Applitools.require_dir 'utils'
 Applitools.require_dir 'selenium'
+Applitools.require_dir 'poltergeist'
 
 require_relative 'applitools/eyes'
 require_relative 'applitools/selenium_webdriver'

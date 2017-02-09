@@ -1,3 +1,5 @@
+require 'capybara/poltergeist'
+
 require_relative 'version'
 require_relative 'eyes_logger'
 
@@ -141,10 +143,19 @@ class Applitools::Eyes
       @driver = driver.driver_for_eyes self
     else
       unless driver.is_a?(Applitools::Selenium::Driver)
-        Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!") unless
-            driver.is_a? Selenium::WebDriver
         is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
-        @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+
+        @driver =
+          case driver
+          when Selenium::WebDriver
+            Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+          when Capybara::Poltergeist::Driver # driver for PhantomJS
+            Applitools::Poltergeist::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+          else
+            Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
+            Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+          end
+
       end
     end
 

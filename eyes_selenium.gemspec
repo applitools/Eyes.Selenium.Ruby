@@ -47,6 +47,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'selenium-webdriver', '>= 2.45.0'
+  spec.add_dependency 'poltergeist', '~> 1.9'
   spec.add_dependency 'oily_png', '~> 1.2'
   spec.add_dependency 'chunky_png', '= 1.3.6'
   spec.add_dependency 'faraday'
