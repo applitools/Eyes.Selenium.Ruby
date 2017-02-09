@@ -31,10 +31,7 @@ describe 'Full page example (scrolling)', :type => :feature, :js => true do
     begin
       eyes.force_full_page_screenshot = true
 
-      # We NEED to hide scrollbars in case of using CSS transitions,
-      # otherwise the bottom frame will be corrupted due hiding scrollbars on a last frame
-      eyes.hide_scrollbars = true
-      eyes.use_css_transition = true
+      eyes.stitch_mode = :css
 
       eyes.test(app_name: 'Ruby SDK',
                 test_name: 'Fullpage example (css)', driver: page, viewport_size: { width: 900, height: 600 }) do

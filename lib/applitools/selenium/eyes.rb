@@ -36,12 +36,14 @@ module Applitools::Selenium
     #   If set to +true+ browser will scroll to specified region (even it is out of viewport window)
     #     when check_region is called
     #   @return [boolean] scroll_to_region flag
-    # @!attribute [rw] use_css_transition
-    #   Whether or not to perform CSS transition.
-    #   @return [boolean] use_css_transition flag
+    # @!attribute [rw] stitch_mode
+    #   May be set to :CSS or :SCROLL (:SCROLL is default).
+    #   When :CSS - SDK will use CSS transitions to perform scrolling, otherwise it will use Javascript
+    #   window.scroll_to() function for scrolling purposes
+    #   @return [boolean] stitch_mode (:CSS or :SCROLL)
 
     attr_accessor :base_agent_id, :screenshot, :force_full_page_screenshot, :hide_scrollbars,
-      :wait_before_screenshots, :debug_screenshot, :use_css_transition
+      :wait_before_screenshots, :debug_screenshot, :stitch_mode
     attr_reader :driver
 
     def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
@@ -106,8 +108,8 @@ module Applitools::Selenium
       @driver
     end
 
-    def use_css_transition=(value)
-      self.stitch_mode = value ? STICH_MODE[:css] : STICH_MODE[:scroll]
+    def stitch_mode=(value)
+      @stitch_mode = value.to_s.upcase == STICH_MODE[:css].to_s ? STICH_MODE[:css] : STICH_MODE[:scroll]
       self.position_provider = self.class.position_provider(stitch_mode, driver) unless driver.nil?
       if stitch_mode == STICH_MODE[:css]
         @css_transition_original_hide_scrollbars = hide_scrollbars
@@ -338,7 +340,7 @@ module Applitools::Selenium
     private
 
     attr_accessor :check_frame_or_element, :region_to_check, :dont_get_title,
-      :device_pixel_ratio, :stitch_mode, :position_provider, :scale_provider, :tag_for_debug,
+      :device_pixel_ratio, :position_provider, :scale_provider, :tag_for_debug,
       :region_visibility_strategy, :eyes_screenshot_factory
 
     def process_in_frame(options = {})
