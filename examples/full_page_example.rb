@@ -18,7 +18,6 @@ describe 'Full page example (scrolling)', :type => :feature, :js => true do
       eyes.force_full_page_screenshot = true
       eyes.test(app_name: 'Ruby SDK',
         test_name: 'Fullpage example (scroll)', driver: page, viewport_size: { width: 900, height: 600 }) do
-
         visit 'https://github.com'
         eyes.check_window('Entire index page')
       end
@@ -35,7 +34,6 @@ describe 'Full page example (scrolling)', :type => :feature, :js => true do
 
       eyes.test(app_name: 'Ruby SDK',
                 test_name: 'Fullpage example (css)', driver: page, viewport_size: { width: 900, height: 600 }) do
-
         visit 'https://github.com'
         eyes.check_window('Entire index page')
       end
