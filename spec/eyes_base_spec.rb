@@ -42,8 +42,6 @@ describe Applitools::Core::EyesBase do
     :log_handler=,
     :scale_ratio,
     :scale_ratio=,
-    :scale_method,
-    :scale_method=,
     :close,
     :abort_if_not_closed,
     :host_os,
