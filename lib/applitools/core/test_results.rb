@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Applitools::Core
   class TestResults
     attr_accessor :is_new, :url
@@ -10,6 +12,7 @@ module Applitools::Core
       @missing = results.fetch('missing', 0)
       @is_new = nil
       @url = nil
+      @original_results = results
     end
 
     def passed?
@@ -39,9 +42,11 @@ module Applitools::Core
 
     alias is_passed passed?
 
-    def to_s
+    def to_s(advanced = false)
       is_new_str = ''
       is_new_str = is_new ? 'New test' : 'Existing test' unless is_new.nil?
+
+      return @original_results.to_yaml if advanced
 
       "#{is_new_str} [ steps: #{steps}, matches: #{matches}, mismatches: #{mismatches}, missing: #{missing} ], " \
         "URL: #{url}"

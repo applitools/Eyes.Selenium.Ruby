@@ -27,7 +27,7 @@ module Applitools::Core
 
     attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
     attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings,
-      :scale_ratio, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size
+      :scale_ratio, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size, :verbose_results
 
     abstract_attr_accessor :base_agent_id, :inferred_environment
     abstract_method :capture_screenshot, true
@@ -47,6 +47,7 @@ module Applitools::Core
       self.last_screenshot = nil
       @user_inputs = UserInputArray.new
       self.app_output_provider = Object.new
+      self.verbose_results = false
 
       get_app_output_method = ->(r, s) { get_app_output_with_screenshot r, s }
 
@@ -247,7 +248,7 @@ module Applitools::Core
       results.is_new = is_new_session
       results.url = session_results_url
 
-      logger.info results
+      logger.info results.to_s(verbose_results)
 
       if results.failed?
         logger.error "--- Failed test ended. see details at #{session_results_url}"
