@@ -25,6 +25,11 @@ module Applitools::Core
     def_delegators 'Applitools::Connectivity::ServerConnector', :api_key, :api_key=, :server_url, :server_url=,
       :set_proxy, :proxy, :proxy=
 
+    # @!attribute [rw] verbose_results
+    #   If set to true it will display test results in verbose format, including all fields returned by the server
+    #   Default value is false.
+    #   @return [boolean] verbose_results flag
+
     attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
     attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings,
       :scale_ratio, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size, :verbose_results
