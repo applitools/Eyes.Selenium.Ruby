@@ -32,7 +32,7 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
     spec.add_development_dependency 'sauce'
     spec.add_dependency 'nokogiri', '~> 1.6.0'
-    spec.add_development_dependency 'appium_lib'
+    spec.add_development_dependency 'appium_lib', '< 9.1'
   end,
   RUBY_2_2_2 => proc do |spec|
     spec.add_development_dependency 'rubocop', ['<= 0.46.0']
