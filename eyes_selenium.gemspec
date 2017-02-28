@@ -22,14 +22,14 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'net-ssh', ['<= 3.0.0']
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
     spec.add_development_dependency 'sauce'
-    spec.add_dependency 'nokogiri', '<=1.7.0'
+    spec.add_dependency 'nokogiri', '~> 1.6.0'
   end,
   RUBY_2_0_0 => proc do |spec|
     spec.add_development_dependency 'rack', ['~> 1.6.0']
     spec.add_development_dependency 'rubocop', ['<= 0.46.0']
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
     spec.add_development_dependency 'sauce'
-    spec.add_dependency 'nokogiri', '<=1.7.0'
+    spec.add_dependency 'nokogiri', '~> 1.6.0'
   end,
   RUBY_2_2_2 => proc do |spec|
     spec.add_development_dependency 'rubocop', ['<= 0.46.0']
