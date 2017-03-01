@@ -8,8 +8,9 @@ CURRENT_RYBY_VERSION = Gem::Version.new RUBY_VERSION
 RUBY_1_9_3 = Gem::Version.new '1.9.3'
 RUBY_2_0_0 = Gem::Version.new '2.0.0'
 RUBY_2_2_2 = Gem::Version.new '2.2.2'
+RUBY_2_4_0 = Gem::Version.new '2.4.0'
 
-RUBY_KEY = [RUBY_1_9_3, RUBY_2_0_0, RUBY_2_2_2].select { |v| v <= CURRENT_RYBY_VERSION }.last
+RUBY_KEY = [RUBY_1_9_3, RUBY_2_0_0, RUBY_2_2_2, RUBY_2_4_0].select { |v| v <= CURRENT_RYBY_VERSION }.last
 
 EYES_GEM_SPECS = {
   RUBY_1_9_3 => proc do |spec|
@@ -20,23 +21,27 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'cmdparse', ['= 2.0.2']
     spec.add_development_dependency 'net-ssh', ['<= 3.0.0']
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
-    spec.add_development_dependency 'appium_lib'
-    spec.add_development_dependency 'public_suffix', ['< 1.5.0']
-    spec.add_development_dependency 'selenium-webdriver', ['< 3.0.0']
-    spec.add_development_dependency 'nokogiri', ['~> 1.6.0']
+    spec.add_development_dependency 'sauce'
+    spec.add_dependency 'nokogiri', '~> 1.6.0'
+    spec.add_dependency 'public_suffix', '< 1.5.0'
+    spec.add_dependency 'appium_lib', '< 9.1'
   end,
   RUBY_2_0_0 => proc do |spec|
     spec.add_development_dependency 'rack', ['~> 1.6.0']
     spec.add_development_dependency 'rubocop', ['<= 0.46.0']
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
-    spec.add_development_dependency 'appium_lib', ['= 9.0.0']
-    spec.add_dependency 'selenium-webdriver', '>= 2.45.0'
-    spec.add_development_dependency 'nokogiri', ['~> 1.6.0']
+    spec.add_development_dependency 'sauce'
+    spec.add_dependency 'nokogiri', '~> 1.6.0'
+    spec.add_development_dependency 'appium_lib', '< 9.1'
   end,
   RUBY_2_2_2 => proc do |spec|
     spec.add_development_dependency 'rubocop', ['<= 0.46.0']
+    spec.add_development_dependency 'sauce'
     spec.add_development_dependency 'appium_lib'
-    spec.add_dependency 'selenium-webdriver', '>= 2.45.0'
+  end,
+  RUBY_2_4_0 => proc do |spec|
+    spec.add_development_dependency 'appium_lib'
+    spec.add_development_dependency 'rubocop', ['<= 0.46.0']
   end
 }.freeze
 
@@ -68,6 +73,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'capybara'
   spec.add_development_dependency 'rspec', '>= 3'
   spec.add_development_dependency 'watir-webdriver'
+
   EYES_GEM_SPECS[RUBY_KEY].call spec
 
   # Exclude debugging support on Travis CI, due to its incompatibility with jruby and older rubies.

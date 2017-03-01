@@ -6,9 +6,6 @@ module Applitools::Selenium
   class Driver < SimpleDelegator
     extend Forwardable
 
-    include Selenium::WebDriver::DriverExtensions::HasInputDevices
-
-    # @!visibility private
     RIGHT_ANGLE = 90
     # @!visibility private
     IOS = 'IOS'.freeze
