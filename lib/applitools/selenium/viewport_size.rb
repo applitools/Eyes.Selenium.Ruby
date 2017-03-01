@@ -72,8 +72,10 @@ module Applitools::Selenium
 
       browser_size_calculation_count = 0
       while browser_size_calculation_count < BROWSER_SIZE_CALCULATION_RETRIES
-        raise Applitools::TestFailedError.new 'Failed to set browser size!' \
-        " (current size: #{browser_size})" unless resize_attempt
+        unless resize_attempt
+          raise Applitools::TestFailedError.new 'Failed to set browser size!' \
+            " (current size: #{browser_size})"
+        end
         browser_size_calculation_count += 1
         if viewport_size == size
           Applitools::EyesLogger.debug "Actual viewport size #{viewport_size}"
@@ -107,11 +109,12 @@ module Applitools::Selenium
       return dimension if dimension.is_a? ::Selenium::WebDriver::Dimension
       return Applitools::Base::Dimension.for(dimension) if dimension.respond_to?(:width) &
           dimension.respond_to?(:height)
-      return Applitools::Base::Dimension.new(
-        dimension[:width],
-        dimension[:height]
-      ) if dimension.is_a?(Hash) && (dimension.keys & [:width, :height]).size == 2
-
+      if dimension.is_a?(Hash) && (dimension.keys & [:width, :height]).size == 2
+        return Applitools::Base::Dimension.new(
+          dimension[:width],
+          dimension[:height]
+        )
+      end
       raise ArgumentError,
         "expected #{@dimension.inspect}:#{@dimension.class} to respond to #width and #height," \
         ' or be  a hash with these keys.'
