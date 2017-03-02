@@ -110,8 +110,8 @@ module Applitools::Selenium
         logger.info 'Getting image...'
 
         part_image = image_provider.take_screenshot
-        # part_image = scale_provider.scale_image part_image if scale_provider
-        # part_image = cut_provider.cut part_image if cut_provider
+        part_image = scale_provider.scale_image part_image if scale_provider
+        part_image = cut_provider.cut part_image if cut_provider
 
         logger.info 'Done!'
         begin
