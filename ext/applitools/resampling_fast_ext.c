@@ -32,7 +32,7 @@ BYTE interpolate_char(double t, BYTE c0, BYTE c1, BYTE c2, BYTE c3) {
   b = c0 - 2.5 * c1 + 2 * c2 - 0.5 * c3;
   c = 0.5 * c2 - 0.5 * c0;
   d = c1;
-  res = a * t * t * t + b * t * t + c * t + d + 0.5d;
+  res = a * t * t * t + b * t * t + c * t + d + 0.5;
   if(res < 0) {
     res = 0;
   } else if(res > 255) {
@@ -71,10 +71,10 @@ VALUE c_merge_pixels(VALUE self, VALUE pixels) {
   }
 
   if(real_colors > 0) {
-    new_r = (BYTE)(acum_r/real_colors + 0.5d);
-    new_g = (BYTE)(acum_g/real_colors + 0.5d);
-    new_b = (BYTE)(acum_b/real_colors + 0.5d);
+    new_r = (BYTE)(acum_r/real_colors + 0.5);
+    new_g = (BYTE)(acum_g/real_colors + 0.5);
+    new_b = (BYTE)(acum_b/real_colors + 0.5);
   }
-  new_a = (BYTE)(acum_a/(size - 1) + 0.5d);
+  new_a = (BYTE)(acum_a/(size - 1) + 0.5);
   return UINT2NUM(BUILD_PIXEL(new_r, new_g, new_b, new_a));
 }
