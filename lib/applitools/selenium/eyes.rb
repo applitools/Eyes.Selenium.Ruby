@@ -20,6 +20,36 @@ module Applitools::Selenium
     extend Forwardable
     # @!visibility public
 
+    class << self
+      def eyes_driver(driver, eyes = nil)
+        if driver.respond_to? :driver_for_eyes
+          driver.driver_for_eyes eyes
+        elsif driver.is_a? Capybara::Poltergeist::Driver
+          Applitools::Poltergeist::Driver.new(eyes, driver: driver)
+        else
+          unless driver.is_a?(Applitools::Selenium::Driver)
+            Applitools::EyesLogger.warn("Unrecognized driver type: (#{driver.class.name})!")
+            is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
+            Applitools::Selenium::Driver.new(eyes, driver: driver, is_mobile_device: is_mobile_device)
+          end
+          raise Applitools::EyesError.new "Unknown driver #{driver}!"
+        end
+      end
+
+      def set_viewport_size(driver, viewport_size)
+        Applitools::Core::ArgumentGuard.not_nil(driver, 'Driver')
+        Applitools::Core::ArgumentGuard.not_nil(viewport_size, 'viewport_size')
+        Applitools::Core::ArgumentGuard.is_a?(viewport_size, 'viewport_size', Applitools::Core::RectangleSize)
+        begin
+          Applitools::Utils::EyesSeleniumUtils.set_viewport_size eyes_driver(driver), viewport_size
+        rescue => e
+          Applitools::EyesLogger.error e.class
+          Applitools::EyesLogger.error e.message
+          raise Applitools::EyesError.new 'Failed to set viewport size!'
+        end
+      end
+    end
+
     # @!attribute [rw] force_full_page_screenshot
     #   Forces a full page screenshot (by scrolling and stitching) if the
     #   browser only supports viewport screenshots.
@@ -90,17 +120,19 @@ module Applitools::Selenium
         return driver
       end
 
-      if driver.respond_to? :driver_for_eyes
-        @driver = driver.driver_for_eyes self
-      elsif driver.is_a? Capybara::Poltergeist::Driver
-        @driver = Applitools::Poltergeist::Driver.new(self, driver: driver)
-      else
-        unless driver.is_a?(Applitools::Selenium::Driver)
-          logger.warn("Unrecognized driver type: (#{driver.class.name})!")
-          is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
-          @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
-        end
-      end
+      @driver = self.class.eyes_driver(driver, self)
+
+      # if driver.respond_to? :driver_for_eyes
+      #   @driver = driver.driver_for_eyes self
+      # elsif driver.is_a? Capybara::Poltergeist::Driver
+      #   @driver = Applitools::Poltergeist::Driver.new(self, driver: driver)
+      # else
+      #   unless driver.is_a?(Applitools::Selenium::Driver)
+      #     logger.warn("Unrecognized driver type: (#{driver.class.name})!")
+      #     is_mobile_device = driver.respond_to?(:capabilities) && driver.capabilities['platformName']
+      #     @driver = Applitools::Selenium::Driver.new(self, driver: driver, is_mobile_device: is_mobile_device)
+      #   end
+      # end
 
       self.device_pixel_ratio = UNKNOWN_DEVICE_PIXEL_RATIO
 
