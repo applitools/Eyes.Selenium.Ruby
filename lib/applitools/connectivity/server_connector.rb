@@ -26,6 +26,10 @@ module Applitools::Connectivity
 
     def server_url=(url)
       @server_url = url.nil? ? DEFAULT_SERVER_URL : url
+      unless @server_url.is_a? String
+        raise Applitools::EyesIllegalArgument.new 'You should pass server url as a String!' \
+          " (#{@server_url.class} is passed)"
+      end
       @endpoint_url = URI.join(@server_url, API_SESSIONS_RUNNING).to_s
     end
 

@@ -81,7 +81,7 @@ module Applitools::Selenium
     # Creates a new (possibly disabled) Eyes instance that interacts with the
     # Eyes Server at the specified url.
     # @param server_url The Eyes Server URL
-    def initialize(server_url = Applitools::Connectivity::ServerConnector::DEFAULT_SERVER_URL)
+    def initialize(server_url = nil)
       super
       self.base_agent_id = "eyes.selenium.ruby/#{Applitools::VERSION})".freeze
       self.check_frame_or_element = false

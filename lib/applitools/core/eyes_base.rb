@@ -217,9 +217,10 @@ module Applitools::Core
     end
 
     # Closes eyes
-    # @param [Boolean] throw_exception If set to +true+ eyes will trow [Applitools::TestFailedError] exception
+    # @param [Boolean] throw_exception If set to +true+ eyes will trow [Applitools::TestFailedError] exception,
+    # otherwise the test will pass. Default is true
 
-    def close(throw_exception = false)
+    def close(throw_exception = true)
       if disabled?
         logger.info "#{__method__} Ignored"
         return
