@@ -25,7 +25,6 @@ module Applitools::Core
       end
     end
 
-
     def cut(image)
       Applitools::Utils::ImageUtils.cut! image, crop_region(image)
     end
