@@ -30,8 +30,8 @@ module Applitools::Core
     #   Default value is false.
     #   @return [boolean] verbose_results flag
 
-    attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id
-    attr_accessor :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings,
+    attr_accessor :app_name, :baseline_name, :branch_name, :parent_branch_name, :batch, :agent_id, :full_agent_id,
+      :match_timeout, :save_new_tests, :save_failed_tests, :failure_reports, :default_match_settings, :cut_provider,
       :scale_ratio, :host_os, :host_app, :base_line_name, :position_provider, :viewport_size, :verbose_results
 
     abstract_attr_accessor :base_agent_id, :inferred_environment
@@ -283,7 +283,7 @@ module Applitools::Core
     private
 
     attr_accessor :running_session, :last_screenshot, :current_app_name, :test_name, :session_type,
-      :scale_provider, :cut_provider, :default_match_settings, :session_start_info,
+      :scale_provider, :default_match_settings, :session_start_info,
       :should_match_window_run_once_on_timeout, :app_output_provider
 
     attr_reader :user_inputs

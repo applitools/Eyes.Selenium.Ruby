@@ -59,6 +59,23 @@ module Applitools::Utils
       end
     end
 
+    # Cuts the image according to passed crop_region. The method mutates an image.
+    # @param [ChunkyPNG::Canvas] image The image to cut
+    # @param [Applitools::Core::Region] crop_region The region which represents cut bounds.
+    #   The area outside crop_region will be removed from the image.
+    def cut!(image, crop_region)
+      image.crop! crop_region.left, crop_region.top, crop_region.width, crop_region.height
+    end
+
+    # Cuts the image according to passed crop_region. The method returns new instance of the image
+    # without changing the source image.
+    # @param [ChunkyPNG::Canvas] image The image to cut
+    # @param [Applitools::Core::Region] crop_region The region which represents cut bounds.
+    #   The area outside crop_region will be removed from the image.
+    def cut(image, crop_region)
+      cut! image.dup, crop_region
+    end
+
     # Scales image by given +scale factor+ by modifying given image
     # @param [Applitools::Core::Screenshot] image An image to scale. (The source image will be modified
     #   by invoking the method)

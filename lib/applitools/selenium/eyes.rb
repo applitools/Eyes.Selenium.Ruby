@@ -456,7 +456,7 @@ module Applitools::Selenium
             origin_provider: position_provider,
             position_provider: position_provider,
             scale_provider: scale_provider,
-            cut_provider: nil,
+            cut_provider: cut_provider,
             wait_before_screenshots: wait_before_screenshots,
             eyes_screenshot_factory: eyes_screenshot_factory
           )
@@ -486,7 +486,7 @@ module Applitools::Selenium
                                   origin_provider: Applitools::Selenium::ScrollPositionProvider.new(driver),
                                   position_provider: position_provider,
                                   scale_provider: scale_provider,
-                                  cut_provider: nil,
+                                  cut_provider: cut_provider,
                                   wait_before_screenshots: wait_before_screenshots,
                                   eyes_screenshot_factory: eyes_screenshot_factory
 

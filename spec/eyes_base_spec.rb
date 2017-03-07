@@ -53,7 +53,9 @@ describe Applitools::Core::EyesBase do
     :position_provider,
     :position_provider=,
     :open_base,
-    :check_window_base
+    :check_window_base,
+    :cut_provider,
+    :cut_provider=
   ]
 
   it_should_behave_like 'has private method', [
