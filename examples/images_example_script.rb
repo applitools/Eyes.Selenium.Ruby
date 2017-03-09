@@ -1,8 +1,6 @@
-require_relative '../lib/eyes_selenium'
+# require_relative '../lib/eyes_selenium'
+require 'eyes_images'
 require 'logger'
-require 'openssl'
-
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
 eyes = Applitools::Images::Eyes.new
 eyes.api_key = ENV['APPLITOOLS_API_KEY']
