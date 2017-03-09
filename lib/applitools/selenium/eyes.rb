@@ -753,8 +753,8 @@ module Applitools::Selenium
       logger.info "check_region(element: element, #{match_timeout}, #{tag})"
 
       location_as_point = element.location
-      region_visibility_strategy.move_to_region position_provider, Applitools::Core::Location.new(location_as_point.x,
-        location_as_point.y)
+      region_visibility_strategy.move_to_region position_provider,
+        Applitools::Core::Location.new(location_as_point.x.to_i, location_as_point.y.to_i)
 
       region_provider = Object.new.tap do |prov|
         prov.instance_eval do
@@ -811,7 +811,7 @@ module Applitools::Selenium
 
       location_as_point = eyes_element.location
       region_visibility_strategy.move_to_region position_provider,
-        Applitools::Core::Location.new(location_as_point.x, location_as_point.y)
+        Applitools::Core::Location.new(location_as_point.x.to_i, location_as_point.y.to_i)
 
       original_overflow = nil
       original_position_provider = position_provider

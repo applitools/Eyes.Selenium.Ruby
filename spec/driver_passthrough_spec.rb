@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry'
 
 describe 'passthrough methods' do
   let(:static_file) { "file://#{File.dirname(__FILE__)}/fixtures/static_test_file.html" }

@@ -1,8 +1,6 @@
 require 'base64'
 require 'tempfile'
 
-require 'pry'
-
 module Applitools::Utils
   # @!visibility private
   QUADRANTS_COUNT = 4

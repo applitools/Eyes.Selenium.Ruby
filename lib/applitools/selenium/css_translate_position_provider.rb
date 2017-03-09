@@ -58,8 +58,8 @@ module Applitools::Selenium
       regexp = /^translate\(\s*(\-?)(\d+)px,\s*(\-?)(\d+)px\s*\)/
       data = regexp.match(transform)
       raise Applitools::EyesError.new "Can't parse CSS transition: #{transform}!" unless data
-      x = data[1].empty? ? data[2] : -1 * data[2]
-      y = data[3].empty? ? data[4] : -1 * data[4]
+      x = data[1].empty? ? data[2].to_i : -1 * data[2].to_i
+      y = data[3].empty? ? data[4].to_i : -1 * data[4].to_i
       Applitools::Core::Location.new(x, y)
     end
   end
