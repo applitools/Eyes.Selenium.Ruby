@@ -1,11 +1,11 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require 'applitools/selenium/version'
+require 'applitools/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'eyes_selenium'
-  spec.version       = Applitools::Selenium::VERSION
+  spec.version       = Applitools::VERSION
   spec.authors       = ['Applitools Team']
   spec.email         = ['team@applitools.com']
   spec.description   = 'Applitools Ruby Images SDK'
@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.license       = 'Apache License, Version 2.0'
 
   spec.files         = `git ls-files lib/applitools/selenium`.split($RS) +
-    ['lib/eyes_selenium.rb', 'lib/applitools/capybara.rb']
+    ['lib/eyes_selenium.rb', 'lib/applitools/capybara.rb', 'lib/applitools/version.rb']
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = %w(lib)
