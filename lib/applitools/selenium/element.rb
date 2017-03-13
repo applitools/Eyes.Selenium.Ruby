@@ -1,6 +1,34 @@
 module Applitools::Selenium
   class Element < SimpleDelegator
+    JS_GET_COMPUTED_STYLE_FORMATTED_STR = <<-JS.freeze
+       var elem = arguments[0];
+       var styleProp = '%s';
+       if (window.getComputedStyle) {
+       return window.getComputedStyle(elem, null)
+       .getPropertyValue(styleProp);
+       } else if (elem.currentStyle) {
+       return elem.currentStyle[styleProp];
+       } else {
+       return null;
+       };
+    JS
+
+    JS_GET_SCROLL_LEFT = 'return arguments[0].scrollLeft;'.freeze
+    JS_GET_SCROLL_TOP = 'return arguments[0].scrollTop;'.freeze
+    JS_GET_SCROLL_WIDTH = 'return arguments[0].scrollWidth;'.freeze
+    JS_GET_SCROLL_HEIGHT = 'return arguments[0].scrollHeight;'.freeze
+
+    JS_SCROLL_TO_FORMATTED_STR = <<-JS.freeze
+      arguments[0].scrollLeft = %d;
+      arguments[0].scrollTop = %d;
+    JS
+
+    JS_GET_OVERFLOW = 'return arguments[0].style.overflow;'.freeze
+    JS_SET_OVERFLOW_FORMATTED_STR = "arguments[0].style.overflow = '%s'".freeze
+
     TRACE_PREFIX = 'EyesWebElement'.freeze
+
+    # def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 
     def initialize(driver, element)
       super(element)
@@ -15,10 +43,8 @@ module Applitools::Selenium
     protected :web_element
 
     def click
-      current_control = region
-      offset = current_control.middle_offset
-      @driver.user_inputs << Applitools::Base::MouseTrigger.new(:click, current_control, offset)
-
+      @driver.add_mouse_trigger(Applitools::Core::MouseTrigger::MOUSE_ACTION[:click], self)
+      # logger.info "click(#{bounds})";
       web_element.click
     end
 
@@ -37,16 +63,14 @@ module Applitools::Selenium
     alias eql? ==
 
     def send_keys(*args)
-      current_control = region
       Selenium::WebDriver::Keys.encode(args).each do |key|
-        @driver.user_inputs << Applitools::Base::TextTrigger.new(key.to_s, current_control)
+        @driver.add_text_trigger(self, key.to_s)
       end
-
       web_element.send_keys(*args)
     end
     alias send_key send_keys
 
-    def region
+    def boubds
       point = location
       left = point.x
       top = point.y
@@ -81,6 +105,74 @@ module Applitools::Selenium
 
     def find_elements(*args)
       super(*args).map { |e| self.class.new driver, e }
+    end
+
+    def overflow
+      driver.execute_script(JS_GET_OVERFLOW, __getobj__).to_s
+    end
+
+    def overflow=(overflow)
+      driver.execute_script(JS_SET_OVERFLOW_FORMATTED_STR % overflow, self)
+    end
+
+    def computed_style(prop_style)
+      driver.execute_script(JS_GET_COMPUTED_STYLE_FORMATTED_STR % prop_style, self).to_s
+    end
+
+    def computed_style_integer(prop_style)
+      computed_style(prop_style).gsub(/px/, '').to_i.round
+    end
+
+    def border_left_width
+      computed_style_integer(:'border-left-width')
+    end
+
+    def border_top_width
+      computed_style_integer(:'border-top-width')
+    end
+
+    def border_right_width
+      computed_style_integer(:'border-right-width')
+    end
+
+    def border_bottom_width
+      computed_style_integer(:'border-bottom-width')
+    end
+
+    def padding_left_width
+      computed_style_integer(:'padding-left')
+    end
+
+    def padding_right_width
+      computed_style_integer(:'padding-right')
+    end
+
+    def padding_top_width
+      computed_style_integer(:'padding-top')
+    end
+
+    def padding_bottom_width
+      computed_style_integer(:'padding-bottom')
+    end
+
+    def scroll_left
+      Integer driver.execute_script(JS_GET_SCROLL_LEFT, self).to_s
+    end
+
+    def scroll_top
+      Integer driver.execute_script(JS_GET_SCROLL_TOP, self).to_s
+    end
+
+    def scroll_width
+      Integer driver.execute_script(JS_GET_SCROLL_WIDTH, self).to_s
+    end
+
+    def scroll_height
+      Integer driver.execute_script(JS_GET_SCROLL_HEIGHT, self).to_s
+    end
+
+    def scroll_to(location)
+      driver.execute_script format(JS_SCROLL_TO_FORMATTED_STR, location.x, location.y), self
     end
 
     private

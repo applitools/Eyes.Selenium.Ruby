@@ -1,3 +1,4 @@
+# @!visibility private
 module Applitools::MethodTracer
   def self.included(base)
     instance_methods = base.instance_methods(false) + base.private_instance_methods(false)

@@ -1,11 +1,11 @@
 require 'watir-webdriver'
-require 'eyes_selenium'
+require_relative '../lib/eyes_selenium'
 require 'logger'
 
 require 'openssl'
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 
-eyes = Applitools::Eyes.new
+eyes = Applitools::Selenium::Eyes.new
 eyes.api_key = ENV['APPLITOOLS_API_KEY']
 eyes.log_handler = Logger.new(STDOUT)
 
@@ -16,7 +16,7 @@ begin
     driver: browser.driver) do |driver|
     driver.get 'http://www.applitools.com'
     eyes.check_window('initial')
-    eyes.check_region(:css, '.pricing', 'Pricing button')
+    eyes.check_region(:css, '.pricing', tag: 'Pricing button')
     driver.find_element(:css, '.pricing a').click
     eyes.check_window('pricing page')
   end

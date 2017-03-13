@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  # @!visibility private
   class Browser
     JS_GET_USER_AGENT = <<-JS.freeze
       return navigator.userAgent;

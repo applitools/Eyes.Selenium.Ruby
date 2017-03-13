@@ -24,5 +24,9 @@ module Applitools::Poltergeist
     def size=(new_size)
       resize(new_size.width, new_size.height)
     end
+
+    # def switch_to(*args)
+    #   switch_to_frame(*args)
+    # end
   end
 end

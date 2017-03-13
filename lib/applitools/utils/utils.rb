@@ -34,6 +34,25 @@ module Applitools::Utils
     convert_hash_keys(hash, :camelcase)
   end
 
+  def boolean_value(value)
+    if value
+      true
+    else
+      false
+    end
+  end
+
+  def symbolize_keys(hash)
+    hash.each_with_object({}) do |(k, v), memo|
+      memo[k.to_sym] = v
+    end
+  end
+
+  def extract_options!(array)
+    return array.pop if array.last.instance_of? Hash
+    {}
+  end
+
   private
 
   def convert_hash_keys(value, method)

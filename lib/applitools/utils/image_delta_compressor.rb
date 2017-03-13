@@ -1,5 +1,3 @@
-require 'oily_png'
-
 module Applitools::Utils
   module ImageDeltaCompressor
     extend self

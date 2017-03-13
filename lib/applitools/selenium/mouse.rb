@@ -1,4 +1,5 @@
 module Applitools::Selenium
+  # @!visibility private
   class Mouse
     attr_reader :driver, :mouse
 

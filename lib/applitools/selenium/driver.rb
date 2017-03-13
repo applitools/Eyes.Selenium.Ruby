@@ -7,10 +7,14 @@ module Applitools::Selenium
     extend Forwardable
 
     RIGHT_ANGLE = 90
+    # @!visibility private
     IOS = 'IOS'.freeze
+    # @!visibility private
     ANDROID = 'ANDROID'.freeze
+    # @!visibility private
     LANDSCAPE = 'LANDSCAPE'.freeze
 
+    # Available finders
     FINDERS = {
       class: 'class name',
       class_name: 'class name',
@@ -26,9 +30,11 @@ module Applitools::Selenium
 
     attr_reader :browser
     attr_accessor :wait_before_screenshots
+    attr_accessor :rotation
 
-    def_delegators :@eyes, :user_inputs, :clear_user_inputs
+    def_delegators :@eyes, :add_mouse_trigger, :add_text_trigger
     def_delegators :@browser, :user_agent
+    def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
 
     # If driver is not provided, Applitools::Selenium::Driver will raise an EyesError exception.
     def initialize(eyes, options)
@@ -36,82 +42,87 @@ module Applitools::Selenium
       @is_mobile_device = options.fetch(:is_mobile_device, false)
       @wait_before_screenshots = 0
       @eyes = eyes
+      @frame_chain = Applitools::Selenium::FrameChain.new
       @browser = Applitools::Selenium::Browser.new(self, @eyes)
       Applitools::EyesLogger.warn '"screenshot_as" method not found!' unless driver.respond_to? :screenshot_as
     end
 
-    # Returns:
-    # +String+ The platform name or +nil+ if it is undefined.
+    # Executes javascript in browser context
+    # @raise [Applitools::EyesDriverOperationException]
+    def execute_script(*args)
+      raises_error { __getobj__.execute_script(*args) }
+    end
+
+    # @return [String] The platform name or +nil+ if it is undefined.
     def platform_name
       capabilities['platformName']
     end
 
-    # Returns:
-    # +String+ The platform version or +nil+ if it is undefined.
+    # @return [String] The platform version or +nil+ if it is undefined.
     def platform_version
       version = capabilities['platformVersion']
       version.nil? ? nil : version.to_s
     end
 
-    # Returns:
-    # +true+ if the driver orientation is landscape.
+    # Returns +true+ if the driver orientation is landscape.
     def landscape_orientation?
       driver.orientation.to_s.upcase == LANDSCAPE
     rescue NameError
       Applitools::EyesLogger.debug 'driver has no "orientation" attribute. Assuming: portrait.'
     end
 
-    # Returns:
-    # +true+ if the platform running the test is a mobile platform. +false+ otherwise.
+    # Returns +true+ if the platform running the test is a mobile platform. +false+ otherwise.
     def mobile_device?
       # We CAN'T check if the device is an +Appium::Driver+ since it is not a RemoteWebDriver. Because of that we use a
       # flag we got as an option in the constructor.
       @is_mobile_device
     end
 
-    ## Hide the main document's scrollbars and returns the original overflow value.
+    # Hide the main document's scrollbars and returns the original overflow value.
     def hide_scrollbars
       @browser.hide_scrollbars
     end
 
-    ## Set the overflow value for document element and return the original overflow value.
+    # Set the overflow value for document element and return the original overflow value.
     def overflow=(overflow)
       @browser.set_overflow(overflow)
     end
 
+    # Returns native driver
+    # @return Selenium::WebDriver
+    def remote_web_driver
+      driver
+    end
+
     alias set_overflow overflow=
 
-    # Return a normalized screenshot.
-    #
-    # +rotation+:: +Integer+|+nil+ The degrees by which to rotate the image: positive values = clockwise rotation,
-    #              negative values = counter-clockwise, 0 = force no rotation, +nil+ = rotate automatically when needed.
-    # +tag+:: +String|nil+ The tag specified for the test, used onle when +debug_screenshot+ is set to true
-    #
-    # Returns: +ChunkPng::Image+ A screenshot object, normalized by scale and rotation.
-    def get_screenshot(rotation = nil, tag = nil)
-      @tag_for_screenshot_debug = tag
-      @visible_screenshot_call_count = 0
-      image = mobile_device? || !@eyes.force_fullpage_screenshot ? visible_screenshot : @browser.fullpage_screenshot
-      Applitools::Selenium::Driver.normalize_image(self, image, rotation)
-      image
+    # Takes a screenshot
+    # @param [:Symbol] format A format to store screenshot (one of +:base64+ or +:png+)
+    # @return [String] A byte string, representing the screenshot
+    def screenshot_as(format)
+      raise "Invalid format (#{format}) passed! Available formats: :png, :base64" unless %i(base64 png).include? format
+      png_screenshot = driver.screenshot_as(:png)
+      yield png_screenshot if block_given?
+      screenshot = Applitools::Core::Screenshot.new(png_screenshot)
+      self.class.normalize_rotation(self, screenshot, rotation)
+      return Applitools::Utils::ImageUtils.base64_from_png_image(screenshot.restore) if format == :base64
+      screenshot.to_blob
     end
 
-    def visible_screenshot
-      Applitools::EyesLogger.debug "Waiting before screenshot: #{wait_before_screenshots} seconds..."
-      sleep(wait_before_screenshots)
-      Applitools::EyesLogger.debug 'Finished waiting.'
-      screenshot = driver.screenshot_as(:png)
-      save_image(screenshot) if @eyes.debug_screenshot
-      Applitools::Utils::ImageUtils::Screenshot.new screenshot
-    end
-
-    def mouse
-      Applitools::Selenium::Mouse.new(self, driver.mouse)
-    end
-
-    def keyboard
-      Applitools::Selenium::Keyboard.new(self, driver.keyboard)
-    end
+    # Finds an element, specified by +what+ parameter interpreting it in the way, specified in +how+ parameter
+    # @param [Symbol] how Defines the way that +what+ parameter will be interpreted (The type of selector). Can be one
+    #   of: +:class+, +:class_name+, +:css+, +:id+, +:link+, +:link_text+, +:name+, +:partial_link_text+, +:tag_name+,
+    #   +:xpath+
+    # @param [String] what The selector to find an element
+    # @example
+    #   driver.find_element :css, '.some_class'
+    # @example
+    #   driver.find_element :css => '.some_class'
+    # @example
+    #   driver.find_element :id, 'element_id'
+    # @raise [ArgumentError] if invalid finder (+how+) is passed
+    # @return [Applitools::Selenium::Element]
+    # @!parse def find_element(how, what); end
 
     def find_element(*args)
       how, what = extract_args(args)
@@ -122,6 +133,21 @@ module Applitools::Selenium
       Applitools::Selenium::Element.new(self, driver.find_element(how, what))
     end
 
+    # Finds elements, specified by +what+ parameter interpreting it in the way, specified in +how+ parameter
+    # @param [Symbol] how Defines the way that +what+ parameter will be interpreted (The type of selector). Can be one
+    #   of: +:class+, +:class_name+, +:css+, +:id+, +:link+, +:link_text+, +:name+, +:partial_link_text+, +:tag_name+,
+    #   +:xpath+
+    # @param [String] what The selector to find an element
+    # @example
+    #   driver.find_elements :css, '.some_class'
+    # @example
+    #   driver.find_elements :css => '.some_class'
+    # @example
+    #   driver.find_elements :id, 'element_id'
+    # @raise [ArgumentError] if invalid finder (+how+) is passed
+    # @return [ [Applitools::Selenium::Element] ]
+    # @!parse def find_elements(how, what); end
+
     def find_elements(*args)
       how, what = extract_args(args)
 
@@ -130,20 +156,63 @@ module Applitools::Selenium
       driver.find_elements(how, what).map { |el| Applitools::Selenium::Element.new(self, el) }
     end
 
+    # Returns +true+ if test is running on Android platform
     def android?
       platform_name.to_s.upcase == ANDROID
     end
 
+    # Returns +true+ if test is running on iOS platform
     def ios?
       platform_name.to_s.upcase == IOS
     end
 
+    # Returns a copy of current frame chain. Frame chain stores information about all parent frames,
+    #   including scroll offset an frame coordinates
+    def frame_chain
+      Applitools::Selenium::FrameChain.new other: @frame_chain
+    end
+
+    # Returns current frame chain. Frame chain stores information about all parent frames,
+    #   including scroll offset an frame coordinates
+    def frame_chain!
+      @frame_chain
+    end
+
+    # Gets +default_content_viewport_size+
+    # @param [Boolean] force_query if set to true, forces querying of viewport size from the browser,
+    #   otherwise returns cached value
+    # @return [Applitools::Core::RectangleSize]
+    def default_content_viewport_size(force_query = false)
+      logger.info('default_content_viewport_size()')
+      if cached_default_content_viewport_size && !force_query
+        logger.info "Using cached viewport_size #{cached_default_content_viewport_size}"
+        return cached_default_content_viewport_size
+      end
+
+      current_frames = frame_chain
+      switch_to.default_content unless current_frames.empty?
+      logger.info 'Extracting viewport size...'
+      @cached_default_content_viewport_size = Applitools::Utils::EyesSeleniumUtils.extract_viewport_size(self)
+      logger.info "Done! Viewport size is #{@cached_default_content_viewport_size}"
+
+      switch_to.frames(frame_chain: current_frames) unless current_frames.empty?
+      @cached_default_content_viewport_size
+    end
+
+    def switch_to
+      @switch_to ||= Applitools::Selenium::EyesTargetLocator.new(
+        self, driver.switch_to, FrameChangeEventListener.new(self)
+      )
+    end
+
     private
 
-    def save_image(image)
-      tag = (@tag_for_screenshot_debug || 'screenshot').gsub(/\s+/, '_')
-      screenshot = ChunkyPNG::Image.from_string(image)
-      screenshot.save("#{tag}_#{Time.now.strftime('%Y_%m_%d_%H_%M')}__#{@visible_screenshot_call_count += 1}.png")
+    attr_reader :cached_default_content_viewport_size
+
+    def raises_error
+      yield if block_given?
+    rescue => e
+      raise Applitools::EyesDriverOperationException.new e.message
     end
 
     def bridge
@@ -170,6 +239,53 @@ module Applitools::Selenium
       else
         raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
       end
+    end
+
+    # @!visibility private
+    class FrameChangeEventListener
+      extend Forwardable
+
+      def_delegators 'Applitools::EyesLogger', :logger, :log_handler, :log_handler=
+
+      def initialize(parent)
+        self.parent = parent
+      end
+
+      def will_switch_to_frame(target_type, target_frame)
+        logger.info 'will_switch_to_frame()'
+        case target_type
+        when :default_content
+          logger.info 'Default content.'
+          parent.frame_chain!.clear
+          return nil
+        when :parent_frame
+          logger.info 'Parent frame.'
+          return parent.frame_chain!.pop
+        when :frame
+          logger.info 'Frame.'
+          frame_location_size = Applitools::Selenium::BorderAwareElementContentLocationProvider.new target_frame
+
+          return parent.frame_chain!.push(
+            Applitools::Selenium::Frame.new(
+              reference: target_frame, frame_id: '',
+              location: Applitools::Core::Location.for(frame_location_size.location),
+              size: Applitools::Core::RectangleSize.for(frame_location_size.size),
+              parent_scroll_position: Applitools::Selenium::ScrollPositionProvider.new(parent).current_position
+            )
+          )
+        else
+          raise Applitools::EyesError.new('will_switch_to_frame(): target type is not recognized!')
+        end
+        logger.info 'Done!'
+      end
+
+      # def will_switch_to_window(name_or_handle)
+      #
+      # end
+
+      private
+
+      attr_accessor :parent
     end
 
     class << self
