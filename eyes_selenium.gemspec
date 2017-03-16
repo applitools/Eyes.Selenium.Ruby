@@ -24,7 +24,7 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'sauce'
     spec.add_dependency 'nokogiri', '~> 1.6.0'
     spec.add_dependency 'public_suffix', '< 1.5.0'
-    spec.add_dependency 'appium_lib', '< 9.1'
+    spec.add_dependency 'appium_lib', '< 9.1.0'
     spec.add_dependency 'oily_png', '~> 1.2'
   end,
   RUBY_2_0_0 => proc do |spec|
@@ -33,7 +33,7 @@ EYES_GEM_SPECS = {
     spec.add_development_dependency 'net-http-persistent', ['< 3.0.0']
     spec.add_development_dependency 'sauce'
     spec.add_dependency 'nokogiri', '~> 1.6.0'
-    spec.add_development_dependency 'appium_lib', '< 9.1'
+    spec.add_development_dependency 'appium_lib', '< 9.1.0'
     spec.add_dependency 'oily_png', '= 1.2.0'
   end,
   RUBY_2_2_2 => proc do |spec|
@@ -64,7 +64,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'selenium-webdriver', '>= 2.45.0'
+  spec.add_dependency 'selenium-webdriver'
   spec.add_dependency 'poltergeist', '~> 1.9'
   spec.add_dependency 'chunky_png', '= 1.3.6'
   spec.add_dependency 'faraday'
