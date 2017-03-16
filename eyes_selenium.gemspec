@@ -66,12 +66,12 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'chunky_png', '= 1.3.6'
   spec.add_dependency 'faraday'
   spec.add_dependency 'oj'
+  spec.add_dependency 'watir'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'capybara'
   spec.add_development_dependency 'rspec', '>= 3'
-  spec.add_development_dependency 'watir-webdriver'
 
   EYES_GEM_SPECS[RUBY_KEY].call spec
 

@@ -35,6 +35,7 @@ Applitools.require_dir 'poltergeist'
 require_relative 'applitools/eyes'
 require_relative 'applitools/selenium_webdriver'
 require_relative 'applitools/appium_driver'
+require_relative 'applitools/watir_browser'
 
 if defined? Sauce
   require 'applitools/sauce'
