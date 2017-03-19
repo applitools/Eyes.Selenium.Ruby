@@ -1,4 +1,5 @@
-require 'watir-webdriver'
+require 'rubygems'
+require 'watir'
 require 'eyes_selenium'
 require 'logger'
 
@@ -13,7 +14,7 @@ browser = Watir::Browser.new :chrome
 
 begin
   eyes.test(app_name: 'Ruby SDK', test_name: 'Applitools website test', viewport_size: { width: 900, height: 600 },
-    driver: browser.driver) do |driver|
+    driver: browser) do |driver|
     driver.get 'http://www.applitools.com'
     eyes.check_window('initial')
     eyes.check_region(:css, '.pricing', 'Pricing button')
