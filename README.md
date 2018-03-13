@@ -1,3 +1,6 @@
+# DEPRECATED 
+This repository is deprecated. Check out our updated repo: https://github.com/applitools/eyes.sdk.ruby .
+
 # Applitools
 
 [![Gem Version](https://badge.fury.io/rb/eyes_selenium.svg)](http://badge.fury.io/rb/eyes_selenium)
